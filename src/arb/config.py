@@ -171,4 +171,6 @@ class SimProfiles(ConfigModel):
 
 
 def load_sim_profiles(path: Path = Path("config/sim_profiles.yaml")) -> SimProfiles:
-    return SimProfiles.model_validate(yaml.safe_load(path.read_text()))
+    return SimProfiles.model_validate(
+        yaml.load(path.read_text(), Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader))
+    )

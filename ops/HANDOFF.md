@@ -110,3 +110,6 @@ escritor de pausa (mock), testes de propriedade, cobertura e preflight.
 
 ### BATCH-02 T-31
 Planted reproduz histórico nas 50 seeds; realistic/pessimistic 200 seeds cada sem erro. Distribuições/posições/summary determinísticos; docs/validation/sim-profiles.json. ADR-017 documenta hipóteses.
+
+### BATCH-02 T-32
+Grid 81 variantes × 2 perfis × 100 seeds; duas execuções JSON idênticas, regras validadas em memória e rules.yaml intacto. HTML local ordenável/Pareto. Hard cap não autoriza ultrapassar pausa nominal do simulador.

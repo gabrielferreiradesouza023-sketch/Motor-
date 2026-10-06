@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from arb.config import Rules
 from arb.db import Repository, connect, migrate
 from arb.metrics import cost_per_learning, rev_expected, spend_gross, waste_ratio
 from arb.models import Decision, MetricSnapshot, SaleEvent
@@ -78,10 +79,12 @@ class Run:
         }
 
 
-def run_lab(seed: int, budget_cents: int = 240000, *, profile: str = "planted") -> Run:
+def run_lab(
+    seed: int, budget_cents: int = 240000, *, profile: str = "planted", rules: Rules | None = None
+) -> Run:
     if budget_cents <= 0:
         raise ValueError("orçamento precisa ser positivo")
-    r = load_rules()
+    r = Rules.model_validate(rules.model_dump()) if rules else load_rules()
     budget_cents = min(budget_cents, r.controls.total_cap_cents)
     p = population(seed, profile=profile)
     run = Run(seed, p, profile=profile)

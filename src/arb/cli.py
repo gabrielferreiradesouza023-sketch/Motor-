@@ -515,3 +515,25 @@ def db_restore(backup: str, database: str = typer.Option(...)):
     except (ValueError, OSError) as exc:
         raise typer.BadParameter(str(exc)) from exc
     typer.echo(f"Restauração OK em banco novo: {target}")
+
+
+@sim_app.command("calibrate")
+def sim_calibrate(
+    seeds: int = 100,
+    workers: int = 4,
+    output: str = "docs/validation/calibration-grid.json",
+    report: str = "reports/calibration.html",
+):
+    import json
+    from pathlib import Path
+
+    from arb.sim.calibrate import calibrate, html_report
+
+    if seeds < 1:
+        raise typer.BadParameter("seeds precisa ser positivo")
+    result = calibrate(seeds=list(range(seeds)), workers=workers)
+    target = Path(output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    html_report(result, Path(report))
+    typer.echo(f"{len(result['rows'])} células; JSON: {target}; HTML: {report}")
