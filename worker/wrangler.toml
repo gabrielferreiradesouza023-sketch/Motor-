@@ -1,0 +1,13 @@
+name = "arb-event-worker"
+main = "src/index.ts"
+compatibility_date = "2026-10-05"
+
+[vars]
+ALLOWED_ORIGIN = "http://127.0.0.1:8000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arb-events"
+# Identificador somente para D1 local. Substituir por ID real antes de qualquer deploy.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

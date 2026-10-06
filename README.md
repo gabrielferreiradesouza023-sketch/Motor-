@@ -115,3 +115,39 @@ uv run arb scout rank --offers examples/scout/offers.csv --adlibrary examples/sc
 
 O resultado gera proposta `new_offer` em `ops/approvals/pending/`, sem aprovar automaticamente.
 Use o prompt versionado `src/arb/scout/collect_prompt.md` para a coleta assistida no navegador.
+
+## Worker local (F4)
+
+Node 24, npm e dependências fixadas em worker/package-lock.json. Execute na raiz:
+
+```bash
+npm --prefix worker --cache /workspace/.cache/npm ci --no-audit --no-fund
+npm --prefix worker run typecheck
+npm --prefix worker test
+export XDG_CONFIG_HOME=/workspace/.cache/config
+export WRANGLER_LOG_PATH=/workspace/.cache/wrangler/logs
+export WRANGLER_SEND_METRICS=false
+CI=1 npm --prefix worker run db:local
+npm --prefix worker run dev
+```
+
+O ID zero em wrangler.toml é exclusivo de D1 local; não executar deploy com esse ID.
+ALLOWED_ORIGIN deve corresponder exatamente à origem da ponte. POST /event tem CORS,
+validação de payload e limite persistido no D1 de 60 requisições por minuto/IP (hash).
+POST /sale exige X-Hotmart-Hottok correspondente a SALE_TOKEN. GET /export exige
+Authorization Bearer SYNC_TOKEN, com cursores/paginação. Tokens ausentes recusam acesso.
+A rota /health consulta D1; não basta uma porta aberta.
+
+Para os testes locais, crie **somente se não existir** `worker/.dev.vars` com valores
+sintéticos `SALE_TOKEN=local-sale-fixture-only` e `SYNC_TOKEN=local-sync-fixture-only`.
+Não sobrescrever configurações existentes. Nunca usar esses valores em produção.
+O arquivo é ignorado pelo Git e os valores são fixtures públicas sem credenciais reais.
+Depois de iniciar o Worker, execute `uv run python worker/test/smoke.py` para testar
+D1, origem, autenticação, repetição de eventos e rate limit. Repetir imediatamente pode
+exigir esperar a próxima janela de minuto do rate limit.
+
+A rota /sale aceita o contrato normalizado documentado no teste; o formato nativo do
+webhook Hotmart ainda depende de V-01. Não foi feito deploy, nem afirmado suporte real
+à conta Hotmart. Reembolso é um novo evento com novo id e o mesmo hotmart_tx_id.
+Wrangler pode avisar sobre Request.cf não disponível no proxy; o teste local usa o
+fallback documentado e não depende de metadados reais de borda.

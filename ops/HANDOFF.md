@@ -93,3 +93,6 @@ Correção da CLI do scout: --offers/--adlibrary agora são opções explícitas
 
 ### T-16 — 2026-10-06T01:56:45.646740+00:00
 Ponte estática mobile em espanhol com conteúdo educativo, CTA único, pixel/eventos e rastreio explícito; sem deploy. V-02 exige validar tracking_key real. Próximo: T-17.
+
+### T-17 — 2026-10-06T02:01:06.812852+00:00
+Worker/D1 local validado: typecheck, 2 testes Node e smoke funcional de origem/auth/idempotência/rate limit. Sem deploy. Tokens somente fixtures locais; webhook Hotmart nativo aguarda V-01. Próximo: T-18.
