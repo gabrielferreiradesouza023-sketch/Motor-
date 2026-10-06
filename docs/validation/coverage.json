@@ -1,0 +1,30 @@
+{
+  "basis": "(covered_lines + covered_branches) / (statements + branches)",
+  "modules": {
+    "arb": {
+      "percent": 88.07157057654075,
+      "minimum": 80
+    },
+    "arb.rules": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.metrics": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.launcher": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.safety": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.meta.pause": {
+      "percent": 100.0,
+      "minimum": 95
+    }
+  },
+  "failures": []
+}

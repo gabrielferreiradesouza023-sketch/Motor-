@@ -1,9 +1,11 @@
 import httpx
 from test_execute import setup_launch
+from test_safety import authorize
 
+from arb import safety
 from arb.db import Repository
 from arb.models import Action, SaleEvent
-from arb.scheduler.alerts import Telegram, collect, dispatch
+from arb.scheduler.alerts import Telegram, collect, dispatch, notification_hash
 
 
 def test_pending_unmatched_and_disabled_by_default(tmp_path, records):
@@ -33,7 +35,8 @@ def test_pending_unmatched_and_disabled_by_default(tmp_path, records):
         conn.close()
 
 
-def test_telegram_mock_success_and_sanitized_audit(tmp_path):
+def test_telegram_mock_success_and_sanitized_audit(tmp_path, monkeypatch):
+    monkeypatch.setattr(safety, "live_mode", lambda: True)
     conn, _, _, _ = setup_launch(tmp_path)
     calls = []
 
@@ -44,7 +47,13 @@ def test_telegram_mock_success_and_sanitized_audit(tmp_path):
     token = "12345:synthetic_fixture_only"  # pragma: allowlist secret (synthetic test fixture)
     try:
         with httpx.Client(transport=httpx.MockTransport(handler)) as client:
-            sender = Telegram(client, token, "123")
+            directory = tmp_path / "notification-approved"
+            authorize(
+                directory,
+                "notification",
+                notification_hash(["stale: dados atrasados"], "12345/123"),
+            )
+            sender = Telegram(client, token, "123", "signed", directory)
             result = dispatch(conn, "cycle", ["stale: dados atrasados"], sender=sender, send=True)
             assert result["status"] == "sent"
             assert (
@@ -58,7 +67,10 @@ def test_telegram_mock_success_and_sanitized_audit(tmp_path):
         conn.close()
 
 
-def test_uncertain_delivery_never_auto_retried(tmp_path):
+def test_uncertain_delivery_never_auto_retried(tmp_path, monkeypatch):
+    monkeypatch.setattr(safety, "live_mode", lambda: True)
+    directory = tmp_path / "notification-approved"
+    authorize(directory, "notification", notification_hash(["emergency: freio"]))
     conn, _, _, _ = setup_launch(tmp_path)
     calls = []
 
@@ -67,9 +79,28 @@ def test_uncertain_delivery_never_auto_retried(tmp_path):
         raise RuntimeError("error may contain credentials; must not persist")
 
     try:
-        result = dispatch(conn, "cycle", ["emergency: freio"], sender=broken, send=True)
+        result = dispatch(
+            conn,
+            "cycle",
+            ["emergency: freio"],
+            sender=broken,
+            send=True,
+            approval_id="signed",
+            approval_dir=directory,
+        )
         assert result["status"] == "uncertain"
-        assert dispatch(conn, "cycle", ["emergency: freio"], sender=broken, send=True) == result
+        assert (
+            dispatch(
+                conn,
+                "cycle",
+                ["emergency: freio"],
+                sender=broken,
+                send=True,
+                approval_id="signed",
+                approval_dir=directory,
+            )
+            == result
+        )
         assert len(calls) == 1
         assert "credentials" not in "\n".join(
             a.model_dump_json() for a in Repository(conn, Action).list()
@@ -78,7 +109,10 @@ def test_uncertain_delivery_never_auto_retried(tmp_path):
         conn.close()
 
 
-def test_telegram_redirect_error_not_followed():
+def test_telegram_redirect_error_not_followed(tmp_path, monkeypatch):
+    monkeypatch.setattr(safety, "live_mode", lambda: True)
+    directory = tmp_path / "approved"
+    authorize(directory, "notification", notification_hash(["stale: dados atrasados"], "12345/123"))
     calls = []
 
     def handler(request):
@@ -87,7 +121,19 @@ def test_telegram_redirect_error_not_followed():
 
     with httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True) as client:
         sender = Telegram(
-            client, "12345:synthetic_fixture_only", "123"
+            client, "12345:synthetic_fixture_only", "123", "signed", directory
         )  # pragma: allowlist secret (synthetic test fixture)
         assert not sender(["stale: dados atrasados"])
     assert len(calls) == 1
+
+
+def test_opt_in_cannot_bypass_guard(tmp_path):
+    import pytest
+
+    conn, _, _, _ = setup_launch(tmp_path)
+    try:
+        with pytest.raises(ValueError, match="LIVE_MODE=false"):
+            dispatch(conn, "cycle", ["alert"], sender=lambda _: True, send=True)
+        assert Repository(conn, Action).list() == []
+    finally:
+        conn.close()

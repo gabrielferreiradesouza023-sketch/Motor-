@@ -9,6 +9,7 @@ from arb.db import TABLES, Repository, connect, migrate, migration_catalog
 from arb.models import MODEL_TYPES, contract_name, contract_text
 
 INTEGRATION_VARIABLES = (
+    "APPROVAL_SIGNING_KEY",
     "META_ACCESS_TOKEN",
     "META_AD_ACCOUNT_ID",
     "CLOUDFLARE_API_TOKEN",
@@ -23,8 +24,11 @@ INTEGRATION_VARIABLES = (
 def diagnose(root: Path) -> tuple[list[str], list[str]]:
     errors = []
     warnings = []
-    live_mode = os.environ.get("LIVE_MODE", "false").lower()
-    if live_mode != "false":
+    from arb.launcher.execute import require_simulation
+
+    try:
+        require_simulation()
+    except ValueError:
         errors.append("LIVE_MODE precisa ser false na F0 (ausente usa false).")
     try:
         validate_config(root)

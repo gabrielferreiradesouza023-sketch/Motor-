@@ -1,0 +1,71 @@
+{
+  "pull_request": 28,
+  "base": "main a0b01be",
+  "tasks": [
+    {
+      "task": "T-31",
+      "commit": "9b5c4c6",
+      "checks": {
+        "worker": "success",
+        "gates": "success"
+      }
+    },
+    {
+      "task": "T-32",
+      "commit": "21f79c1",
+      "checks": {
+        "worker": "success",
+        "gates": "success"
+      }
+    },
+    {
+      "task": "T-33",
+      "commit": "bc3bddc",
+      "checks": {
+        "gates": "success",
+        "worker": "success"
+      }
+    },
+    {
+      "task": "T-34",
+      "commit": "867aeee",
+      "checks": {
+        "worker": "success",
+        "gates": "success"
+      }
+    },
+    {
+      "task": "T-35",
+      "commit": "245de91",
+      "checks": {
+        "gates": "success",
+        "worker": "success"
+      }
+    },
+    {
+      "task": "T-36",
+      "commit": "bb1193a",
+      "checks": {
+        "gates": "success",
+        "worker": "success"
+      }
+    },
+    {
+      "task": "T-37",
+      "commit": "07659c1",
+      "checks": {
+        "worker": "success",
+        "gates": "success"
+      }
+    },
+    {
+      "task": "T-38",
+      "commit": "1522219",
+      "checks": {
+        "worker": "success",
+        "gates": "success"
+      }
+    }
+  ],
+  "T-39": "Consultar checks do HEAD final do PR; ready somente ap\u00f3s ambos verdes."
+}

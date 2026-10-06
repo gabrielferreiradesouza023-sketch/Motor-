@@ -5,6 +5,7 @@ from test_execute import setup_launch
 
 from arb.db import Repository
 from arb.launcher.actions import activate, activation_intent, automatic, intent_hash, pause
+from arb.launcher.approval import sign
 from arb.launcher.execute import execute
 from arb.models import Action, Approval, Entity
 
@@ -25,6 +26,7 @@ def test_activation_separate_approval_pause_idempotent(tmp_path):
             status="approved",
             decided_at=datetime(2026, 1, 1, tzinfo=UTC),
         )
+        activation = sign(activation)
         (directory / "activate-human.json").write_text(activation.model_dump_json())
         action = activate(conn, entity.id, activation.id, approval_dir=directory)
         assert activate(conn, entity.id, activation.id, approval_dir=directory) == action

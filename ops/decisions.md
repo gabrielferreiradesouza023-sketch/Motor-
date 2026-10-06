@@ -147,3 +147,96 @@ clientes read-only com tokens sintéticos; conta/provedor não foram alterados.
 - Validação: 50 seeds inalteradas (50/50, 0 vencedores mortos, waste médio 0,93%).
 - Limite conhecido: o simulador planta um vencedor com margens irreais (checkout→compra
   30%); calibrar com parâmetros realistas antes de operar. Multiplicador é calibrável via ADR.
+
+## ADR-017 — Perfis diagnósticos uniformes (T-31)
+Faixas são hipóteses fornecidas no card T-31, não dados coletados nem estimativas
+estatísticas de mercado. Distribuições uniformes independentes por criativo, papéis
+compartilhados por ângulo. Realistic usa CPM R$8–20 e taxas sugeridas; pessimistic
+multiplica CPM por 1,25 e compra por 0,6. Vencedor/borderline são papéis relativos,
+sem garantia de lucro ou de passar portões. Seed sorteia posições, nenhuma calibração
+foi aplicada a rules.yaml. Planted conserva RNG/valores/algoritmo histórico, inclusive
+posição fixa para regressão; somente perfis diagnósticos sorteiam posições.
+
+
+## ADR-018 — Calibração G3 equilibrada
+Status: **Proposto** (decisão humana pendente; não aplicado).
+
+Fonte: docs/validation/calibration-proposal.md e células 040 dos dois perfis no grid.
+Recomendação: aumentar teto nominal a 3× comissão líquida e exigir 2 vendas mínimas,
+sem alterar ROI, EPC, CTR, teto rígido, tetos diários/cartão/conta/projeto.
+Tradeoff: maior acerto sintético e gasto total cerca de 13% maior; amostra menor e resultados
+pessimistas fracos não autorizam operação real. Alternativas e limitações no documento.
+
+Diff exato proposto para config/rules.yaml (apenas estes dois valores):
+```diff
+ gate_3:
+-  commission_cap_multiplier: 2
+-  min_sales: 3
++  commission_cap_multiplier: 3
++  min_sales: 2
+   min_roi: 0.30
+   epc_factor: 0.7
+   hard_cap_multiplier: 1.5
+```
+
+Até decisão humana permanecem as regras atuais. Não implementar este diff neste batch.
+
+
+## ADR-019 — Aprovação HMAC verificável
+Status: Aceito para implementação local; uso real depende do operador.
+
+Approval.signature opcional no contrato para propostas pending e registros legados, mas
+obrigatória no consumo de approved. HMAC-SHA256 do JSON UTF-8 canônico (sort_keys,
+separadores compactos, todos os campos incluindo id/status/data exceto signature).
+Verificação em tempo constante; launch e activate recusam alteração de qualquer campo,
+assinatura/chave ausente ou chave errada. Atualização pending→approved inclui assinatura.
+`arb approve sign` requer tty e confirmação de kind/exposição/hash/resumo; não sobrescreve.
+Não aceita pipelines/automação. `arb approve verify` não gera assinatura.
+
+APPROVAL_SIGNING_KEY existe exclusivamente no ambiente do humano/runtime sob seu controle;
+nunca deve ser disponibilizada a agentes ou neste cloud. Doctor só verifica presença por
+nome, com aviso em simulação. O humano deve executar assinatura/verificação em seu host:
+sem chave no cloud, launch/activate falham fechados até no dry-run. Testes sobrescrevem
+ambiente com fixture sintética. HMAC depende da proteção dessa chave: não substitui
+isolamento de host, limites do cartão/conta, ou revisão independente. Aprovações antigas
+sem assinatura precisam de nova decisão humana. Nenhuma chave real criada ou lida aqui.
+
+
+## ADR-020 — Guarda central e notificações autenticadas
+Status: Aceito para implementação; nenhum efeito real neste batch.
+
+arb.safety é a única leitura de LIVE_MODE para controles de execução. Simulação local
+recusa live; escrita externa recusa false/valor inválido e tipos fora da allowlist. Pause
+é a única exceção autônoma. Demais tipos exigem approved_file assinado, intenção exata,
+exposição e data. Guarda registra intenção sanitizada no logger; adaptadores persistem
+Actions antes do HTTP. Executor/ativador permanecem exclusivamente locais.
+
+Approval.kind ganha notification para não reaproveitar aprovação financeira em mensagens.
+A assinatura liga mensagem normalizada ao bot_id/chat_id (não ao token secreto); mudança
+de destinatário/conteúdo invalida autorização. Dispatch e Telegram direto passam pela
+guarda. Envio desabilitado continua idêntico; send=True agora exige modo/autorização
+explícitos. Testes antigos de opt-in usam apenas modo mockado e chaves/HTTP sintéticos.
+Idempotência e resultado uncertain sem retry continuam preservados. Sem mensagem real.
+
+Teste AST conserva allowlist por módulo/método: Telegram.__call__ e futuro PauseWriter.pause;
+recusa verbos de escrita, request dinâmico/desconhecido e aliases importados fora dela.
+É uma barreira estática conservadora, complementar à guarda e à revisão humana.
+
+
+## ADR-021 — Escritor Meta exclusivamente de pausa
+Status: Aceito para implementação/testes MockTransport; não validado em conta real.
+
+PauseWriter aceita somente id Graph numérico e payload exato status=PAUSED. Não oferece
+create/activate/budget/delete. Guarda central antes do POST, Bearer no header, redirects
+bloqueados, timeout e erros sanitizados (190/HTTP/transporte). Em false não constrói cliente
+real nem lê credenciais via factory. Cliente é lazy e fechado quando pertencente ao writer.
+Idempotência por estado já pausado/cache de ACK; falha nunca entra no cache.
+
+Panic conserva remote_pause_pending em simulação. No runtime humano autorizado, pausa
+locais e remotos: grava Action intent antes do HTTP e resultado append-only após ACK.
+Estado remoto local só muda após success=true; falha produz uncertain e requer leitura de
+reconciliação. Não há retry automático, ativação ou aumento real. Backup antigo pode
+ressuscitar estado ativo: ler/reconciliar antes de operação. Aprovação para gastar continua
+independente e não implementa executor de exposição real. Todos os testes deste batch
+injetam MockTransport e mockam a função de modo; nenhum LIVE_MODE=true operacional,
+credencial real ou chamada Meta real usada.

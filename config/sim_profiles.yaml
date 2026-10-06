@@ -1,0 +1,172 @@
+# HIPÓTESES uniformes; nenhum dado de mercado coletado. ADR-017.
+planted:
+  winner:
+    cpm_cents:
+    - 700
+    - 700
+    ctr:
+    - 0.025
+    - 0.025
+    hook:
+    - 0.4
+    - 0.4
+    checkout:
+    - 0.3
+    - 0.3
+    purchase:
+    - 0.3
+    - 0.3
+  borderline_winner:
+    cpm_cents:
+    - 1000
+    - 1000
+    ctr:
+    - 0.018
+    - 0.018
+    hook:
+    - 0.35
+    - 0.35
+    checkout:
+    - 0.04
+    - 0.04
+    purchase:
+    - 0.03
+    - 0.03
+  attention_trap:
+    cpm_cents:
+    - 1000
+    - 1000
+    ctr:
+    - 0.02
+    - 0.02
+    hook:
+    - 0.35
+    - 0.35
+    checkout:
+    - 0.24
+    - 0.24
+    purchase:
+    - 0.0
+    - 0.0
+  loser:
+    cpm_cents:
+    - 1000
+    - 1000
+    ctr:
+    - 0.002
+    - 0.006
+    hook:
+    - 0.18
+    - 0.18
+    checkout:
+    - 0.04
+    - 0.04
+    purchase:
+    - 0.01
+    - 0.01
+realistic:
+  winner:
+    cpm_cents:
+    - 800
+    - 1400
+    ctr: &id001
+    - 0.014
+    - 0.02
+    hook: &id002
+    - 0.3
+    - 0.4
+    checkout: &id003
+    - 0.18
+    - 0.25
+    purchase:
+    - 0.05
+    - 0.08
+  borderline_winner:
+    cpm_cents:
+    - 1000
+    - 1600
+    ctr: &id004
+    - 0.01
+    - 0.016
+    hook: &id005
+    - 0.25
+    - 0.35
+    checkout: &id006
+    - 0.12
+    - 0.2
+    purchase:
+    - 0.03
+    - 0.05
+  attention_trap:
+    cpm_cents:
+    - 800
+    - 2000
+    ctr: &id007
+    - 0.016
+    - 0.02
+    hook: &id008
+    - 0.3
+    - 0.4
+    checkout: &id009
+    - 0.15
+    - 0.25
+    purchase:
+    - 0.001
+    - 0.02
+  loser:
+    cpm_cents:
+    - 800
+    - 2000
+    ctr: &id010
+    - 0.006
+    - 0.012
+    hook: &id011
+    - 0.18
+    - 0.3
+    checkout: &id012
+    - 0.05
+    - 0.12
+    purchase:
+    - 0.02
+    - 0.04
+pessimistic:
+  winner:
+    cpm_cents:
+    - 1000
+    - 1750
+    ctr: *id001
+    hook: *id002
+    checkout: *id003
+    purchase:
+    - 0.03
+    - 0.048
+  borderline_winner:
+    cpm_cents:
+    - 1250
+    - 2000
+    ctr: *id004
+    hook: *id005
+    checkout: *id006
+    purchase:
+    - 0.018
+    - 0.03
+  attention_trap:
+    cpm_cents:
+    - 1000
+    - 2500
+    ctr: *id007
+    hook: *id008
+    checkout: *id009
+    purchase:
+    - 0.0006
+    - 0.012
+  loser:
+    cpm_cents:
+    - 1000
+    - 2500
+    ctr: *id010
+    hook: *id011
+    checkout: *id012
+    purchase:
+    - 0.012
+    - 0.024

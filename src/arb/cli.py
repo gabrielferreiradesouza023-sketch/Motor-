@@ -74,18 +74,22 @@ app.add_typer(sim_app, name="sim")
 
 
 @sim_app.command("run")
-def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
+def sim_run(
+    seed: int = 42, budget: int = 2400, database: str | None = None, profile: str = "planted"
+):
     """Budget em BRL inteiros. Persistência opcional em banco separado e novo."""
     import json
-    import os
     from pathlib import Path
 
+    from arb.launcher.execute import require_simulation
     from arb.sim.lab import persist, run_lab
 
-    if os.environ.get("LIVE_MODE", "false").lower() != "false":
-        raise typer.BadParameter("LIVE_MODE deve ser false")
     try:
-        run = run_lab(seed, budget * 100)
+        require_simulation()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    try:
+        run = run_lab(seed, budget * 100, profile=profile)
         if database:
             persist(run, Path(database))
     except ValueError as exc:
@@ -314,11 +318,14 @@ def sync_meta(
     import yaml
 
     from arb.db import connect, migrate
+    from arb.launcher.execute import require_simulation
     from arb.meta.read import MetaReadError, Reader
     from arb.meta.sync import sync
 
-    if os.environ.get("LIVE_MODE", "false").lower() != "false":
-        raise typer.BadParameter("LIVE_MODE precisa ser false")
+    try:
+        require_simulation()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     version = os.environ.get("META_API_VERSION") or yaml.safe_load(
         Path("config/settings.yaml").read_text()
     ).get("meta_api_version")
@@ -481,7 +488,7 @@ def scheduler_once(database: str = typer.Option(...), output: str = "reports", r
 
 @app.command("panic")
 def panic_command(database: str = "data/engine.db"):
-    """Pausa entidades simuladas; indica manualmente as pausas remotas pendentes."""
+    """Freio de pausa; simulação padrão mantém pausas remotas pendentes."""
     import json
     from pathlib import Path
 
@@ -513,3 +520,88 @@ def db_restore(backup: str, database: str = typer.Option(...)):
     except (ValueError, OSError) as exc:
         raise typer.BadParameter(str(exc)) from exc
     typer.echo(f"Restauração OK em banco novo: {target}")
+
+
+@sim_app.command("calibrate")
+def sim_calibrate(
+    seeds: int = 100,
+    workers: int = 4,
+    output: str = "docs/validation/calibration-grid.json",
+    report: str = "reports/calibration.html",
+):
+    import json
+    from pathlib import Path
+
+    from arb.sim.calibrate import calibrate, html_report
+
+    if seeds < 1:
+        raise typer.BadParameter("seeds precisa ser positivo")
+    result = calibrate(seeds=list(range(seeds)), workers=workers)
+    target = Path(output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    html_report(result, Path(report))
+    typer.echo(f"{len(result['rows'])} células; JSON: {target}; HTML: {report}")
+
+
+approve_app = typer.Typer(help="Aprovação interativa somente na máquina do humano")
+app.add_typer(approve_app, name="approve")
+
+
+@approve_app.command("sign")
+def approve_sign(file: str):
+    from pathlib import Path
+
+    from arb.launcher.approval import sign_file
+
+    try:
+        destination = sign_file(Path(file), typer.confirm)
+    except (ValueError, OSError):
+        raise typer.BadParameter(
+            "aprovação recusada: tty, proposta, confirmação ou chave"
+        ) from None
+    typer.echo(f"Aprovação humana assinada: {destination}")
+
+
+@approve_app.command("verify")
+def approve_verify(file: str):
+    from pathlib import Path
+
+    from arb.launcher.approval import verify
+    from arb.models import Approval
+
+    try:
+        approval = Approval.model_validate_json(Path(file).read_text())
+        verify(approval)
+        if approval.status != "approved" or approval.decided_at is None:
+            raise ValueError("decisão ausente")
+    except (ValueError, OSError):
+        raise typer.BadParameter(
+            "aprovação ou assinatura inválida; confira a chave humana"
+        ) from None
+    typer.echo("Assinatura humana válida")
+
+
+@app.command("preflight")
+def preflight_command(
+    json_output: bool = typer.Option(False, "--json"),
+    read_meta: bool = typer.Option(False, "--read-meta", help="GET real somente no host humano"),
+    database: str = "data/engine.db",
+    root: str = ".",
+):
+    """Inspeção antes do aceite F5/F6; não habilita escrita ou live."""
+    import json
+    from pathlib import Path
+
+    from arb.preflight import inspect
+
+    result = inspect(root=Path(root), database=Path(database), allow_meta_read=read_meta)
+    if json_output:
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        for check in result["checks"]:
+            typer.echo(f"{check['status'].upper()} {check['name']}: {check['message']}")
+            if check["fix"]:
+                typer.echo("  Correção: " + check["fix"])
+    if not result["ok"]:
+        raise typer.Exit(1)

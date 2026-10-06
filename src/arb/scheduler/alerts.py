@@ -12,7 +12,10 @@ from pathlib import Path
 import httpx
 
 from arb.db import Repository
+from arb.launcher.actions import intent_hash
+from arb.launcher.execute import store_approval
 from arb.models import Action, Approval, SaleEvent
+from arb.safety import require_external_write
 
 
 def collect(
@@ -42,6 +45,12 @@ def collect(
     return sorted(set(messages))
 
 
+def notification_hash(messages: list[str], destination: str = "injected") -> str:
+    return intent_hash(
+        {"kind": "notification", "messages": sorted(set(messages)), "destination": destination}
+    )
+
+
 @dataclass(repr=False)
 class Telegram:
     """Adaptador explicitamente injetado. A CLI não habilita nem cria cliente real.
@@ -53,6 +62,12 @@ class Telegram:
     client: httpx.Client = field(repr=False)
     token: str = field(repr=False)
     chat_id: str = field(repr=False)
+    approval_id: str | None = None
+    approval_dir: Path = Path("ops/approvals/approved")
+
+    @property
+    def destination(self) -> str:
+        return self.token.split(":", 1)[0] + "/" + self.chat_id
 
     def __post_init__(self):
         if not re.fullmatch(r"[0-9]+:[A-Za-z0-9_-]+", self.token):
@@ -61,6 +76,12 @@ class Telegram:
             raise ValueError("chat Telegram inválido")
 
     def __call__(self, messages: list[str]) -> bool:
+        require_external_write(
+            "notification",
+            self.approval_id,
+            approval_dir=self.approval_dir,
+            fingerprint=notification_hash(messages, self.destination),
+        )
         try:
             response = self.client.post(
                 f"https://api.telegram.org/bot{self.token}/sendMessage",
@@ -85,6 +106,8 @@ def dispatch(
     *,
     sender: Callable[[list[str]], bool] | None = None,
     send: bool = False,
+    approval_id: str | None = None,
+    approval_dir: Path = Path("ops/approvals/approved"),
     now: datetime | None = None,
 ) -> dict:
     if connection.in_transaction:
@@ -97,6 +120,17 @@ def dispatch(
     identity = hashlib.sha256(json.dumps([cycle_id, messages], sort_keys=True).encode()).hexdigest()
     action_id = "notification-" + identity
     now = now or datetime.now(UTC)
+    authorization = None
+    if send:
+        approval_id = approval_id or getattr(sender, "approval_id", None)
+        approval_dir = getattr(sender, "approval_dir", approval_dir)
+        authorization = require_external_write(
+            "notification",
+            approval_id,
+            approval_dir=approval_dir,
+            fingerprint=notification_hash(messages, getattr(sender, "destination", "injected")),
+            now=now,
+        ).approval
     connection.execute("BEGIN IMMEDIATE")
     try:
         existing = Repository(connection, Action).get(action_id)
@@ -104,6 +138,8 @@ def dispatch(
             connection.rollback()
             final = Repository(connection, Action).get(action_id + "-result")
             return {"status": final.result if final else existing.result, "count": len(messages)}
+        if authorization:
+            store_approval(connection, authorization)
         attempt = Action(
             id=action_id,
             ts=now,
@@ -111,6 +147,7 @@ def dispatch(
             kind="notification",
             payload_json={"cycle_id": cycle_id, "messages": messages},
             live=send,
+            approval_id=approval_id if send else None,
             result="uncertain" if send else "disabled",
         )
         Repository(connection, Action).add(attempt)
@@ -135,6 +172,7 @@ def dispatch(
                 kind="notification_result",
                 payload_json={"attempt_id": action_id, "count": len(messages)},
                 live=True,
+                approval_id=approval_id,
                 result=result,
             )
         )

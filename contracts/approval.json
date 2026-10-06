@@ -24,7 +24,8 @@
         "launch",
         "activate",
         "scale",
-        "new_offer"
+        "new_offer",
+        "notification"
       ],
       "title": "Kind",
       "type": "string"
@@ -38,6 +39,19 @@
       "pattern": "^[0-9a-f]{64}$",
       "title": "Plan Hash",
       "type": "string"
+    },
+    "signature": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Signature"
     },
     "status": {
       "enum": [
