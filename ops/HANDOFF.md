@@ -131,3 +131,6 @@ Guarda central única de LIVE_MODE, pausa autônoma e demais efeitos com assinat
 
 ### BATCH-02 T-36
 PauseWriter aceita só POST numérico status=PAUSED; modo false não cria transporte e factory não lê credenciais. MockTransport verifica payload, idempotência, 190/4xx/5xx/redirect/transporte sanitizados. Panic misto registra intent antes do HTTP e resultado append-only, falha mantém remoto ativo. 89 testes focados; ADR-021, sem API real.
+
+### BATCH-02 T-37
+Hypothesis derandomize: 13 propriedades parametrizadas (~1400 exemplos), 2,42s <30s; amostra/stale/monotonicidade/hard cap/pass, dinheiro inteiro/zero divisão/controles/escala. Encontrado e corrigido TypeError G3/T com vendas, cliques e bridge_views=0: EPC None não pode validar; teto rígido ainda mata. rules.yaml intacto.

@@ -85,6 +85,7 @@ def evaluate(
             metrics["roi_expected"] is not None
             and metrics["roi_expected"] >= rules.gate_3.min_roi
             and metrics["cpc_gross"] is not None
+            and metrics["epc"] is not None
             and metrics["cpc_gross"] <= metrics["epc"] * rules.gate_3.epc_factor
         ):
             verdict, rule_id, reason = "pass", f"g{gate}.pass", "Combo validado: vendas, ROI e CPC"
