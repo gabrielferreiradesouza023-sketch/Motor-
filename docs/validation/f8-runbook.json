@@ -1,0 +1,68 @@
+{
+  "mode": "simulation",
+  "checks": [
+    {
+      "command": "arb scout import --offers examples/scout/offers.csv --adlibrary examples/scout/adlibrary.csv --database data/runbook-check/creative.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb creative angles excel --database data/runbook-check/creative.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb creative copies candidate-1eda15b4fb2240ff3723 --region CO --database data/runbook-check/creative.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb creative render copy-54df02384efa3b954703 --database data/runbook-check/creative.db --output data/runbook-check/media",
+      "exit_code": 0
+    },
+    {
+      "command": "arb db backup --database data/runbook-check/creative.db --output data/runbook-check/backups",
+      "exit_code": 0
+    },
+    {
+      "command": "arb panic --database data/runbook-check/creative.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb db restore data/runbook-check/backups/engine-2026-10-06.db --database data/runbook-check/restored.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb panic --database data/runbook-check/restored.db",
+      "exit_code": 0
+    },
+    {
+      "command": "arb report --database data/runbook-check/restored.db --output data/runbook-check/report",
+      "exit_code": 0
+    },
+    {
+      "command": "arb scheduler simulate --database data/runbook-check/three-days.db --start 2026-10-02 --output data/runbook-check/cycles-report",
+      "exit_code": 0
+    },
+    {
+      "command": "arb scheduler once --database data/runbook-check/three-days.db --output data/runbook-check/cycles-report",
+      "exit_code": 0
+    }
+  ],
+  "render": {
+    "creative_id": "copy-54df02384efa3b954703",
+    "images": [
+      "/workspace/Motor-/data/runbook-check/media/89a63219baf618413d8b-1080x1350.png",
+      "/workspace/Motor-/data/runbook-check/media/89a63219baf618413d8b-1080x1920.png"
+    ],
+    "video": null,
+    "status": "candidate",
+    "safe_zone": {
+      "left": 120,
+      "right": 120,
+      "top": 200,
+      "bottom": 260
+    }
+  },
+  "cycles": 9,
+  "real_accounts_used": false,
+  "external_messages_sent": false,
+  "real_spend": 0
+}

@@ -477,3 +477,39 @@ def scheduler_once(database: str = typer.Option(...), output: str = "reports", r
         typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     finally:
         connection.close()
+
+
+@app.command("panic")
+def panic_command(database: str = "data/engine.db"):
+    """Pausa entidades simuladas; indica manualmente as pausas remotas pendentes."""
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.panic import panic
+
+    if not Path(database).is_file():
+        raise typer.BadParameter("Banco não encontrado")
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = panic(connection)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+        if result["remote_pause_pending"] or result["errors"]:
+            raise typer.Exit(1)
+    finally:
+        connection.close()
+
+
+@db_app.command("restore")
+def db_restore(backup: str, database: str = typer.Option(...)):
+    """Restaura backup validado em caminho novo; recusa sobrescrita."""
+    from pathlib import Path
+
+    from arb.db.restore import restore_new
+
+    try:
+        target = restore_new(Path(backup), Path(database))
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"Restauração OK em banco novo: {target}")

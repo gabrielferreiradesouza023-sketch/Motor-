@@ -126,3 +126,11 @@ Tentativa é registrada antes do envio: timeout/falha vira uncertain e não é r
 automaticamente, pois Telegram não oferece chave idempotente para sendMessage.
 Sem autorização/configuração real, dispatch é disabled, sem requisições externas.
 Falta/falha de alerta não compromete a execução anterior dos freios.
+
+## ADR-015 — Runbook exercitável sem exposição externa
+Panic só confirma pausas locais; entidades Meta observadas ficam remote_pause_pending,
+com código de saída 1. Restore usa backup SQLite consistente, valida contratos/checksums
+e publica atomicamente em caminho novo; recusa sobrescrita mesmo em concorrência.
+Restauração pode recuperar entidades ativas anteriores ao freio: exigir panic/revisão
+antes de voltar a usar a cópia. Rotação de token foi testada apenas por substituição de
+clientes read-only com tokens sintéticos; conta/provedor não foram alterados.

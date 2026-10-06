@@ -42,3 +42,7 @@ Fase: F_  |  Depende de: T-__
 - Branches com dependências devem explicitar a ordem de revisão nos PRs e no handoff.
 - O escopo foi ampliado após F0: seguir as fases em ordem. Não declarar F5 validada
   com conta real usando apenas testes simulados, nem avançar exposição real sem aprovação.
+
+- Autorização mais recente: avançar T-21–T-29 em desenvolvimento e simulação locais,
+  sem cadastros, gastos, deploys ou mensagens reais. ADR-010 documenta o escopo;
+  aceite real F5/F6 continua pendente e não bloqueia validação sintética F7/F8.
