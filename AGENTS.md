@@ -33,3 +33,12 @@ Fase: F_  |  Depende de: T-__
 ## Critérios de aceite
 ## Testes obrigatórios
 ```
+
+## Política de entrega definida pelo usuário
+
+- Sempre trabalhar em branch `codex/<tarefa>`. Não fazer push direto em `main`.
+- Ao pegar uma tarefa, fazer commit e push de `ops/LOCK` imediatamente.
+- Abrir PR para `main`; Claude revisa antes do merge. Não fazer merge automático.
+- Branches com dependências devem explicitar a ordem de revisão nos PRs e no handoff.
+- O escopo foi ampliado após F0: seguir as fases em ordem. Não declarar F5 validada
+  com conta real usando apenas testes simulados, nem avançar exposição real sem aprovação.

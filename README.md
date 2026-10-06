@@ -1,8 +1,9 @@
 # arb-engine
 
-Fundação F0 do motor descrito em [docs/arb-engine-spec-v1.md](docs/arb-engine-spec-v1.md).
+Motor com F0–F4 implementadas e validadas localmente, e F5 em validação, descrito em [docs/arb-engine-spec-v1.md](docs/arb-engine-spec-v1.md).
 Python 3.12, uv, Pydantic v2, Typer, SQLite, pytest e Ruff. Simulação é o padrão.
-Nenhuma integração externa, decisão de portão ou gasto de mídia está implementado.
+Regras, simulação, relatórios, scout e rastreio local implementados.
+Integração Meta real ainda não validada; não há executor de mídia ou gasto real.
 
 ## Preparar o desenvolvimento
 
@@ -47,7 +48,7 @@ futuras. Não fornecer credenciais para validar F0. `meta_api_version` aguarda V
 
 ## Persistência e contratos
 
-Nove modelos públicos em `arb.models`, com contratos determinísticos em `contracts/`.
+Quatorze contratos públicos em `arb.models`, com contratos determinísticos em `contracts/`.
 Centavos são inteiros não negativos; `price_local` também é centavos na moeda local.
 Timestamps exigem fuso horário; portões são strings `0`, `1`, `2`, `3`, `T`.
 As interpretações iniciais estão em `ops/decisions.md`.
@@ -69,24 +70,32 @@ finally:
 
 Cada modelo tem seu repositório tipado. Chave de snapshot: `(entity_id, ts)`; demais: `id`.
 Vendas têm `hotmart_tx_id` único; repetir inserção falha sem duplicar. Atualização de venda
-é suportada para reembolsos futuros; casamento/importação não está implementado.
+é suportada para reembolsos; importação CSV, casamento e sincronização do Worker estão implementados.
 Snapshots, decisões e ações são append-only também no SQL. Não há commit oculto no CRUD.
 
 `arb db backup` usa a API de backup do SQLite (inclui WAL), valida integridade e publica
 atomicamente. Uma segunda chamada no mesmo dia preserva a primeira cópia. Invocar diariamente
 quando houver operação; agendamento contínuo pertence à F8. F0 testa restauração em banco
 separado. Não sobrescrever o banco de trabalho nem restaurar com conexões abertas.
-Dados, backups, relatórios e artefatos locais são ignorados pelo Git. Os diretórios de fases
-futuras estão vazios de implementação.
+Dados, backups, relatórios e artefatos locais são ignorados pelo Git. Os diretórios de F6–F8 estão vazios de implementação.
 
 ## Quadro e próximo passo
 
-T-01 a T-04 ficam em `ops/board/review/` para revisão humana; T-05 a T-29 em `todo/`.
-F1 começa por T-05: fórmulas puras com divisão por zero retornando None. Depois:
-portões, controles, simulador e laboratório de 50 seeds. Aceite F1: encontrar o vencedor
-plantado em pelo menos 80% das seeds e waste_ratio médio abaixo de 10%.
-Nunca alterar rules.yaml sem ADR; nunca aumentar exposição sem aprovação.
-O runbook operacional completo (panic, tokens, operação contínua) pertence à T-29.
+T-01 a T-20 ficam em `ops/board/review/` para revisão humana; T-21 a T-29 em `todo/`.
+F5 tem código e testes locais, mas exige aceite com token, conta e versão reais antes da F6.
+F1 foi validada em 50 seeds: 100% de descoberta e waste médio 0,93%, sem calibrar regras.
+Resultados completos em `docs/validation/f1-50-seeds.json`. Esse cenário sintético não
+prevê lucro real. Nunca alterar rules.yaml sem ADR ou aumentar exposição sem aprovação.
+O runbook de operação contínua permanece em T-29.
+
+```bash
+uv run arb sim run --seed 42 --budget 2400 --database data/simulation-new.db
+uv run arb report --database data/simulation-new.db
+uv run arb library archive --database data/simulation-new.db
+uv run arb library query excel_produtividade --database data/simulation-new.db
+```
+
+Use banco novo para simulação; não sobrescrever dados existentes.
 
 ## Scout — coleta CSV (F3)
 
@@ -213,5 +222,5 @@ Trabalhar sempre em `codex/<tarefa>`, commit e push de ops/LOCK no início. Entr
 main e aguardar revisão do Claude antes do merge. Nunca fazer push direto em main.
 As branches deste lote são encadeadas por dependência; revisar/mesclar em ordem crescente.
 A F0 foi enviada a main antes desta instrução; nenhuma tarefa posterior foi enviada a main.
-A criação automática dos PRs foi bloqueada pelo proxy a api.github.com. Branch publicada
-não é PR aberto. Aplicar a inclusão do domínio nas configurações antes de retomar a abertura.
+A criação dos PRs foi bloqueada inicialmente pelo proxy a api.github.com; uma retentativa
+posterior funcionou. Links do lote em docs/validation/pull-requests.json. Nada foi mesclado.

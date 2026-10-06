@@ -1,107 +1,83 @@
-# Handoff — F0 concluída, aguardando revisão
+# Handoff — lote F1–F4 e implementação local da F5
 
-## Estado
-- Escopo entregue: somente T-01 a T-04 da especificação v1.0.
-- Checkout: /workspace/Motor-; pacote arb-engine, Python 3.12.14.
-- T-01 a T-04 em board/review; T-05 a T-29 em board/todo, um arquivo por tarefa.
-- LOCK liberado ao fim da sessão. Próximo agente deve seguir AGENTS.md.
+## Estado atual e bastão
+- F0 está em main (commit b38638c). Trabalho posterior somente em branches codex/.
+- T-01 a T-20 implementadas e entregues para review; F5 (T-19/T-20) SEM aceite real.
+- T-21 a T-29 em todo. Nenhuma escrita Meta, campanha, gasto, deploy ou merge realizado.
+- Branch final do lote: codex/t-20. Branches encadeadas: revisar e mesclar em ordem.
+- Política do usuário: branch codex/<tarefa>, commit/push de ops/LOCK no início;
+  PR para main; Claude revisa antes do merge. Nunca push direto em main.
+- LOCK vazio ao concluir esta sessão. Verificar também branches/PRs antes de começar.
+- Histórico da F0 e diário por tarefa preservados em docs/handoffs/f0-and-night-task-log.md.
 
-## O que foi feito
-- Estrutura da seção 8.1, seções 0 e 9 copiadas para AGENTS.md, CLAUDE.md,
-  especificação integral em docs/, .env.example, uv.lock e pre-commit detect-secrets.
-- Configurações iniciais dos portões, controles, política e settings; sem execução de regras.
-- Nove modelos Pydantic e JSON Schemas exportáveis por arb contracts export.
-- SQLite: migração 001 com checksum, FKs, venda única por hotmart_tx_id,
-  repositórios tipados e snapshots/decisões/ações append-only no SQL.
-- Backup consistente por API SQLite, um por dia UTC, retenção de sete dias,
-  validação de integridade e teste de restauração separado.
-- arb doctor: configurações, contratos, banco e modo seguro; banco ausente inicializado,
-  banco existente verificado somente leitura; lista nomes de credenciais faltantes.
-- CLI local: contracts export, db migrate, db backup, doctor.
+## Entregas
+- F1: métricas oficiais, portões 1/2/3/T, mínimos de amostra, teto, dados atrasados,
+  controles globais e laboratório com verdade plantada. regras.yaml não foi calibrado.
+- F2: P&L por dimensão/coorte, receita tardia/reembolso, reopened apenas no relatório,
+  relatório HTML móvel escapado com uma pergunta e biblioteca persistida de ângulos.
+- F3: importadores CSV estritos, filtros, ranking, top 3 em aprovação pending de exposição
+  zero e prompt versionado de coleta manual. Exemplos explicitamente sintéticos.
+- F4: ponte educativa em espanhol, Worker TS com D1, origem/auth/rate limit,
+  export paginado, vendas CSV, cursores atômicos, replay, casamento e reembolso.
+- F5 local: Graph exclusivamente GET, paginação/retry/rate limit, reconciliação humana,
+  deltas de insights cumulativos e correções negativas append-only. Coleta parcial grava
+  failed e last_collection retorna None; não liberar pass com coleta incompleta.
+- 14 contratos JSON Schema, migrações SQLite 001–004 e ADRs 001–009.
 
 ## Evidências
-- uv sync --frozen: sucesso (Python 3.12.14).
-- uv run ruff check: verde.
-- uv run pytest -q: 105 testes passaram, nenhum ignorado.
-- uv run arb doctor: verde; avisos apenas de variáveis de integrações futuras ausentes.
-- uv run arb db migrate e db backup: sucesso; repetição validada.
-- uv run pre-commit run --all-files: varredura de segredos verde.
-- Doctor em raiz temporária limpa: verde e repetível (teste automatizado).
-- Testes negativos cobrem contratos/config/banco inválidos, migração atômica,
-  FKs, rollback, venda duplicada, timestamps sem fuso e LIVE_MODE inseguro.
-- Nenhuma credencial real exigida, nenhum arquivo .env lido, nenhuma API chamada,
-  nenhuma escrita no Meta ou gasto de mídia.
+- 184 testes pytest passaram, sem skips; Ruff, doctor e pre-commit verdes.
+- F1 em 50 seeds: vencedor em 50/50, zero vencedores mortos, waste médio 0,9305%.
+  Dados por seed em docs/validation/f1-50-seeds.json; teste faz novamente o ensaio.
+- Worker: TypeScript verificado, 2 testes Node passaram e smoke funcional no D1 local:
+  origem inválida 403, auth ausente 401, idempotência e rate limit 429.
+- F4 E2E executou JS gerado (navegador simulado), chamadas reais ao Worker/D1 local,
+  visita→clique→venda falsa casada→replay sem duplicação→reembolso com receita zerada.
+  SDK externo do pixel foi substituído, nenhuma chamada Meta no E2E.
+- Banco/relatório/biblioteca de exemplo gerados localmente; outputs ficam ignorados.
+- CLI scout corrigida para opções documentadas e verificada por smoke automatizado.
 
-## Configuração cloud
-- install_script e start_skill salvos e confirmados no rascunho do ambiente.
-- Revisar/salvar em configurações e publicar pelo produto para ativar o snapshot.
-- Publicação e restauração em nova tarefa ainda não verificadas.
-- Caches uv/pre-commit usam /workspace/.cache porque HOME é somente leitura.
+## PRs e publicação
+- GitHub API bloqueou primeiro com 403; retentativa posterior funcionou, PRs abertos.
+- Lista de PRs do lote em docs/validation/pull-requests.json e no resumo da sessão.
+- Nenhum PR foi mesclado. Base main por instrução do usuário; dependências explícitas.
+- PRs encadeados incluem predecessores até seus merges; revisar na ordem T-05→T-20.
 
-## Próximo passo — F1 (não implementada)
-1. T-05: métricas puras da seção 4; zero no denominador retorna None.
-2. T-06: avaliador de portões, amostras mínimas, tetos e dados atrasados.
-3. T-07: freio de emergência, teto diário e checkpoints de stop-loss.
-4. T-08: simulador com verdade plantada e seeds reproduzíveis.
-5. T-09: arb sim run e ensaio de 50 seeds: vencedor encontrado >=80%,
-   waste_ratio médio <10%; eventual calibração de rules.yaml exige ADR.
+## Pendências que bloqueiam o avanço para F6
+- META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION ausentes na máquina.
+- F5 exige validar V-06 e executar arb sync meta em conta real BRL/São Paulo com
+  LIVE_MODE=false. Mapeamento explícito de anúncio desconhecido exige oferta e geo.
+- Testes Meta até aqui usam transporte HTTP simulado; não afirmar integração real.
+- V-01 webhook nativo Hotmart e V-02 parâmetro/limite de rastreio permanecem pendentes;
+  /sale recebe contrato normalizado de testes, sem adaptador nativo confirmado.
+- Nenhum deployment Cloudflare realizado. ID D1 zero é exclusivo do ambiente local.
 
-## Riscos e limites
-- F0 não oferece métricas, simulador, imports, relatórios, Worker ou integrações.
-- Credenciais de integração são opcionais na F0; validar requisitos nas fases próprias.
-- Graph API version permanece null até V-06/F5; não inventar versão.
-- V-01 a V-06 aguardam validação humana/nas fases pertinentes.
-- Modelo Action contém live bool conforme spec; nenhum executor real existe nesta fase.
-- Backup é invocado por comando; agendamento contínuo fica para T-27/F8.
-- Hook invoca uv run --frozen para funcionar também fora da venv; requer caches conforme README.
-- Todas as interpretações iniciais estão em ops/decisions.md (ADR-001/002).
+## Configuração cloud e segurança
+- install_script/start_skill atualizados no rascunho com setup Python e Worker local.
+- Domínios api.github.com e graph.facebook.com declarados; secret requirement
+  META_ACCESS_TOKEN e variáveis META_AD_ACCOUNT_ID/META_API_VERSION salvas sem valores.
+- Inserir valores em configurações do ambiente de forma segura, nunca no chat ou Git.
+  Revisar/salvar e publicar pelo produto; nova tarefa restaurada ainda não foi verificada.
+- Script install_script completo foi reexecutado com uv --frozen e npm ci; sucesso.
+- Worker local iniciado nesta sessão foi encerrado após validar E2E; start_skill descreve reinício.
+- Caches e logs usam /workspace/.cache; HOME não foi modificado. TLS/assinaturas mantidos.
+- worker/.dev.vars contém apenas fixtures locais criadas nesta sessão; é ignorado, não
+  imprimir ou sobrescrever arquivo existente. Nunca usar fixtures em produção.
+- Não ler .env, rodar LIVE_MODE=true, aumentar exposição ou refatorar fora da tarefa.
+- Aprovação real new_offer pode sinalizar hash como alta entropia no scanner de segredos;
+  auditar falso positivo específico antes de versionar, sem desativar proteção global.
 
-### T-05 — 2026-10-06T01:42:37.723952+00:00
-Métricas oficiais puras implementadas; dinheiro arredondado HALF_UP e divisões por zero retornam None. Próximo: T-06.
+## Próximo passo
+1. Claude revisa os PRs na ordem; resolver feedback nas respectivas branches.
+2. Preencher requisitos F5 via ambiente, validar versão/permissões V-06 e testar leitura real.
+3. Só após aceite F5, pegar T-21 em nova branch codex/t-21 e publicar LOCK imediatamente.
+4. T-21–T-23: launcher com hash/aprovação/idempotência e apenas pausa automática;
+   nenhum teste de exposição real sem arquivo humano aprovado e barreiras da seção 5.
+5. T-24–T-29: criativos, scheduler/alertas e runbook, ainda não implementados.
 
-### T-06 — 2026-10-06T01:43:29.206311+00:00
-Portões 1/2/3/T, mínimos de amostra, teto e dados atrasados implementados. Próximo: T-07.
-
-### T-07 — 2026-10-06T01:45:00.660152+00:00
-Controles globais e limite de escala implementados; ações reais permanecem inexistentes. Próximo: T-08.
-
-### T-08 — 2026-10-06T01:46:07.995207+00:00
-Gerador de população e tráfego sintético com verdade plantada e ruído implementado. Próximo: T-09.
-
-### T-09 — 2026-10-06T01:47:42.235473+00:00
-F1 validada em 50 seeds; resultados em docs/validation/f1-50-seeds.json, sem calibrar rules.yaml. CLI arb sim run e persistência opcional em banco novo. Próximo: F2/T-10.
-
-### T-10 — 2026-10-06T01:48:49.535753+00:00
-P&L por oferta/ângulo/criativo/geo/coorte, meta-métricas, receita tardia e reembolso testados. Aproximação de atribuição por coorte registrada em ADR-004. Próximo: T-11.
-
-### T-11 — 2026-10-06T01:50:29.384127+00:00
-Relatório HTML móvel a partir da F1, conteúdo escapado e uma única pergunta; latest mais cópia datada. Ordem temporal corrigida por teste de escaping. Próximo: T-12.
-
-### T-12 — 2026-10-06T01:51:24.939198+00:00
-F2 concluída: contrato AngleLearning, arquivo idempotente e consulta por nicho. Modelos/schema e migração registrados no ADR-005. Próximo: F3/T-13.
-
-### T-13 — 2026-10-06T01:52:52.930791+00:00
-Importadores CSV estritos e exemplos documentados; contratos de coleta gerados em ADR-006. Próximo: T-14.
-
-### T-14 — 2026-10-06T01:53:57.047934+00:00
-Portão 0: ranking, filtros e aprovação pending top 3 com exposição zero e hash determinístico; repetição testada. Próximo: T-15.
-
-### T-15 — 2026-10-06T01:54:33.110443+00:00
-F3 concluída: importação, triagem, top 3 e prompt versionado de coleta manual. Próximo: F4/T-16; V-01/V-02 seguem pendentes para integração real.
-### T-14 — 2026-10-06T01:55:30.776236+00:00
-Correção da CLI do scout: --offers/--adlibrary agora são opções explícitas e o fluxo documentado import→rank tem teste funcional. F3 validada.
-
-### T-16 — 2026-10-06T01:56:45.646740+00:00
-Ponte estática mobile em espanhol com conteúdo educativo, CTA único, pixel/eventos e rastreio explícito; sem deploy. V-02 exige validar tracking_key real. Próximo: T-17.
-
-### T-17 — 2026-10-06T02:01:06.812852+00:00
-Worker/D1 local validado: typecheck, 2 testes Node e smoke funcional de origem/auth/idempotência/rate limit. Sem deploy. Tokens somente fixtures locais; webhook Hotmart nativo aguarda V-01. Próximo: T-18.
-
-### T-18 — 2026-10-06T02:05:29.753599+00:00
-F4 E2E passou com JS da ponte e Worker/D1 reais locais: visita→clique→venda falsa casada→replay→reembolso. CSV, cursores atômicos, retomada e deduplicação testados. Sem deploy; V-01/V-02 pendentes. Próximo: F5/T-19.
-
-### T-19 — 2026-10-06T02:08:07.969923+00:00
-Cliente Graph exclusivamente GET implementado e testado com transporte simulado: paginação segura, retry, rate limit, token expirado e conta BRL/São Paulo. Leitura real bloqueada: token/conta/versão ausentes. Próximo: T-20; F5 ainda sem aceite real.
-
-### T-20 — 2026-10-06T02:12:34.981763+00:00
-Sync Meta somente GET: deltas cumulativos idempotentes, reconciliação humana, correções negativas append-only e rollback/failed em coleta incompleta. F1–F4 validadas localmente. F5 bloqueada no aceite real por token/conta/versão; F6–F8 intocadas. PRs pendentes por api.github.com bloqueado.
+## Limites conhecidos
+- Atribuição diária tardia usa coorte da primeira atividade, aproximação documentada em ADR-004.
+- O sucesso sintético não prevê lucro real; laboratório completo pode ter P&L negativo mesmo
+  encontrando um combo vencedor. Receita esperada não é reciclada no caixa.
+- Hook de vídeo via actions/video_view aguarda confirmação V-06 na versão Meta escolhida.
+- Snapshot.ts registra coleta; period_start permite atribuição diária do insight.
+- Reopened é indicador de revisão e não reativa anúncios.
