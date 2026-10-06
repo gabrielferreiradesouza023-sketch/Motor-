@@ -101,3 +101,9 @@ install_script/start_skill salvos no rascunho cloud, sem publicação automátic
 Entregue em `claude/inspiring-davinci-o0loro`, PR sobre `codex/t-29`. ADR-016: G3/T sem
 validação morre em 1,5 × teto mesmo com vendas. Próximo: simulador com parâmetros
 realistas e vencedores no limite para calibrar G3 (3 vendas dentro de ~R$ 102 é improvável).
+
+## BATCH-02 (planejado por Claude, executado por Codex)
+F0–F8 + T-30 mergeados na `main` (#24, #26); CI com render e Worker (#27). T-01–T-30 movidas
+para `board/done`. Próximo trabalho: `ops/batches/BATCH-02.md` (T-31–T-39) — simulador
+realista e calibração (sem alterar rules.yaml), aprovação assinada, guarda central de escrita,
+escritor de pausa (mock), testes de propriedade, cobertura e preflight.
