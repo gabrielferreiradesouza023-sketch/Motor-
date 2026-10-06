@@ -174,3 +174,40 @@ def scout_import(offers: str, adlibrary: str, database: str = "data/engine.db"):
     finally:
         connection.close()
     typer.echo(f"{len(intake)} ofertas importadas; {len(observations)} observações validadas")
+
+
+@scout_app.command("rank")
+def scout_rank(
+    offers: str,
+    adlibrary: str,
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scout import import_adlibrary, import_offers
+    from arb.scout.ranking import propose, rank
+
+    try:
+        ranked, rejected = rank(import_offers(Path(offers)), import_adlibrary(Path(adlibrary)))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        path = propose(connection, ranked, Path(output))
+    finally:
+        connection.close()
+    typer.echo(
+        json.dumps(
+            {
+                "ranking": [{"id": o.id, "score": o.score} for o in ranked],
+                "rejected": rejected,
+                "approval": str(path),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )

@@ -45,3 +45,11 @@
 - Importação CSV é estrita e atômica: cabeçalho exato, nenhuma coluna surpresa, duplicatas
   rejeitadas, inteiros monetários e booleanos true/false. Não armazenar credenciais nos CSVs.
 - Um anunciante contado por oferta; idade é calculada na data observada, não inventada.
+
+## ADR-007 — Normalização da pontuação (T-14)
+- Pesos positivos da spec somam 85: normalizar para 100 e aplicar penalidade de até 15.
+  Comissão líquida é saturada em R$100; prova de mercado em 5 anunciantes antigos.
+  São escalas iniciais explícitas, ainda sem dados reais de marketplace.
+- Os filtros usam comissão nominal mínima R$40 conforme texto do Portão 0.
+- Aprovação new_offer tem exposição zero e hash de ofertas completas. Ranking não aprova
+  ofertas, não cria campanha e não expande exposição. Preservar decisões existentes.

@@ -82,3 +82,6 @@ F2 concluída: contrato AngleLearning, arquivo idempotente e consulta por nicho.
 
 ### T-13 — 2026-10-06T01:52:52.930791+00:00
 Importadores CSV estritos e exemplos documentados; contratos de coleta gerados em ADR-006. Próximo: T-14.
+
+### T-14 — 2026-10-06T01:53:57.047934+00:00
+Portão 0: ranking, filtros e aprovação pending top 3 com exposição zero e hash determinístico; repetição testada. Próximo: T-15.
