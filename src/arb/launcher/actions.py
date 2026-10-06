@@ -7,24 +7,34 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from arb import safety
 from arb.db import Repository
 from arb.launcher.execute import approved_file, require_simulation, store_approval
+from arb.meta.pause import PauseWriter
 from arb.models import Action, Entity
 
 
 def pause(
-    connection: sqlite3.Connection, entity_id: str, *, reason: str, now: datetime | None = None
+    connection: sqlite3.Connection,
+    entity_id: str,
+    *,
+    reason: str,
+    now: datetime | None = None,
+    writer: PauseWriter | None = None,
 ) -> Action | None:
-    require_simulation()
+    live = safety.live_mode()
+    safety.require_external_write("pause", simulation=not live)
     if not reason.strip():
         raise ValueError("pausa precisa de motivo auditável")
     entity = Repository(connection, Entity).get(entity_id)
     if entity is None:
         raise ValueError("entidade desconhecida")
-    if entity.meta_id is not None:
+    if entity.meta_id is not None and not live:
         raise ValueError("pausa real pendente: não alterar estado observado da Meta localmente")
     if connection.in_transaction:
         raise ValueError("pausa requer conexão sem transação pendente")
+    if entity.meta_id is not None:
+        return _pause_remote(connection, entity, reason, now or datetime.now(UTC), writer)
     # Releitura dentro da transação impede duplicação em concorrência.
     connection.execute("BEGIN IMMEDIATE")
     try:
@@ -154,3 +164,66 @@ def automatic(connection: sqlite3.Connection, kind: str, entity_id: str, *, reas
             "somente pausa automática; criação/ativação/aumento exige aprovação humana"
         )
     return pause(connection, entity_id, reason=reason)
+
+
+def _pause_remote(connection, entity, reason, now, writer):
+    if entity.status == "paused":
+        return None
+    writer = writer or PauseWriter.from_environment()
+    identifier = str(uuid4())
+    intent = Action(
+        id=identifier,
+        ts=now,
+        actor="engine",
+        kind="pause",
+        payload_json={
+            "entity_id": entity.id,
+            "meta_id": entity.meta_id,
+            "input": {"status": entity.status},
+            "output": {"status": "PAUSED"},
+            "reason": reason,
+        },
+        live=True,
+        result="intent",
+    )
+    # Intenção durável ANTES de HTTP; falha/ACK incerto nunca falsifica estado local.
+    with connection:
+        Repository(connection, Action).add(intent)
+    try:
+        result = writer.pause(entity.meta_id)
+        if result["status"] not in {"paused", "already_paused"}:
+            raise ValueError("pausa desabilitada")
+    except Exception:
+        with connection:
+            Repository(connection, Action).add(
+                Action(
+                    id=identifier + "-result",
+                    ts=now,
+                    actor="engine",
+                    kind="pause_result",
+                    payload_json={"attempt_id": identifier, "entity_id": entity.id},
+                    live=True,
+                    result="uncertain",
+                )
+            )
+        raise ValueError("pausa remota não confirmada; conferir estado com leitura Meta") from None
+    with connection:
+        current = Repository(connection, Entity).get(entity.id)
+        current.status = "paused"
+        Repository(connection, Entity).update(current)
+        Repository(connection, Action).add(
+            Action(
+                id=identifier + "-result",
+                ts=now,
+                actor="engine",
+                kind="pause_result",
+                payload_json={
+                    "attempt_id": identifier,
+                    "entity_id": entity.id,
+                    "output": {"status": "PAUSED"},
+                },
+                live=True,
+                result="paused",
+            )
+        )
+    return intent

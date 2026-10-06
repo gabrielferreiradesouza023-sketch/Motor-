@@ -128,3 +128,6 @@ HMAC-SHA256 canônico em todos os campos, comparação constante e consumo fail-
 
 ### BATCH-02 T-35
 Guarda central única de LIVE_MODE, pausa autônoma e demais efeitos com assinatura/intenção exata; logger sanitizado. Telegram/dispatch opt-in protegidos, default disabled/idempotência preservados. ADR-020 e contrato notification. 102 testes focados verdes; matriz 56 casos e AST detecta HTTP plantado, aliases e request dinâmico.
+
+### BATCH-02 T-36
+PauseWriter aceita só POST numérico status=PAUSED; modo false não cria transporte e factory não lê credenciais. MockTransport verifica payload, idempotência, 190/4xx/5xx/redirect/transporte sanitizados. Panic misto registra intent antes do HTTP e resultado append-only, falha mantém remoto ativo. 89 testes focados; ADR-021, sem API real.

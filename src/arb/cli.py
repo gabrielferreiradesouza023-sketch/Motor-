@@ -488,7 +488,7 @@ def scheduler_once(database: str = typer.Option(...), output: str = "reports", r
 
 @app.command("panic")
 def panic_command(database: str = "data/engine.db"):
-    """Pausa entidades simuladas; indica manualmente as pausas remotas pendentes."""
+    """Freio de pausa; simulação padrão mantém pausas remotas pendentes."""
     import json
     from pathlib import Path
 

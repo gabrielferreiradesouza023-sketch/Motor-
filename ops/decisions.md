@@ -221,3 +221,22 @@ Idempotência e resultado uncertain sem retry continuam preservados. Sem mensage
 Teste AST conserva allowlist por módulo/método: Telegram.__call__ e futuro PauseWriter.pause;
 recusa verbos de escrita, request dinâmico/desconhecido e aliases importados fora dela.
 É uma barreira estática conservadora, complementar à guarda e à revisão humana.
+
+
+## ADR-021 — Escritor Meta exclusivamente de pausa
+Status: Aceito para implementação/testes MockTransport; não validado em conta real.
+
+PauseWriter aceita somente id Graph numérico e payload exato status=PAUSED. Não oferece
+create/activate/budget/delete. Guarda central antes do POST, Bearer no header, redirects
+bloqueados, timeout e erros sanitizados (190/HTTP/transporte). Em false não constrói cliente
+real nem lê credenciais via factory. Cliente é lazy e fechado quando pertencente ao writer.
+Idempotência por estado já pausado/cache de ACK; falha nunca entra no cache.
+
+Panic conserva remote_pause_pending em simulação. No runtime humano autorizado, pausa
+locais e remotos: grava Action intent antes do HTTP e resultado append-only após ACK.
+Estado remoto local só muda após success=true; falha produz uncertain e requer leitura de
+reconciliação. Não há retry automático, ativação ou aumento real. Backup antigo pode
+ressuscitar estado ativo: ler/reconciliar antes de operação. Aprovação para gastar continua
+independente e não implementa executor de exposição real. Todos os testes deste batch
+injetam MockTransport e mockam a função de modo; nenhum LIVE_MODE=true operacional,
+credencial real ou chamada Meta real usada.
