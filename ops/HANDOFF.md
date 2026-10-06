@@ -99,3 +99,6 @@ Worker/D1 local validado: typecheck, 2 testes Node e smoke funcional de origem/a
 
 ### T-18 — 2026-10-06T02:05:29.753599+00:00
 F4 E2E passou com JS da ponte e Worker/D1 reais locais: visita→clique→venda falsa casada→replay→reembolso. CSV, cursores atômicos, retomada e deduplicação testados. Sem deploy; V-01/V-02 pendentes. Próximo: F5/T-19.
+
+### T-19 — 2026-10-06T02:08:07.969923+00:00
+Cliente Graph exclusivamente GET implementado e testado com transporte simulado: paginação segura, retry, rate limit, token expirado e conta BRL/São Paulo. Leitura real bloqueada: token/conta/versão ausentes. Próximo: T-20; F5 ainda sem aceite real.
