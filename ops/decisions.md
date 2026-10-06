@@ -200,3 +200,24 @@ sem chave no cloud, launch/activate falham fechados até no dry-run. Testes sobr
 ambiente com fixture sintética. HMAC depende da proteção dessa chave: não substitui
 isolamento de host, limites do cartão/conta, ou revisão independente. Aprovações antigas
 sem assinatura precisam de nova decisão humana. Nenhuma chave real criada ou lida aqui.
+
+
+## ADR-020 — Guarda central e notificações autenticadas
+Status: Aceito para implementação; nenhum efeito real neste batch.
+
+arb.safety é a única leitura de LIVE_MODE para controles de execução. Simulação local
+recusa live; escrita externa recusa false/valor inválido e tipos fora da allowlist. Pause
+é a única exceção autônoma. Demais tipos exigem approved_file assinado, intenção exata,
+exposição e data. Guarda registra intenção sanitizada no logger; adaptadores persistem
+Actions antes do HTTP. Executor/ativador permanecem exclusivamente locais.
+
+Approval.kind ganha notification para não reaproveitar aprovação financeira em mensagens.
+A assinatura liga mensagem normalizada ao bot_id/chat_id (não ao token secreto); mudança
+de destinatário/conteúdo invalida autorização. Dispatch e Telegram direto passam pela
+guarda. Envio desabilitado continua idêntico; send=True agora exige modo/autorização
+explícitos. Testes antigos de opt-in usam apenas modo mockado e chaves/HTTP sintéticos.
+Idempotência e resultado uncertain sem retry continuam preservados. Sem mensagem real.
+
+Teste AST conserva allowlist por módulo/método: Telegram.__call__ e futuro PauseWriter.pause;
+recusa verbos de escrita, request dinâmico/desconhecido e aliases importados fora dela.
+É uma barreira estática conservadora, complementar à guarda e à revisão humana.

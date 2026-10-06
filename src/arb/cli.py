@@ -79,13 +79,15 @@ def sim_run(
 ):
     """Budget em BRL inteiros. Persistência opcional em banco separado e novo."""
     import json
-    import os
     from pathlib import Path
 
+    from arb.launcher.execute import require_simulation
     from arb.sim.lab import persist, run_lab
 
-    if os.environ.get("LIVE_MODE", "false").lower() != "false":
-        raise typer.BadParameter("LIVE_MODE deve ser false")
+    try:
+        require_simulation()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     try:
         run = run_lab(seed, budget * 100, profile=profile)
         if database:
@@ -316,11 +318,14 @@ def sync_meta(
     import yaml
 
     from arb.db import connect, migrate
+    from arb.launcher.execute import require_simulation
     from arb.meta.read import MetaReadError, Reader
     from arb.meta.sync import sync
 
-    if os.environ.get("LIVE_MODE", "false").lower() != "false":
-        raise typer.BadParameter("LIVE_MODE precisa ser false")
+    try:
+        require_simulation()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     version = os.environ.get("META_API_VERSION") or yaml.safe_load(
         Path("config/settings.yaml").read_text()
     ).get("meta_api_version")

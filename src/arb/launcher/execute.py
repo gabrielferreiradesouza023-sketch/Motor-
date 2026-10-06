@@ -1,6 +1,5 @@
 """Execução exclusivamente local. Arquivo humano aprovado é obrigatório até no dry-run."""
 
-import os
 import re
 import sqlite3
 from datetime import UTC, datetime
@@ -14,8 +13,9 @@ from arb.models import Action, Angle, Approval, Creative, Entity, LaunchPlan, Of
 
 
 def require_simulation() -> None:
-    if os.environ.get("LIVE_MODE", "false").lower() != "false":
-        raise ValueError("escrita live não implementada/permitida; LIVE_MODE precisa ser false")
+    from arb.safety import require_external_write
+
+    require_external_write("launch", simulation=True)
 
 
 def approved_file(

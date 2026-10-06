@@ -24,8 +24,11 @@ INTEGRATION_VARIABLES = (
 def diagnose(root: Path) -> tuple[list[str], list[str]]:
     errors = []
     warnings = []
-    live_mode = os.environ.get("LIVE_MODE", "false").lower()
-    if live_mode != "false":
+    from arb.launcher.execute import require_simulation
+
+    try:
+        require_simulation()
+    except ValueError:
         errors.append("LIVE_MODE precisa ser false na F0 (ausente usa false).")
     try:
         validate_config(root)

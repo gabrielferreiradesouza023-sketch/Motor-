@@ -24,7 +24,8 @@
         "launch",
         "activate",
         "scale",
-        "new_offer"
+        "new_offer",
+        "notification"
       ],
       "title": "Kind",
       "type": "string"

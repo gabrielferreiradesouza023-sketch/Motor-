@@ -125,3 +125,6 @@ Proposta com 3 opções e números rastreáveis (células 032/040/075), conta fi
 
 ### BATCH-02 T-34
 HMAC-SHA256 canônico em todos os campos, comparação constante e consumo fail-closed. CLI sign exige tty/confirmar e não sobrescreve; verify e aviso doctor. ADR-019/15 contratos atualizados. 50 testes focados verdes com chave sintética, incluindo adulteração de cada campo e launch/activate.
+
+### BATCH-02 T-35
+Guarda central única de LIVE_MODE, pausa autônoma e demais efeitos com assinatura/intenção exata; logger sanitizado. Telegram/dispatch opt-in protegidos, default disabled/idempotência preservados. ADR-020 e contrato notification. 102 testes focados verdes; matriz 56 casos e AST detecta HTTP plantado, aliases e request dinâmico.
