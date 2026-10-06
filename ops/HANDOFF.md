@@ -122,3 +122,6 @@ Grid 81 variantes × 2 perfis × 100 seeds; duas execuções JSON idênticas, re
 
 ### BATCH-02 T-33
 Proposta com 3 opções e números rastreáveis (células 032/040/075), conta financeira G3, ADR-018 Proposto com diff exato. Aplicação bloqueada por decisão humana registrada em Bloqueios; regras intactas.
+
+### BATCH-02 T-34
+HMAC-SHA256 canônico em todos os campos, comparação constante e consumo fail-closed. CLI sign exige tty/confirmar e não sobrescreve; verify e aviso doctor. ADR-019/15 contratos atualizados. 50 testes focados verdes com chave sintética, incluindo adulteração de cada campo e launch/activate.

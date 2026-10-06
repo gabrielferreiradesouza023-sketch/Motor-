@@ -537,3 +537,41 @@ def sim_calibrate(
     target.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
     html_report(result, Path(report))
     typer.echo(f"{len(result['rows'])} células; JSON: {target}; HTML: {report}")
+
+
+approve_app = typer.Typer(help="Aprovação interativa somente na máquina do humano")
+app.add_typer(approve_app, name="approve")
+
+
+@approve_app.command("sign")
+def approve_sign(file: str):
+    from pathlib import Path
+
+    from arb.launcher.approval import sign_file
+
+    try:
+        destination = sign_file(Path(file), typer.confirm)
+    except (ValueError, OSError):
+        raise typer.BadParameter(
+            "aprovação recusada: tty, proposta, confirmação ou chave"
+        ) from None
+    typer.echo(f"Aprovação humana assinada: {destination}")
+
+
+@approve_app.command("verify")
+def approve_verify(file: str):
+    from pathlib import Path
+
+    from arb.launcher.approval import verify
+    from arb.models import Approval
+
+    try:
+        approval = Approval.model_validate_json(Path(file).read_text())
+        verify(approval)
+        if approval.status != "approved" or approval.decided_at is None:
+            raise ValueError("decisão ausente")
+    except (ValueError, OSError):
+        raise typer.BadParameter(
+            "aprovação ou assinatura inválida; confira a chave humana"
+        ) from None
+    typer.echo("Assinatura humana válida")

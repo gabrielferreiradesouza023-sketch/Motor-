@@ -9,6 +9,7 @@ from arb.db import TABLES, Repository, connect, migrate, migration_catalog
 from arb.models import MODEL_TYPES, contract_name, contract_text
 
 INTEGRATION_VARIABLES = (
+    "APPROVAL_SIGNING_KEY",
     "META_ACCESS_TOKEN",
     "META_AD_ACCOUNT_ID",
     "CLOUDFLARE_API_TOKEN",

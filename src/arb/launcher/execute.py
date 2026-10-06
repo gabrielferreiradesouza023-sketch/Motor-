@@ -9,6 +9,7 @@ from tempfile import NamedTemporaryFile
 
 from arb.db import Repository
 from arb.launcher import plan_hash, serialize, validate_plan
+from arb.launcher.approval import verify
 from arb.models import Action, Angle, Approval, Creative, Entity, LaunchPlan, Offer
 
 
@@ -36,6 +37,7 @@ def approved_file(
         or approval.decided_at > now
     ):
         raise ValueError("aprovação inválida: tipo, hash, exposição, status ou data")
+    verify(approval)
     return approval
 
 
@@ -49,7 +51,13 @@ def store_approval(connection: sqlite3.Connection, approval: Approval) -> None:
     elif (
         existing.status == "pending"
         and existing.decided_at is None
-        and existing.model_copy(update={"status": "approved", "decided_at": approval.decided_at})
+        and existing.model_copy(
+            update={
+                "status": "approved",
+                "decided_at": approval.decided_at,
+                "signature": approval.signature,
+            }
+        )
         == approval
     ):
         repo.update(approval)

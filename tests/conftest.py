@@ -113,3 +113,9 @@ def records():
             result="simulated",
         ),
     ]
+
+
+@pytest.fixture(autouse=True)
+def synthetic_approval_key(monkeypatch):
+    # Substitui o ambiente antes de qualquer teste; nunca usa chave de produção.
+    monkeypatch.setenv("APPROVAL_SIGNING_KEY", "synthetic-fixture-hmac-not-a-real-key")

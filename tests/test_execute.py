@@ -5,6 +5,7 @@ from test_plan import launch_fixture
 
 from arb.db import Repository, connect, migrate
 from arb.launcher import plan, plan_hash
+from arb.launcher.approval import sign
 from arb.launcher.execute import execute
 from arb.models import Action, Angle, Approval, Creative, Entity, Offer
 
@@ -38,6 +39,7 @@ def setup_launch(tmp_path):
         status="approved",
         decided_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
+    approval = sign(approval)
     (directory / "human.json").write_text(approval.model_dump_json())
     return connection, value, approval, directory
 

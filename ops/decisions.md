@@ -180,3 +180,23 @@ Diff exato proposto para config/rules.yaml (apenas estes dois valores):
 ```
 
 Até decisão humana permanecem as regras atuais. Não implementar este diff neste batch.
+
+
+## ADR-019 — Aprovação HMAC verificável
+Status: Aceito para implementação local; uso real depende do operador.
+
+Approval.signature opcional no contrato para propostas pending e registros legados, mas
+obrigatória no consumo de approved. HMAC-SHA256 do JSON UTF-8 canônico (sort_keys,
+separadores compactos, todos os campos incluindo id/status/data exceto signature).
+Verificação em tempo constante; launch e activate recusam alteração de qualquer campo,
+assinatura/chave ausente ou chave errada. Atualização pending→approved inclui assinatura.
+`arb approve sign` requer tty e confirmação de kind/exposição/hash/resumo; não sobrescreve.
+Não aceita pipelines/automação. `arb approve verify` não gera assinatura.
+
+APPROVAL_SIGNING_KEY existe exclusivamente no ambiente do humano/runtime sob seu controle;
+nunca deve ser disponibilizada a agentes ou neste cloud. Doctor só verifica presença por
+nome, com aviso em simulação. O humano deve executar assinatura/verificação em seu host:
+sem chave no cloud, launch/activate falham fechados até no dry-run. Testes sobrescrevem
+ambiente com fixture sintética. HMAC depende da proteção dessa chave: não substitui
+isolamento de host, limites do cartão/conta, ou revisão independente. Aprovações antigas
+sem assinatura precisam de nova decisão humana. Nenhuma chave real criada ou lida aqui.
