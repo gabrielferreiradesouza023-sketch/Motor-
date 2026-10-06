@@ -1,0 +1,108 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "angle_id": {
+      "minLength": 1,
+      "title": "Angle Id",
+      "type": "string"
+    },
+    "archived_at": {
+      "format": "date-time",
+      "title": "Archived At",
+      "type": "string"
+    },
+    "audience_pain": {
+      "minLength": 1,
+      "title": "Audience Pain",
+      "type": "string"
+    },
+    "formats": {
+      "items": {
+        "enum": [
+          "image",
+          "video"
+        ],
+        "type": "string"
+      },
+      "title": "Formats",
+      "type": "array"
+    },
+    "gate": {
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "T"
+      ],
+      "title": "Gate",
+      "type": "string"
+    },
+    "geo": {
+      "pattern": "^[A-Z]{2}$",
+      "title": "Geo",
+      "type": "string"
+    },
+    "hook_line": {
+      "minLength": 1,
+      "title": "Hook Line",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "metrics_json": {
+      "additionalProperties": true,
+      "title": "Metrics Json",
+      "type": "object"
+    },
+    "niche": {
+      "minLength": 1,
+      "title": "Niche",
+      "type": "string"
+    },
+    "offer_id": {
+      "minLength": 1,
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "promise": {
+      "minLength": 1,
+      "title": "Promise",
+      "type": "string"
+    },
+    "reason": {
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "kill"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "angle_id",
+    "offer_id",
+    "niche",
+    "promise",
+    "audience_pain",
+    "hook_line",
+    "formats",
+    "geo",
+    "gate",
+    "verdict",
+    "metrics_json",
+    "reason",
+    "archived_at"
+  ],
+  "title": "AngleLearning",
+  "type": "object"
+}

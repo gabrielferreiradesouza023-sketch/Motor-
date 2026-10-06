@@ -10,6 +10,7 @@ from typing import TypeVar
 from arb.models import (
     Action,
     Angle,
+    AngleLearning,
     Approval,
     Creative,
     Decision,
@@ -24,6 +25,7 @@ MIGRATIONS = Path(__file__).parent / "migrations"
 T = TypeVar("T", bound=Model)
 # Nome de tabela, chave pública e colunas relacionais. Nunca interpolar entrada do usuário.
 TABLES = {
+    AngleLearning: ("angle_library", ("id",), ("angle_id", "offer_id")),
     Offer: ("offers", ("id",), ()),
     Angle: ("angles", ("id",), ("offer_id",)),
     Creative: ("creatives", ("id",), ("angle_id",)),

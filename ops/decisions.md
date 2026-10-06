@@ -32,3 +32,9 @@
   É uma aproximação explícita; atribuição real por clique requer contrato/ADR futuro.
 - Reopened é indicador no relatório para entidade morta cujo ROI se tornou positivo;
   não reativa anúncios automaticamente. Receita esperada não retorna ao caixa disponível.
+
+## ADR-005 — Contrato da biblioteca de ângulos (T-12)
+- Adicionar AngleLearning como contrato público e migração 002 para registros por ângulo/geo.
+- Arquivar só ângulos pausados com kill ou pass do Portão 3/T. Hold não é veredito encerrado.
+- Consulta por nicho mantém contexto, formato, métricas e motivo. Repetir archive atualiza a
+  mesma chave e não duplica aprendizado. Decisões originais continuam append-only.

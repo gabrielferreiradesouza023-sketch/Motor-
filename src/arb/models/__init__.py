@@ -130,6 +130,23 @@ class Action(Model):
     result: Identifier
 
 
+class AngleLearning(Model):
+    id: Identifier
+    angle_id: Identifier
+    offer_id: Identifier
+    niche: Identifier
+    promise: Identifier
+    audience_pain: Identifier
+    hook_line: Identifier
+    formats: list[Literal["image", "video"]]
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    gate: Gate
+    verdict: Literal["pass", "kill"]
+    metrics_json: dict[str, Any]
+    reason: Identifier
+    archived_at: datetime
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -140,6 +157,7 @@ MODEL_TYPES = (
     Decision,
     Approval,
     Action,
+    AngleLearning,
 )
 
 

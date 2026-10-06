@@ -77,7 +77,7 @@ def test_contract_export_deterministic(tmp_path):
     result = CliRunner().invoke(app, ["contracts", "export", "--output", str(tmp_path)])
     assert result.exit_code == 0, result.output
     first = {p.name: p.read_bytes() for p in tmp_path.glob("*.json")}
-    assert len(first) == 9
+    assert len(first) == len(MODEL_TYPES)
     export_contracts(tmp_path)
     assert first == {p.name: p.read_bytes() for p in tmp_path.glob("*.json")}
     for model in MODEL_TYPES:

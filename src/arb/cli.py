@@ -105,3 +105,44 @@ def report(database: str = "data/engine.db", output: str = "reports"):
     finally:
         connection.close()
     typer.echo(f"Relatório gerado: {target}")
+
+
+library_app = typer.Typer(help="Biblioteca de ângulos encerrados")
+app.add_typer(library_app, name="library")
+
+
+@library_app.command("archive")
+def library_archive(database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.analyst.library import archive
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(f"{archive(connection)} aprendizados arquivados")
+    finally:
+        connection.close()
+
+
+@library_app.command("query")
+def library_query(niche: str, database: str = "data/engine.db"):
+    import json
+    from pathlib import Path
+
+    from arb.analyst.library import query
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(
+            json.dumps(
+                [r.model_dump(mode="json") for r in query(connection, niche)],
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    finally:
+        connection.close()

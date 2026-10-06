@@ -76,3 +76,6 @@ P&L por oferta/ângulo/criativo/geo/coorte, meta-métricas, receita tardia e ree
 
 ### T-11 — 2026-10-06T01:50:29.384127+00:00
 Relatório HTML móvel a partir da F1, conteúdo escapado e uma única pergunta; latest mais cópia datada. Ordem temporal corrigida por teste de escaping. Próximo: T-12.
+
+### T-12 — 2026-10-06T01:51:24.939198+00:00
+F2 concluída: contrato AngleLearning, arquivo idempotente e consulta por nicho. Modelos/schema e migração registrados no ADR-005. Próximo: F3/T-13.
