@@ -1,139 +1,93 @@
-# Handoff — T-01–T-29, validação local concluída
+# Handoff — BATCH-02, T-31–T-39 para revisão
 
 ## Estado e bastão
-- F0 permanece em main, commit b38638c. Nenhum push/merge posterior em main.
-- T-01–T-29 implementadas e em review; aceitações reais F5/F6 continuam pendentes.
-- Branch final codex/t-29; PRs encadeados para main. Revisão do Claude antes de merge.
-- Branch codex/<tarefa> e commit/push de ops/LOCK cumpridos em cada tarefa deste lote.
-- LOCK vazio ao concluir. Ler PRs/board e conferir LOCK antes de retomar.
-- Autorização mais recente: avançar tudo que não exige cadastros/gastos. ADR-010
-  permite F6–F8 locais antes do aceite real F5; não libera escrita/exposição real.
-- Nenhuma conta criada, credencial real alterada, mídia paga, deploy ou mensagem real.
-- Históricos: docs/handoffs/f0-and-night-task-log.md e pre-f8-local-batch.md.
+- Base: main sincronizada, commit a0b01be (F0–F8/T-30 e CI anteriores já mergeados).
+- Entrega: uma branch codex/batch-02, PR #28 para main:
+  https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/28
+- PR criado draft após T-31. Tornar ready somente após CI final verde; Claude revisa
+  antes de qualquer merge pelo humano. Codex não faz merge/push direto em main.
+- T-31–T-39: implementação/documentação em review; revisão humana/Claude não presumida.
+  LOCK publicado antes de cada tarefa e liberado ao mover doing→review.
+- CI de cada predecessor verde antes da tarefa seguinte. Evidências:
+  docs/validation/batch02-ci.json e checks públicos do HEAD do PR.
+- Regras operacionais config/rules.yaml preservadas byte a byte em relação à main.
+- Nenhuma API Meta/Telegram/Cloudflare real, conta, credencial real, deploy, mensagem,
+  gasto ou execução operacional LIVE_MODE=true neste batch. Não ler .env.
+- Histórico anterior preservado em docs/handoffs/pre-batch02.md; aquele documento
+  descreve a sessão antiga e não o estado atual das branches/merges.
 
-## Entregas novas T-21–T-29
-- Launcher: planos ABO pausados, 1 oferta/campanha, 1–3 ângulos, 3 criativos/ângulo,
-  elegibilidade, destino HTTPS, hash estável e teto diário por oferta. Execute revalida
-  aprovação por arquivo/hash/exposição/data e entradas atuais, com idempotência e Actions.
-- Launcher é exclusivamente simulado: cria entidades locais sem meta_id, sem HTTP de
-  escrita. Ativação local exige aprovação separada e uso único. Somente pausa é autônoma.
-- Criativos: três hipóteses usando biblioteca do nicho, evita famílias mortas; copies
-  espanhol neutral/CO/PE/MX, lint contra banidos/garantias/números sem fonte. Candidate
-  continua candidate. Fonte declarada não é prova: precisa de revisão humana.
-- Mídia: HTML escapado → PNG 1080×1350/1920 via Playwright + Chromium instalado.
-  DOM recusa overflow; contexto bloqueia rede. ffmpeg cria vídeos H.264/AAC 12s com
-  trilha original sintetizada CC0 e metadados de direitos. Não usa serviço pago.
-- Scheduler: nove ciclos São Paulo em três dias acelerados, sync→rules→pausa→report→alerts,
-  lock flock por banco, checkpoints, replay sem duplicar e backup diário UTC.
-  Coleta ausente/falha congela simulação; teto pausa mesmo com hold/pass.
-- Alertas locais de freios/stale/pending/unmatched no HTML. Telegram é opt-in com cliente
-  explícito; CLI desabilita envio. Testes somente MockTransport; entrega uncertain não
-  é repetida automaticamente. Auditoria omite token e respostas externas.
-- Runbook: iniciar simulação, gerar candidatos/mídia, panic, backup/restore e trocar token.
-  Panic não falsifica estado Meta: remote_pause_pending retorna saída 1. Restore valida
-  SQLite/FKs/payloads/checksums e publica em caminho novo, recusando sobrescrita.
-- 15 contratos JSON Schema; migrações 001–005; ADRs 001–015 em ops/decisions.md.
+## Feito
+- T-31: perfis planted (regressão histórica), realistic e pessimistic; distribuição por
+  papel, vencedor/borderline em posições por seed, mortes/custos e diagnóstico 200 seeds
+  por perfil. ADR-017 e docs/validation/sim-profiles.json. Planted preserva 50/50 e 0,9305%.
+- T-32: grid 81 variantes × 2 perfis × 100 seeds, validação em memória, sem editar regras;
+  duas execuções byte a byte idênticas, cada uma observada abaixo de 10 minutos nesta
+  sessão (aproximadamente 4 minutos, quatro workers; não é promessa para qualquer host).
+  JSON rastreável e HTML regenerável/ordenável/Pareto: arb sim calibrate --workers 4.
+- T-33: até três opções com acerto/waste/custo/risco, matemática de G3 e ADR-018 Proposto
+  com diff exato. Equilibrada recomendada para novo experimento após decisão, não aplicada.
+- T-34: Approval.signature, HMAC canônico de todos os campos, consumo fail-closed,
+  comparação constante, CLI approve sign/verify, tty/confirmar, doctor só presença.
+  ADR-019 e contratos regenerados. Aprovações antigas sem assinatura recusadas.
+- T-35: guarda central de escrita, pausa como única exceção autônoma, demais efeitos
+  assinados; notificações ligadas a conteúdo/destinatário. AST recusa verbos de escrita,
+  aliases e request dinâmico fora da allowlist. ADR-020; default sem envio preservado.
+- T-36: escritor Meta exclusivamente status=PAUSED, transporte lazy/nenhum real em false,
+  erros sanitizados, idempotência, panic misto auditado (intent antes do HTTP, resultado
+  append-only). Em simulação mantém remote_pause_pending. Somente MockTransport; ADR-021.
+- T-37: propriedades determinísticas (~1400 exemplos) em 2,42s; amostra, stale, tetos,
+  monotonicidade, dinheiro, controles e escala. Encontrou e corrigiu TypeError de EPC None
+  em G3/T com vendas/cliques mas zero bridge_views; ausência não permite pass, hard cap vale.
+- T-38: CI exige linhas+branches combinados >=95% nos cinco grupos de dinheiro e >=80%
+  no pacote. Medição final de T-38: 100% dinheiro / 87,57% pacote; 400 testes, sem skips,
+  render incluído. Sem exclusões/pragma no cover. docs/validation/coverage.json atualizado
+  pelos gates finais. Teste negativo confirma falha abaixo do limite e por módulo ausente.
+- T-39: arb preflight [--json], checklist português, nomes sem ler chave HMAC, cap Meta via
+  GET opt-in --read-meta, cartão, restore descartável do dia UTC, flock disponível, alerta
+  opcional e panic disponível. Matriz sintética/MockTransport com 37 testes focados verdes.
+  Offline real desta sessão retorna erro esperado por falta de preparação, sem rede:
+  docs/validation/preflight-offline.json. docs/validation/f5-f6-checklist.md.
 
-## Evidências
-- 234 testes pytest passaram, sem skips; Ruff, arb doctor e scanner de segredos verdes.
-- Script completo de instalação reexecutado com uv --frozen e npm ci; dependências
-  Playwright fixadas em uv.lock. Chromium/ffmpeg/ffprobe já presentes nesta imagem.
-- Teste de render produz 3 ângulos × 3 criativos, verifica 18 PNGs e 3 vídeos com ffprobe;
-  inspecionada visualmente uma imagem. Overflow e copy sem lint são recusados.
-- CLI externo: 11 comandos verdes, incluindo scout/ângulos/copies/render, backup/panic/
-  restore/report, três dias acelerados e ciclo offline. docs/validation/f8-runbook.json.
-- Nove ciclos e replay: docs/validation/f8-three-days.json. Sem gasto real ou contas.
-- F1: 50/50 seeds encontram vencedor, zero vencedores mortos, waste médio 0,9305%.
-  Evidência preservada em docs/validation/f1-50-seeds.json, novamente testada na suíte.
-- Worker: TypeScript e 2 testes Node verdes. E2E/smoke com D1 local são descritos no README;
-  pixel externo é stub; webhook é normalizado de teste. Sem aceite de provedores reais.
-- Rotação de token ensaiada com substituição de clientes read-only em MockTransport.
-  Nenhum token real emitido, lido de arquivo, exposto, alterado ou revogado.
+## Evidências e limites dos gates
+- Gates locais por tarefa: Ruff check/format, pytest e arb doctor. T-38/T-39 adicionam
+  cobertura de branch ao pytest e o verificador scripts/check_coverage.py, igual à CI.
+- CI gates inclui render sem skips, doctor, drift de contratos e scanner de segredos.
+  Worker (typecheck + dois testes Node) verde em todos os predecessores; nenhum arquivo
+  do Worker alterado. Entrega final para revisão depende de ambos os jobs verdes no HEAD.
+- Doctor é verde com avisos de nomes ausentes; não transforma ausência de integração real
+  em aceite. Preflight offline falha fechado e não significa falha da implementação.
 
-## PRs e revisão
-- PRs #1–#15: T-05–T-20. PRs #16–#24: T-21–T-29. Todos para main, sem merge.
-- Lista completa em docs/validation/pull-requests.json. Revisar/mesclar em ordem crescente;
-  branches incluem predecessores até seus merges. A branch final contém o lote completo.
-- Tarefas continuam review; revisão/aceite não foram feitos em nome do Claude/humano.
+## Bloqueios e decisões pendentes do humano
+1. ADR-018: escolher/rejeitar a calibração e tolerância de risco. Proposta documental T-33
+   concluída, aplicação bloqueada; manter regras atuais até decisão. Nenhum diff aplicado.
+2. Claude revisar PR #28, humano realizar merge. Só então mudanças chegam à main.
+3. Aceites reais F5/F6 e V-01/V-02 Hotmart/rastreio/V-06 Graph permanecem pendentes.
+   Provedores, formatos reais, mapping, BRL/fuso, cap da conta/cartão e host persistente
+   precisam de confirmação humana. Não criar contas nem provisionar segredos por agentes.
+4. APPROVAL_SIGNING_KEY exclusivamente na máquina/runtime do humano; ausente neste cloud.
+   Humano provisiona e assina/verify via tty. Presença por nome não prova valor/validade.
+5. Autorizar separadamente qualquer deploy, envio, live ou exposição real em sessão futura.
+   Executor Meta de launch/activate/scale reais continua fora do escopo; apenas pausa existe.
 
-## O que continua dependendo do operador
-1. Claude revisar os PRs e autorizar/realizar merges. Não merge automático.
-2. F5 real: META_ACCESS_TOKEN/AD_ACCOUNT_ID/API_VERSION e V-06, somente leitura,
-   conta BRL/São Paulo, mapping real e confirmação de vídeo/actions/video_view.
-3. V-01 formato nativo Hotmart e V-02 parâmetro/limite de rastreio. /sale atual normalizado;
-   nenhum adaptador nativo confirmado, nenhum Cloudflare deployment. D1 zero só local.
-4. Executor Meta de escrita real não implementado. Antes de qualquer exposição, revisar
-   barreiras de cartão/conta/orçamentos e aprovações humanas completas da seção 5.
-5. Telegram real permanece desabilitado/sem credenciais; ativação futura exige autorização
-   de envio e verificação do chat. Não é necessário para proteção local.
-6. Cron não instalado: cloud não garante permanência do processo. Host persistente é
-   necessário para operação contínua; scheduler local usa flock/Linux, Windows via WSL.
+## Riscos
+- Distribuições são hipóteses, não dados de mercado. Acerto realista/pessimista com regras
+  atuais (100 seeds) é 26%/5%; não há garantia de lucro ou custo por vencedor. Média até
+  validar é condicionada ao sucesso; waste é excedente de teto, não perda econômica total.
+- Lab pausa G3 no teto nominal: variantes do hard cap indistinguíveis. Não recalibrar esse
+  parâmetro com esta evidência. Receita esperada não é saldo reciclável.
+- HMAC depende do isolamento/proteção da chave; assinatura não substitui limites externos.
+  Alteração de conteúdo/destinatário exige nova aprovação. Arquivos antigos não autorizam.
+- ACK/uncertain exigem reconciliação. Falha remota preserva estado ativo; backup antigo
+  pode conter ativos. Restore só em banco novo com processos parados/revisão antes de uso.
+- Escritor e preflight testados com mocks; não houve validação de integração de conta real.
+  preflight não configura limites nem valida validade de credenciais declaradas por nome.
+- Scheduler depende de flock/host Linux ou WSL persistente; este cloud não garante cron.
+  Telegram segue opcional/desabilitado; não é barreira exclusiva de proteção financeira.
 
-## Ambiente reutilizável e limites
-- Rascunho cloud contém install_script/start_skill com Python, Worker e ferramentas de mídia.
-  Salvar configuração não executa nem publica. Publicação/restauração em nova tarefa
-  continuam não verificadas. Configuração do repo aponta main: código do lote está nas
-  branches de PR até revisão/merge; não presumir F8 ao abrir main em uma tarefa nova.
-- Requisitos Meta existentes preservados sem valores. Nenhum novo cadastro/secret é
-  necessário para testes locais. Nunca pedir valores no chat, ler .env ou LIVE_MODE=true.
-- Caches/logs em /workspace/.cache; HOME preservado. worker/.dev.vars ignorado, preservar
-  arquivo existente; fixtures públicas de teste não são credenciais de produção.
-- Aprovações reais com plan_hash podem gerar falso positivo no scanner: revisar o caso
-  específico sem desligar proteção. Não versionar outputs sintéticos em approvals/approved.
-- Aproximação diária por coorte permanece ADR-004. Laboratório pode ter P&L global negativo;
-  descoberta sintética não prevê lucro. Receita esperada não é saldo reciclável.
-- Margens de mídia conservadoras exigem revisão no placement real; lint é heurístico.
-- Fonte de sync é injetável; CLI once offline congela simulação, não afirma coleta nova.
-  Integração contínua Meta+Worker real e escrita remota permanecem passos futuros.
-- Restore pode recuperar entidades ativas anteriores ao panic: parar processos, usar caminho
-  novo, executar panic/revisar antes de apontar o scheduler à cópia.
+## Falta / próximo passo
+Revisão de Claude do PR único e decisão humana do ADR-018. Seguir o checklist português
+no host humano antes dos aceites reais; nenhum passo real/cadastro/gasto autorizado por
+esta entrega. Cards T-31–T-39 com evidência em review; LOCK vazio ao encerrar.
 
-## Próximo passo independente de cadastros/gastos
-Revisar os diffs encadeados e corrigir feedback nas respectivas branches com LOCK. O escopo
-local das tarefas T-01–T-29 está entregue; não iniciar operação real a partir dos testes.
-
-### Entrega final T-29
-PR #24 confirmado: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/24
-Lista de 24 PRs sincronizada com GitHub; evidência final em docs/validation/f8-summary.json.
-install_script/start_skill salvos no rascunho cloud, sem publicação automática.
-
-### T-30 (Claude) — teto rígido G3/T
-Entregue em `claude/inspiring-davinci-o0loro`, PR sobre `codex/t-29`. ADR-016: G3/T sem
-validação morre em 1,5 × teto mesmo com vendas. Próximo: simulador com parâmetros
-realistas e vencedores no limite para calibrar G3 (3 vendas dentro de ~R$ 102 é improvável).
-
-## BATCH-02 (planejado por Claude, executado por Codex)
-F0–F8 + T-30 mergeados na `main` (#24, #26); CI com render e Worker (#27). T-01–T-30 movidas
-para `board/done`. Próximo trabalho: `ops/batches/BATCH-02.md` (T-31–T-39) — simulador
-realista e calibração (sem alterar rules.yaml), aprovação assinada, guarda central de escrita,
-escritor de pausa (mock), testes de propriedade, cobertura e preflight.
-
-### BATCH-02 T-31
-Planted reproduz histórico nas 50 seeds; realistic/pessimistic 200 seeds cada sem erro. Distribuições/posições/summary determinísticos; docs/validation/sim-profiles.json. ADR-017 documenta hipóteses.
-
-### BATCH-02 T-32
-Grid 81 variantes × 2 perfis × 100 seeds; duas execuções JSON idênticas, regras validadas em memória e rules.yaml intacto. HTML local ordenável/Pareto. Hard cap não autoriza ultrapassar pausa nominal do simulador.
-
-
-## Bloqueios
-- T-33: proposta documental concluída, aplicação do ADR-018 bloqueada por decisão humana.
-  Escolher/rejeitar calibração e tolerância de risco. config/rules.yaml permanece intacto.
-  T-34–T-39 são independentes dessa escolha e podem prosseguir em testes locais.
-
-### BATCH-02 T-33
-Proposta com 3 opções e números rastreáveis (células 032/040/075), conta financeira G3, ADR-018 Proposto com diff exato. Aplicação bloqueada por decisão humana registrada em Bloqueios; regras intactas.
-
-### BATCH-02 T-34
-HMAC-SHA256 canônico em todos os campos, comparação constante e consumo fail-closed. CLI sign exige tty/confirmar e não sobrescreve; verify e aviso doctor. ADR-019/15 contratos atualizados. 50 testes focados verdes com chave sintética, incluindo adulteração de cada campo e launch/activate.
-
-### BATCH-02 T-35
-Guarda central única de LIVE_MODE, pausa autônoma e demais efeitos com assinatura/intenção exata; logger sanitizado. Telegram/dispatch opt-in protegidos, default disabled/idempotência preservados. ADR-020 e contrato notification. 102 testes focados verdes; matriz 56 casos e AST detecta HTTP plantado, aliases e request dinâmico.
-
-### BATCH-02 T-36
-PauseWriter aceita só POST numérico status=PAUSED; modo false não cria transporte e factory não lê credenciais. MockTransport verifica payload, idempotência, 190/4xx/5xx/redirect/transporte sanitizados. Panic misto registra intent antes do HTTP e resultado append-only, falha mantém remoto ativo. 89 testes focados; ADR-021, sem API real.
-
-### BATCH-02 T-37
-Hypothesis derandomize: 13 propriedades parametrizadas (~1400 exemplos), 2,42s <30s; amostra/stale/monotonicidade/hard cap/pass, dinheiro inteiro/zero divisão/controles/escala. Encontrado e corrigido TypeError G3/T com vendas, cliques e bridge_views=0: EPC None não pode validar; teto rígido ainda mata. rules.yaml intacto.
-
-### BATCH-02 T-38
-CI exige cobertura combinada >=95% em rules/metrics/launcher/safety/meta.pause e >=80% arb. 41 testes novos de falhas/rollback e barreira negativa. Medição diagnóstica atingiu 100% de linhas+branches nos cinco grupos; gates finais geram docs/validation/coverage.json. Nenhum pragma no cover ou exclusão de decisão.
+### BATCH-02 T-39
+Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTransport nos testes. 37 casos de presença/cap/cartão/backup/trava/alerta/panic, valores sensíveis omitidos, HMAC nunca lido mesmo presente. Checklist português e HANDOFF reescrito; offline retorna erros esperados sem rede. Gate final com coverage e render; rules.yaml intacto.

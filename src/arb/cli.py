@@ -580,3 +580,28 @@ def approve_verify(file: str):
             "aprovação ou assinatura inválida; confira a chave humana"
         ) from None
     typer.echo("Assinatura humana válida")
+
+
+@app.command("preflight")
+def preflight_command(
+    json_output: bool = typer.Option(False, "--json"),
+    read_meta: bool = typer.Option(False, "--read-meta", help="GET real somente no host humano"),
+    database: str = "data/engine.db",
+    root: str = ".",
+):
+    """Inspeção antes do aceite F5/F6; não habilita escrita ou live."""
+    import json
+    from pathlib import Path
+
+    from arb.preflight import inspect
+
+    result = inspect(root=Path(root), database=Path(database), allow_meta_read=read_meta)
+    if json_output:
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        for check in result["checks"]:
+            typer.echo(f"{check['status'].upper()} {check['name']}: {check['message']}")
+            if check["fix"]:
+                typer.echo("  Correção: " + check["fix"])
+    if not result["ok"]:
+        raise typer.Exit(1)

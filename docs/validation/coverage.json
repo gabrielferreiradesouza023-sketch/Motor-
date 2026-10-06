@@ -2,7 +2,7 @@
   "basis": "(covered_lines + covered_branches) / (statements + branches)",
   "modules": {
     "arb": {
-      "percent": 87.56979136056421,
+      "percent": 88.07157057654075,
       "minimum": 80
     },
     "arb.rules": {

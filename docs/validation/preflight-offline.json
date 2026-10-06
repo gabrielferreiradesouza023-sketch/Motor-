@@ -1,0 +1,67 @@
+{
+  "ok": false,
+  "checks": [
+    {
+      "name": "rules",
+      "status": "ok",
+      "message": "Tetos estruturais válidos",
+      "fix": ""
+    },
+    {
+      "name": "credentials",
+      "status": "erro",
+      "message": "Nomes ausentes: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, CLOUDFLARE_D1_DATABASE_ID, HOTMART_WEBHOOK_SECRET, META_ACCESS_TOKEN, META_AD_ACCOUNT_ID",
+      "fix": "Configurar no host humano; não enviar valores a agentes"
+    },
+    {
+      "name": "approval_signing_key",
+      "status": "erro",
+      "message": "APPROVAL_SIGNING_KEY ausente",
+      "fix": "Configurar APPROVAL_SIGNING_KEY só no host humano e testar arb approve verify"
+    },
+    {
+      "name": "graph_version",
+      "status": "erro",
+      "message": "Versão Graph ausente/inválida",
+      "fix": "Definir META_API_VERSION após validação humana V-06"
+    },
+    {
+      "name": "meta_spend_cap",
+      "status": "erro",
+      "message": "Conta Meta não verificada; nenhuma rede por padrão",
+      "fix": "Humano: configurar spend_cap positivo <= total_cap_cents e usar --read-meta para GET"
+    },
+    {
+      "name": "card_limit",
+      "status": "erro",
+      "message": "CARD_LIMIT_CENTS ausente/inválido/acima do teto",
+      "fix": "Declarar CARD_LIMIT_CENTS positivo <= total_cap_cents; confirmar limite no emissor"
+    },
+    {
+      "name": "backup_restore",
+      "status": "ok",
+      "message": "Backup do dia UTC restaura íntegro",
+      "fix": ""
+    },
+    {
+      "name": "scheduler_lock",
+      "status": "erro",
+      "message": "Trava ausente/ocupada/ilegível",
+      "fix": "Preparar um ciclo local para criar a trava ou aguardar o ciclo atual; usar host Linux/WSL"
+    },
+    {
+      "name": "alerts",
+      "status": "aviso",
+      "message": "Alerta opcional não configurado completamente",
+      "fix": "Se desejado, configurar ambos os nomes e aprovar destinatário/envio no host humano"
+    },
+    {
+      "name": "panic_writer",
+      "status": "ok",
+      "message": "Escritor de pausa/panic disponível (somente testes mock)",
+      "fix": ""
+    }
+  ],
+  "checked_at": "2026-10-06T11:41:28.472813+00:00",
+  "scope": "read-only; presença por nome não valida valores/credenciais; sem habilitar live"
+}
