@@ -47,8 +47,10 @@ def generate_report(
     *,
     approval_dir: Path = Path("ops/approvals/pending"),
     now: datetime | None = None,
+    alert_messages: list[str] | None = None,
 ) -> Path:
     data = pnl(connection)
+    data["alerts"].extend(alert_messages or [])
     stamp = (now or datetime.now(UTC)).astimezone(ZoneInfo("America/Sao_Paulo"))
     environment = Environment(autoescape=select_autoescape(default_for_string=True))
     environment.filters["money"] = lambda v: "—" if v is None else f"R$ {v / 100:,.2f}"

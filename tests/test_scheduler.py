@@ -57,7 +57,7 @@ def test_three_days_nine_cycles_idempotent_and_order(tmp_path, records):
             )
         assert len(calls) == 9
         assert conn.execute("SELECT count(*) FROM scheduler_runs").fetchone()[0] == 9
-        assert len(Repository(conn, Action).list()) == 1
+        assert sum(a.kind == "pause" for a in Repository(conn, Action).list()) == 1
         assert len(Repository(conn, Decision).list()) == 1
         assert Repository(conn, Entity).get("entity").status == "paused"
         assert len(list((tmp_path / "backups").glob("*.db"))) == 4  # 23:30 SP cruza dia UTC
@@ -79,8 +79,9 @@ def test_report_failure_resumes_without_duplicate_protection(tmp_path, records):
             )
         assert Repository(conn, Entity).get("entity").status == "paused"
         result = run_cycle(conn, slot, now=slot, root=ROOT, output=tmp_path / "reports")
-        assert len(Repository(conn, Action).list()) == 1
+        assert sum(a.kind == "pause" for a in Repository(conn, Action).list()) == 1
         assert any("stale" in alert for alert in result["alerts"])
+        assert "simulação congelada" in Path(result["report"]).read_text()
     finally:
         conn.close()
 

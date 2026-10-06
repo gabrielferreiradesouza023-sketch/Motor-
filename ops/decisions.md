@@ -116,3 +116,13 @@ Meta observadas recebem alerta de pausa pendente, sem falsificar estado remoto.
 O scheduler agrega folhas da hierarquia e correções de métricas. Pausa ao atingir teto
 mesmo com hold/pass, sem depender de kill. Falha de alerta não desfaz pausa. Usar Linux
 neste cloud; Windows pode executar via WSL ou implementar trava nativa antes de operar.
+
+## ADR-014 — Alertas opcionais, entrega incerta e ausência de credenciais
+Alertas locais incluem freios, dados atrasados, propostas pendentes e vendas sem
+casamento. A CLI não habilita Telegram. Adaptador só é usado com cliente, credenciais
+e flag de envio explicitamente fornecidos; nesta sessão somente MockTransport.
+Actions guardam conteúdo resumido e resultado, sem token/chat de destino ou respostas.
+Tentativa é registrada antes do envio: timeout/falha vira uncertain e não é reenviada
+automaticamente, pois Telegram não oferece chave idempotente para sendMessage.
+Sem autorização/configuração real, dispatch é disabled, sem requisições externas.
+Falta/falha de alerta não compromete a execução anterior dos freios.

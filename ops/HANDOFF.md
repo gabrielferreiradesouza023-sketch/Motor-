@@ -102,3 +102,6 @@ Render real 3×3: PNG 1080×1350/1920 e três vídeos H.264/AAC de 12s. Overflow
 
 ### T-27 — 2026-10-06T02:39:55.063202+00:00
 Nove ciclos São Paulo em três dias acelerados, lock de processo, checkpoints e replay sem duplicação. Sync ausente/falho congela simulação; freios antes de relatório/alertas. Evidência docs/validation/f8-three-days.json.
+
+### T-28 — 2026-10-06T02:42:25.572491+00:00
+Alertas de freio/stale/pending/unmatched no relatório e auditoria local; Telegram opt-in somente via adaptador explícito, testado com MockTransport. Entrega incerta não é repetida; nenhum envio real.

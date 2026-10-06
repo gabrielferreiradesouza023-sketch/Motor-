@@ -260,14 +260,30 @@ def _run(
             result["stages"].append("actions")
             checkpoint()
         if "report" not in result["stages"]:
+            from arb.scheduler.alerts import collect
+
+            result["alerts"] = collect(
+                connection, result["alerts"], approval_dir=root / "ops/approvals/pending"
+            )
             result["report"] = str(
-                report_fn(connection, output, approval_dir=root / "ops/approvals/pending", now=now)
+                report_fn(
+                    connection,
+                    output,
+                    approval_dir=root / "ops/approvals/pending",
+                    now=now,
+                    alert_messages=result["alerts"],
+                )
             )
             backup_daily(connection, database_backups(connection), day=now.astimezone(UTC).date())
             result["stages"].append("report")
             checkpoint()
         if "alerts" not in result["stages"]:
-            result["alerts"] = sorted(set(result["alerts"]))
+            from arb.scheduler.alerts import collect, dispatch
+
+            result["alerts"] = collect(
+                connection, result["alerts"], approval_dir=root / "ops/approvals/pending"
+            )
+            result["notification"] = dispatch(connection, key, result["alerts"], now=now)
             if notify:
                 try:
                     notify(result["alerts"])
