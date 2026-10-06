@@ -87,3 +87,6 @@ Plano ABO determinístico e pausado, limites e elegibilidade revalidados. Desenv
 
 ### T-22 — 2026-10-06T02:27:17.853065+00:00
 Execução dry-run auditada, aprovação por arquivo e hash, revalidação no banco e idempotência transacional. Sem cliente de escrita externa. ADR-010 consolidado no caminho ops/decisions.md.
+
+### T-23 — 2026-10-06T02:28:27.073165+00:00
+Somente pausa automática; ativação simulada com aprovação separada e consumo único. Estado remoto observado não é falsificado; escrita Meta real segue bloqueada.
