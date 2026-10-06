@@ -9,7 +9,6 @@ from arb.db import TABLES, Repository, connect, migrate, migration_catalog
 from arb.models import MODEL_TYPES, contract_name, contract_text
 
 INTEGRATION_VARIABLES = (
-    "APPROVAL_SIGNING_KEY",
     "META_ACCESS_TOKEN",
     "META_AD_ACCOUNT_ID",
     "CLOUDFLARE_API_TOKEN",
@@ -81,4 +80,13 @@ def diagnose(root: Path) -> tuple[list[str], list[str]]:
     for name in INTEGRATION_VARIABLES:
         if not os.environ.get(name):
             warnings.append(f"{name}: ausente (opcional na F0; integração futura).")
+    from arb.launcher.approval import configured_public_key
+
+    try:
+        configured_public_key(root / "config/settings.yaml")
+    except ValueError:
+        warnings.append(
+            "approval_public_key: ausente; launch/activate recusados até o humano rodar "
+            "`arb approve keygen` e versionar a chave pública (ADR-022)."
+        )
     return errors, warnings

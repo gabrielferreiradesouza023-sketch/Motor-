@@ -6,6 +6,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from conftest import SYNTHETIC_PUBLIC_HEX
 from typer.testing import CliRunner
 
 from arb import preflight
@@ -29,11 +30,16 @@ def configured(tmp_path, monkeypatch):
     lock.write_text("preserve scheduler file")
     for name in (
         *preflight.REQUIRED_CREDENTIALS,
-        "APPROVAL_SIGNING_KEY",
         "TELEGRAM_BOT_TOKEN",
         "TELEGRAM_CHAT_ID",
     ):
         monkeypatch.setenv(name, "synthetic-private-value-" + name.lower())
+    settings = tmp_path / "config/settings.yaml"
+    settings.write_text(
+        settings.read_text().replace(
+            "approval_public_key: null", f"approval_public_key: {SYNTHETIC_PUBLIC_HEX}"
+        )
+    )
     monkeypatch.setenv("META_API_VERSION", "v99.0")
     monkeypatch.setenv("CARD_LIMIT_CENTS", "240000")
     return tmp_path, database, lock
@@ -88,7 +94,6 @@ def test_all_green_readonly_and_no_sensitive_values(configured):
     "name,check",
     [(n, "credentials") for n in preflight.REQUIRED_CREDENTIALS]
     + [
-        ("APPROVAL_SIGNING_KEY", "approval_signing_key"),
         ("META_API_VERSION", "graph_version"),
         ("CARD_LIMIT_CENTS", "card_limit"),
     ],
@@ -210,25 +215,38 @@ def test_cli_json_human_exit_and_opt_in_only_mock(configured, monkeypatch):
         client.close()
 
 
-def test_signing_key_is_never_read_even_when_present(configured, monkeypatch):
+def test_private_key_is_never_read_even_when_present(configured, monkeypatch):
     from types import SimpleNamespace
 
     original = preflight.os.environ
 
     class NamesOnlyKey(dict):
         def __getitem__(self, name):
-            if name == "APPROVAL_SIGNING_KEY":
-                raise AssertionError("valor HMAC jamais deve ser lido")
+            if name == "APPROVAL_PRIVATE_KEY_FILE":
+                raise AssertionError("chave privada jamais deve ser lida no preflight")
             return super().__getitem__(name)
 
         def get(self, name, default=None):
-            if name == "APPROVAL_SIGNING_KEY":
-                raise AssertionError("valor HMAC jamais deve ser lido")
+            if name == "APPROVAL_PRIVATE_KEY_FILE":
+                raise AssertionError("chave privada jamais deve ser lida no preflight")
             return super().get(name, default)
 
     monkeypatch.setattr(preflight, "os", SimpleNamespace(environ=NamesOnlyKey(original)))
     result, _ = run_check(configured)
     assert result["ok"]
+
+
+def test_missing_public_key_is_error(configured):
+    root, _, _ = configured
+    settings = root / "config/settings.yaml"
+    settings.write_text(
+        settings.read_text().replace(
+            f"approval_public_key: {SYNTHETIC_PUBLIC_HEX}", "approval_public_key: null"
+        )
+    )
+    result, _ = run_check(configured)
+    assert not result["ok"]
+    assert by_name(result)["approval_public_key"]["status"] == "erro"
 
 
 def test_graph_requires_environment_even_when_settings_exist(configured, monkeypatch):

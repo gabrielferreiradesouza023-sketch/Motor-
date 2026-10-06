@@ -1,7 +1,10 @@
 from datetime import UTC, datetime
 
 import pytest
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
+from arb.launcher import approval as approval_module
+from arb.launcher.approval import public_hex
 from arb.models import (
     Action,
     Angle,
@@ -115,10 +118,27 @@ def records():
     ]
 
 
+SYNTHETIC_PRIVATE_KEY = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+SYNTHETIC_PUBLIC_HEX = public_hex(SYNTHETIC_PRIVATE_KEY)
+REAL_CONFIGURED_PUBLIC_KEY = approval_module.configured_public_key
+
+
 @pytest.fixture(autouse=True)
-def synthetic_approval_key(monkeypatch):
-    # Substitui o ambiente antes de qualquer teste; nunca usa chave de produção.
-    monkeypatch.setenv("APPROVAL_SIGNING_KEY", "synthetic-fixture-hmac-not-a-real-key")
+def synthetic_approval_key(monkeypatch, tmp_path_factory):
+    """Par Ed25519 sintético e determinístico; nunca uma chave de produção.
+
+    A chave privada fica em arquivo 0600 fora do repo; a pública substitui a de
+    config/settings.yaml (que é null até o humano gerar a sua).
+    """
+    path = tmp_path_factory.mktemp("human") / "approval_ed25519"
+    path.write_text(SYNTHETIC_PRIVATE_KEY.private_bytes_raw().hex() + "\n")
+    path.chmod(0o600)
+    monkeypatch.setenv("APPROVAL_PRIVATE_KEY_FILE", str(path))
+    monkeypatch.setattr(
+        approval_module,
+        "configured_public_key",
+        lambda settings=None: SYNTHETIC_PRIVATE_KEY.public_key(),
+    )
 
 
 def pinned_rules():

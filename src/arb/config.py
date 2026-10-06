@@ -111,6 +111,8 @@ class Settings(ConfigModel):
     refund_rate: Rate
     refund_min_sales: PositiveInt
     meta_api_version: Annotated[str, Field(pattern=r"^v\d+\.\d+$")] | None
+    # ADR-022: chave pública Ed25519 do humano (hex). Alterar só por PR aprovado pelo humano.
+    approval_public_key: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
 
     @field_validator("timezone")
     @classmethod

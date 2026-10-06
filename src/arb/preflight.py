@@ -8,6 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from arb.db.restore import restore_new
+from arb.launcher.approval import configured_public_key
 from arb.launcher.panic import panic
 from arb.meta.pause import PauseWriter
 from arb.meta.read import Reader
@@ -42,7 +43,7 @@ def inspect(
     if now.utcoffset() is None:
         raise ValueError("preflight requer timestamp com fuso horário")
     checks = []
-    names = frozenset(os.environ)  # Somente NOMES; não ler APPROVAL_SIGNING_KEY real.
+    names = frozenset(os.environ)  # Somente NOMES; preflight nunca lê a chave privada.
 
     def record(name, ok, message, fix, *, warning=False):
         checks.append(
@@ -71,13 +72,18 @@ def inspect(
         else "Nomes ausentes: " + ", ".join(missing),
         "Configurar no host humano; não enviar valores a agentes",
     )
+    try:
+        configured_public_key(root / "config/settings.yaml")
+        public_ok = True
+    except ValueError:
+        public_ok = False
     record(
-        "approval_signing_key",
-        "APPROVAL_SIGNING_KEY" in names,
-        "Nome da chave humana presente (valor não inspecionado)"
-        if "APPROVAL_SIGNING_KEY" in names
-        else "APPROVAL_SIGNING_KEY ausente",
-        "Configurar APPROVAL_SIGNING_KEY só no host humano e testar arb approve verify",
+        "approval_public_key",
+        public_ok,
+        "Chave pública Ed25519 do humano versionada"
+        if public_ok
+        else "approval_public_key ausente/inválida em config/settings.yaml",
+        "Na máquina humana: arb approve keygen; colar a chave pública em settings.yaml via PR",
     )
     version = os.environ.get("META_API_VERSION", "")
     version_ok = isinstance(version, str) and bool(re.fullmatch(r"v[0-9]+\.[0-9]+", version))
