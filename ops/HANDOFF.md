@@ -1,57 +1,103 @@
-# Handoff — F0 concluída, aguardando revisão
+# Handoff — T-01–T-29, validação local concluída
 
-## Estado
-- Escopo entregue: somente T-01 a T-04 da especificação v1.0.
-- Checkout: /workspace/Motor-; pacote arb-engine, Python 3.12.14.
-- T-01 a T-04 em board/review; T-05 a T-29 em board/todo, um arquivo por tarefa.
-- LOCK liberado ao fim da sessão. Próximo agente deve seguir AGENTS.md.
+## Estado e bastão
+- F0 permanece em main, commit b38638c. Nenhum push/merge posterior em main.
+- T-01–T-29 implementadas e em review; aceitações reais F5/F6 continuam pendentes.
+- Branch final codex/t-29; PRs encadeados para main. Revisão do Claude antes de merge.
+- Branch codex/<tarefa> e commit/push de ops/LOCK cumpridos em cada tarefa deste lote.
+- LOCK vazio ao concluir. Ler PRs/board e conferir LOCK antes de retomar.
+- Autorização mais recente: avançar tudo que não exige cadastros/gastos. ADR-010
+  permite F6–F8 locais antes do aceite real F5; não libera escrita/exposição real.
+- Nenhuma conta criada, credencial real alterada, mídia paga, deploy ou mensagem real.
+- Históricos: docs/handoffs/f0-and-night-task-log.md e pre-f8-local-batch.md.
 
-## O que foi feito
-- Estrutura da seção 8.1, seções 0 e 9 copiadas para AGENTS.md, CLAUDE.md,
-  especificação integral em docs/, .env.example, uv.lock e pre-commit detect-secrets.
-- Configurações iniciais dos portões, controles, política e settings; sem execução de regras.
-- Nove modelos Pydantic e JSON Schemas exportáveis por arb contracts export.
-- SQLite: migração 001 com checksum, FKs, venda única por hotmart_tx_id,
-  repositórios tipados e snapshots/decisões/ações append-only no SQL.
-- Backup consistente por API SQLite, um por dia UTC, retenção de sete dias,
-  validação de integridade e teste de restauração separado.
-- arb doctor: configurações, contratos, banco e modo seguro; banco ausente inicializado,
-  banco existente verificado somente leitura; lista nomes de credenciais faltantes.
-- CLI local: contracts export, db migrate, db backup, doctor.
+## Entregas novas T-21–T-29
+- Launcher: planos ABO pausados, 1 oferta/campanha, 1–3 ângulos, 3 criativos/ângulo,
+  elegibilidade, destino HTTPS, hash estável e teto diário por oferta. Execute revalida
+  aprovação por arquivo/hash/exposição/data e entradas atuais, com idempotência e Actions.
+- Launcher é exclusivamente simulado: cria entidades locais sem meta_id, sem HTTP de
+  escrita. Ativação local exige aprovação separada e uso único. Somente pausa é autônoma.
+- Criativos: três hipóteses usando biblioteca do nicho, evita famílias mortas; copies
+  espanhol neutral/CO/PE/MX, lint contra banidos/garantias/números sem fonte. Candidate
+  continua candidate. Fonte declarada não é prova: precisa de revisão humana.
+- Mídia: HTML escapado → PNG 1080×1350/1920 via Playwright + Chromium instalado.
+  DOM recusa overflow; contexto bloqueia rede. ffmpeg cria vídeos H.264/AAC 12s com
+  trilha original sintetizada CC0 e metadados de direitos. Não usa serviço pago.
+- Scheduler: nove ciclos São Paulo em três dias acelerados, sync→rules→pausa→report→alerts,
+  lock flock por banco, checkpoints, replay sem duplicar e backup diário UTC.
+  Coleta ausente/falha congela simulação; teto pausa mesmo com hold/pass.
+- Alertas locais de freios/stale/pending/unmatched no HTML. Telegram é opt-in com cliente
+  explícito; CLI desabilita envio. Testes somente MockTransport; entrega uncertain não
+  é repetida automaticamente. Auditoria omite token e respostas externas.
+- Runbook: iniciar simulação, gerar candidatos/mídia, panic, backup/restore e trocar token.
+  Panic não falsifica estado Meta: remote_pause_pending retorna saída 1. Restore valida
+  SQLite/FKs/payloads/checksums e publica em caminho novo, recusando sobrescrita.
+- 15 contratos JSON Schema; migrações 001–005; ADRs 001–015 em ops/decisions.md.
 
 ## Evidências
-- uv sync --frozen: sucesso (Python 3.12.14).
-- uv run ruff check: verde.
-- uv run pytest -q: 105 testes passaram, nenhum ignorado.
-- uv run arb doctor: verde; avisos apenas de variáveis de integrações futuras ausentes.
-- uv run arb db migrate e db backup: sucesso; repetição validada.
-- uv run pre-commit run --all-files: varredura de segredos verde.
-- Doctor em raiz temporária limpa: verde e repetível (teste automatizado).
-- Testes negativos cobrem contratos/config/banco inválidos, migração atômica,
-  FKs, rollback, venda duplicada, timestamps sem fuso e LIVE_MODE inseguro.
-- Nenhuma credencial real exigida, nenhum arquivo .env lido, nenhuma API chamada,
-  nenhuma escrita no Meta ou gasto de mídia.
+- 234 testes pytest passaram, sem skips; Ruff, arb doctor e scanner de segredos verdes.
+- Script completo de instalação reexecutado com uv --frozen e npm ci; dependências
+  Playwright fixadas em uv.lock. Chromium/ffmpeg/ffprobe já presentes nesta imagem.
+- Teste de render produz 3 ângulos × 3 criativos, verifica 18 PNGs e 3 vídeos com ffprobe;
+  inspecionada visualmente uma imagem. Overflow e copy sem lint são recusados.
+- CLI externo: 11 comandos verdes, incluindo scout/ângulos/copies/render, backup/panic/
+  restore/report, três dias acelerados e ciclo offline. docs/validation/f8-runbook.json.
+- Nove ciclos e replay: docs/validation/f8-three-days.json. Sem gasto real ou contas.
+- F1: 50/50 seeds encontram vencedor, zero vencedores mortos, waste médio 0,9305%.
+  Evidência preservada em docs/validation/f1-50-seeds.json, novamente testada na suíte.
+- Worker: TypeScript e 2 testes Node verdes. E2E/smoke com D1 local são descritos no README;
+  pixel externo é stub; webhook é normalizado de teste. Sem aceite de provedores reais.
+- Rotação de token ensaiada com substituição de clientes read-only em MockTransport.
+  Nenhum token real emitido, lido de arquivo, exposto, alterado ou revogado.
 
-## Configuração cloud
-- install_script e start_skill salvos e confirmados no rascunho do ambiente.
-- Revisar/salvar em configurações e publicar pelo produto para ativar o snapshot.
-- Publicação e restauração em nova tarefa ainda não verificadas.
-- Caches uv/pre-commit usam /workspace/.cache porque HOME é somente leitura.
+## PRs e revisão
+- PRs #1–#15: T-05–T-20. PRs #16–#24: T-21–T-29. Todos para main, sem merge.
+- Lista completa em docs/validation/pull-requests.json. Revisar/mesclar em ordem crescente;
+  branches incluem predecessores até seus merges. A branch final contém o lote completo.
+- Tarefas continuam review; revisão/aceite não foram feitos em nome do Claude/humano.
 
-## Próximo passo — F1 (não implementada)
-1. T-05: métricas puras da seção 4; zero no denominador retorna None.
-2. T-06: avaliador de portões, amostras mínimas, tetos e dados atrasados.
-3. T-07: freio de emergência, teto diário e checkpoints de stop-loss.
-4. T-08: simulador com verdade plantada e seeds reproduzíveis.
-5. T-09: arb sim run e ensaio de 50 seeds: vencedor encontrado >=80%,
-   waste_ratio médio <10%; eventual calibração de rules.yaml exige ADR.
+## O que continua dependendo do operador
+1. Claude revisar os PRs e autorizar/realizar merges. Não merge automático.
+2. F5 real: META_ACCESS_TOKEN/AD_ACCOUNT_ID/API_VERSION e V-06, somente leitura,
+   conta BRL/São Paulo, mapping real e confirmação de vídeo/actions/video_view.
+3. V-01 formato nativo Hotmart e V-02 parâmetro/limite de rastreio. /sale atual normalizado;
+   nenhum adaptador nativo confirmado, nenhum Cloudflare deployment. D1 zero só local.
+4. Executor Meta de escrita real não implementado. Antes de qualquer exposição, revisar
+   barreiras de cartão/conta/orçamentos e aprovações humanas completas da seção 5.
+5. Telegram real permanece desabilitado/sem credenciais; ativação futura exige autorização
+   de envio e verificação do chat. Não é necessário para proteção local.
+6. Cron não instalado: cloud não garante permanência do processo. Host persistente é
+   necessário para operação contínua; scheduler local usa flock/Linux, Windows via WSL.
 
-## Riscos e limites
-- F0 não oferece métricas, simulador, imports, relatórios, Worker ou integrações.
-- Credenciais de integração são opcionais na F0; validar requisitos nas fases próprias.
-- Graph API version permanece null até V-06/F5; não inventar versão.
-- V-01 a V-06 aguardam validação humana/nas fases pertinentes.
-- Modelo Action contém live bool conforme spec; nenhum executor real existe nesta fase.
-- Backup é invocado por comando; agendamento contínuo fica para T-27/F8.
-- Hook invoca uv run --frozen para funcionar também fora da venv; requer caches conforme README.
-- Todas as interpretações iniciais estão em ops/decisions.md (ADR-001/002).
+## Ambiente reutilizável e limites
+- Rascunho cloud contém install_script/start_skill com Python, Worker e ferramentas de mídia.
+  Salvar configuração não executa nem publica. Publicação/restauração em nova tarefa
+  continuam não verificadas. Configuração do repo aponta main: código do lote está nas
+  branches de PR até revisão/merge; não presumir F8 ao abrir main em uma tarefa nova.
+- Requisitos Meta existentes preservados sem valores. Nenhum novo cadastro/secret é
+  necessário para testes locais. Nunca pedir valores no chat, ler .env ou LIVE_MODE=true.
+- Caches/logs em /workspace/.cache; HOME preservado. worker/.dev.vars ignorado, preservar
+  arquivo existente; fixtures públicas de teste não são credenciais de produção.
+- Aprovações reais com plan_hash podem gerar falso positivo no scanner: revisar o caso
+  específico sem desligar proteção. Não versionar outputs sintéticos em approvals/approved.
+- Aproximação diária por coorte permanece ADR-004. Laboratório pode ter P&L global negativo;
+  descoberta sintética não prevê lucro. Receita esperada não é saldo reciclável.
+- Margens de mídia conservadoras exigem revisão no placement real; lint é heurístico.
+- Fonte de sync é injetável; CLI once offline congela simulação, não afirma coleta nova.
+  Integração contínua Meta+Worker real e escrita remota permanecem passos futuros.
+- Restore pode recuperar entidades ativas anteriores ao panic: parar processos, usar caminho
+  novo, executar panic/revisar antes de apontar o scheduler à cópia.
+
+## Próximo passo independente de cadastros/gastos
+Revisar os diffs encadeados e corrigir feedback nas respectivas branches com LOCK. O escopo
+local das tarefas T-01–T-29 está entregue; não iniciar operação real a partir dos testes.
+
+### Entrega final T-29
+PR #24 confirmado: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/24
+Lista de 24 PRs sincronizada com GitHub; evidência final em docs/validation/f8-summary.json.
+install_script/start_skill salvos no rascunho cloud, sem publicação automática.
+
+### T-30 (Claude) — teto rígido G3/T
+Entregue em `claude/inspiring-davinci-o0loro`, PR sobre `codex/t-29`. ADR-016: G3/T sem
+validação morre em 1,5 × teto mesmo com vendas. Próximo: simulador com parâmetros
+realistas e vencedores no limite para calibrar G3 (3 vendas dentro de ~R$ 102 é improvável).

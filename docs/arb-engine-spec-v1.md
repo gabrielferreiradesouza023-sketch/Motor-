@@ -101,6 +101,7 @@ Todos os valores abaixo ficam em `config/rules.yaml` e são calibráveis. Os val
 ### Portão 3: dinheiro (por oferta × ângulo)
 - **Teto:** 2 × comissão líquida esperada.
 - **Mata se:** atingiu o teto com 0 vendas.
+- **Mata também se:** atingiu 1,5 × o teto sem validar, mesmo com vendas (ADR-016).
 - **Valida (vira "combo validado") se:** ≥ 3 vendas **e** ROI esperado ≥ 30% no acumulado **e** CPC bruto ≤ EPC × 0,7.
 
 ### Portão T: transferência de geo

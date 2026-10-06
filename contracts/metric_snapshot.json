@@ -26,6 +26,19 @@
       "title": "Link Clicks",
       "type": "integer"
     },
+    "period_start": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Period Start"
+    },
     "spend_platform_cents": {
       "minimum": 0,
       "title": "Spend Platform Cents",

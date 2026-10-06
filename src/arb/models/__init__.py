@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
@@ -79,6 +79,7 @@ class Entity(Model):
 class MetricSnapshot(Model):
     entity_id: Identifier
     ts: datetime
+    period_start: date | None = None
     impressions: Count
     video_3s_views: Count
     link_clicks: Count
@@ -130,6 +131,84 @@ class Action(Model):
     result: Identifier
 
 
+class AngleLearning(Model):
+    id: Identifier
+    angle_id: Identifier
+    offer_id: Identifier
+    niche: Identifier
+    promise: Identifier
+    audience_pain: Identifier
+    hook_line: Identifier
+    formats: list[Literal["image", "video"]]
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    gate: Gate
+    verdict: Literal["pass", "kill"]
+    metrics_json: dict[str, Any]
+    reason: Identifier
+    archived_at: datetime
+
+
+class OfferIntake(Model):
+    offer: Offer
+    native_spanish: bool
+    sales_page_quality: Annotated[int, Field(strict=True, ge=1, le=5)]
+    popularity: Annotated[float, Field(ge=0, le=100)]
+    policy_risk: Annotated[float, Field(ge=0, le=1)]
+
+
+class AdObservation(Model):
+    offer_id: Identifier
+    advertiser_id: Identifier
+    first_seen: date
+    observed_at: date
+    active: bool
+
+
+class BridgeEvent(Model):
+    id: Identifier
+    kind: Literal["view", "checkout_click"]
+    ad_id: Identifier
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    ts: datetime
+
+
+class MetricAdjustment(Model):
+    id: Identifier
+    entity_id: Identifier
+    ts: datetime
+    period_start: date
+    deltas: dict[
+        Literal[
+            "impressions",
+            "video_3s_views",
+            "link_clicks",
+            "spend_platform_cents",
+            "bridge_views",
+            "checkout_clicks",
+        ],
+        Annotated[int, Field(strict=True)],
+    ]
+    reason: Identifier
+
+
+class LaunchPlan(Model):
+    """Entradas completas e imutáveis por hash; a execução revalida a elegibilidade."""
+
+    offer: Offer
+    angles: list[Angle]
+    creatives: list[Creative]
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    daily_budget_cents: Annotated[int, Field(strict=True, gt=0, le=6000)]
+    destination_url: HttpUrl
+    entities: list[Entity]
+    objective: Literal["InitiateCheckout"] = "InitiateCheckout"
+    budget_type: Literal["ABO"] = "ABO"
+    age_min: Literal[18] = 18
+    age_max: Literal[65] = 65
+    language: Literal["es"] = "es"
+    interests: list[str] = Field(default_factory=list, max_length=0)
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -140,6 +219,12 @@ MODEL_TYPES = (
     Decision,
     Approval,
     Action,
+    AngleLearning,
+    OfferIntake,
+    AdObservation,
+    BridgeEvent,
+    MetricAdjustment,
+    LaunchPlan,
 )
 
 

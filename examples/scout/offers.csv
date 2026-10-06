@@ -1,0 +1,5 @@
+id,hotmart_product_id,name,niche,language,commission_brl_cents,price_local,currency,allows_paid_traffic,sales_page_url,affiliate_link,native_spanish,sales_page_quality,popularity,policy_risk
+excel,example-excel,Excel práctico,excel_produtividade,es,6000,15000,BRL,true,https://example.com/excel,https://example.com/affiliate-excel,true,5,80,0.1
+pets,example-pets,Adiestramiento,pets,es,5000,12000,BRL,true,https://example.com/pets,https://example.com/affiliate-pets,true,4,70,0.1
+croche,example-croche,Crochet,artesanato_croche,es,4500,10000,BRL,true,https://example.com/croche,https://example.com/affiliate-croche,true,4,65,0.0
+blocked,example-blocked,Renda rápida,renda_rapida,es,10000,20000,BRL,true,https://example.com/blocked,https://example.com/affiliate-blocked,true,5,100,1

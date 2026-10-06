@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "ad_id": {
+      "minLength": 1,
+      "title": "Ad Id",
+      "type": "string"
+    },
+    "geo": {
+      "pattern": "^[A-Z]{2}$",
+      "title": "Geo",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "view",
+        "checkout_click"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "ad_id",
+    "geo",
+    "ts"
+  ],
+  "title": "BridgeEvent",
+  "type": "object"
+}

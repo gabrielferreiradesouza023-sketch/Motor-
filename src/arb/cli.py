@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
 
 
 @app.command()
@@ -17,7 +17,9 @@ def doctor(root: str = "."):
         typer.echo(f"ERRO: {error}", err=True)
     if errors:
         raise typer.Exit(1)
-    typer.echo("Doctor OK — F0 local, LIVE_MODE=false; sem integrações externas.")
+    typer.echo(
+        "Doctor OK — fundação local, LIVE_MODE=false; integrações reais têm aceite separado."
+    )
 
 
 contracts_app = typer.Typer(help="Contratos JSON Schema")
@@ -65,3 +67,449 @@ def db_backup(database: str = "data/engine.db", output: str = "data/backups"):
     finally:
         connection.close()
     typer.echo(f"Backup OK: {target}")
+
+
+sim_app = typer.Typer(help="Laboratório sintético, sem APIs")
+app.add_typer(sim_app, name="sim")
+
+
+@sim_app.command("run")
+def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
+    """Budget em BRL inteiros. Persistência opcional em banco separado e novo."""
+    import json
+    import os
+    from pathlib import Path
+
+    from arb.sim.lab import persist, run_lab
+
+    if os.environ.get("LIVE_MODE", "false").lower() != "false":
+        raise typer.BadParameter("LIVE_MODE deve ser false")
+    try:
+        run = run_lab(seed, budget * 100)
+        if database:
+            persist(run, Path(database))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(run.summary(), ensure_ascii=False, indent=2))
+
+
+@app.command("report")
+def report(database: str = "data/engine.db", output: str = "reports"):
+    from pathlib import Path
+
+    from arb.analyst.report import generate_report
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        target = generate_report(connection, Path(output))
+    finally:
+        connection.close()
+    typer.echo(f"Relatório gerado: {target}")
+
+
+library_app = typer.Typer(help="Biblioteca de ângulos encerrados")
+app.add_typer(library_app, name="library")
+
+
+@library_app.command("archive")
+def library_archive(database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.analyst.library import archive
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(f"{archive(connection)} aprendizados arquivados")
+    finally:
+        connection.close()
+
+
+@library_app.command("query")
+def library_query(niche: str, database: str = "data/engine.db"):
+    import json
+    from pathlib import Path
+
+    from arb.analyst.library import query
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(
+            json.dumps(
+                [r.model_dump(mode="json") for r in query(connection, niche)],
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    finally:
+        connection.close()
+
+
+scout_app = typer.Typer(help="CSV manual de ofertas e anúncios")
+app.add_typer(scout_app, name="scout")
+
+
+@scout_app.command("import")
+def scout_import(
+    offers: str = typer.Option(...),
+    adlibrary: str = typer.Option(...),
+    database: str = "data/engine.db",
+):
+    from pathlib import Path
+
+    from arb.db import Repository, connect, migrate
+    from arb.models import Offer
+    from arb.scout import import_adlibrary, import_offers
+
+    try:
+        intake = import_offers(Path(offers))
+        observations = import_adlibrary(Path(adlibrary))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        with connection:
+            for item in intake:
+                Repository(connection, Offer).add(item.offer)
+    finally:
+        connection.close()
+    typer.echo(f"{len(intake)} ofertas importadas; {len(observations)} observações validadas")
+
+
+@scout_app.command("rank")
+def scout_rank(
+    offers: str = typer.Option(...),
+    adlibrary: str = typer.Option(...),
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scout import import_adlibrary, import_offers
+    from arb.scout.ranking import propose, rank
+
+    try:
+        ranked, rejected = rank(import_offers(Path(offers)), import_adlibrary(Path(adlibrary)))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        path = propose(connection, ranked, Path(output))
+    finally:
+        connection.close()
+    typer.echo(
+        json.dumps(
+            {
+                "ranking": [{"id": o.id, "score": o.score} for o in ranked],
+                "rejected": rejected,
+                "approval": str(path),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+bridge_app = typer.Typer(help="Gerar página-ponte estática")
+app.add_typer(bridge_app, name="bridge")
+
+
+@bridge_app.command("build")
+def bridge_build(
+    offer_id: str,
+    content_file: str,
+    worker_url: str = typer.Option(...),
+    pixel_id: str = typer.Option(...),
+    tracking_key: str = typer.Option(...),
+    slug: str = typer.Option(...),
+    database: str = "data/engine.db",
+    output: str = "bridges_out",
+):
+    from pathlib import Path
+
+    from arb.bridge import build
+    from arb.db import Repository, connect, migrate
+    from arb.models import Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        offer = Repository(connection, Offer).get(offer_id)
+        if offer is None:
+            raise typer.BadParameter("Oferta desconhecida")
+        target = build(
+            offer,
+            Path(content_file).read_text(),
+            slug,
+            worker_url=worker_url,
+            pixel_id=pixel_id,
+            tracking_key=tracking_key,
+            output=Path(output),
+        )
+    finally:
+        connection.close()
+    typer.echo(f"Ponte gerada: {target}")
+
+
+sales_app = typer.Typer(help="Vendas normalizadas de CSV")
+app.add_typer(sales_app, name="sales")
+sync_app = typer.Typer(help="Sincronização somente leitura de fontes externas")
+app.add_typer(sync_app, name="sync")
+
+
+@sales_app.command("import")
+def sales_import(csv_file: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.tracker import import_sales
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        count = import_sales(connection, Path(csv_file))
+    finally:
+        connection.close()
+    typer.echo(f"{count} vendas novas/atualizadas")
+
+
+@sync_app.command("events")
+def sync_events(worker_url: str = typer.Option(...), database: str = "data/engine.db"):
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.tracker.sync import sync
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = sync(connection, worker_url, os.environ.get("TRACKER_SYNC_TOKEN", ""))
+    finally:
+        connection.close()
+    typer.echo(f"Sincronização: {result}")
+
+
+@sync_app.command("meta")
+def sync_meta(
+    since: str = typer.Option(...),
+    until: str = typer.Option(...),
+    database: str = "data/engine.db",
+    mapping_file: str | None = None,
+):
+    import json
+    import os
+    from datetime import date
+    from pathlib import Path
+
+    import yaml
+
+    from arb.db import connect, migrate
+    from arb.meta.read import MetaReadError, Reader
+    from arb.meta.sync import sync
+
+    if os.environ.get("LIVE_MODE", "false").lower() != "false":
+        raise typer.BadParameter("LIVE_MODE precisa ser false")
+    version = os.environ.get("META_API_VERSION") or yaml.safe_load(
+        Path("config/settings.yaml").read_text()
+    ).get("meta_api_version")
+    try:
+        reader = Reader(
+            os.environ.get("META_ACCESS_TOKEN", ""),
+            os.environ.get("META_AD_ACCOUNT_ID", ""),
+            version or "",
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        mapping = json.loads(Path(mapping_file).read_text()) if mapping_file else {}
+        result = sync(
+            connection,
+            reader,
+            date.fromisoformat(since),
+            date.fromisoformat(until),
+            mapping=mapping,
+        )
+    except (MetaReadError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        reader.close()
+        connection.close()
+    typer.echo(f"Meta somente leitura: {result}")
+
+
+creative_app = typer.Typer(help="Candidatos locais; nenhum envio ou aprovação automática")
+app.add_typer(creative_app, name="creative")
+
+
+@creative_app.command("angles")
+def creative_angles(offer_id: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.analyst.library import query
+    from arb.creative import generate_angles
+    from arb.db import Repository, connect, migrate
+    from arb.models import Angle, Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        offer = Repository(connection, Offer).get(offer_id)
+        if offer is None:
+            raise typer.BadParameter("Oferta desconhecida")
+        angles = generate_angles(offer, query(connection, offer.niche))
+        with connection:
+            for angle in angles:
+                if Repository(connection, Angle).get(angle.id) is None:
+                    Repository(connection, Angle).add(angle)
+        for angle in angles:
+            typer.echo(angle.model_dump_json())
+    finally:
+        connection.close()
+
+
+@creative_app.command("copies")
+def creative_copies(angle_id: str, region: str = "neutral", database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.creative.copy import generate_copies
+    from arb.db import Repository, connect, migrate
+    from arb.models import Angle, Creative, Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        angle = Repository(connection, Angle).get(angle_id)
+        if angle is None:
+            raise typer.BadParameter("Ângulo desconhecido")
+        offer = Repository(connection, Offer).get(angle.offer_id)
+        copies = generate_copies(offer, angle, region=region)
+        with connection:
+            for creative in copies:
+                if Repository(connection, Creative).get(creative.id) is None:
+                    Repository(connection, Creative).add(creative)
+        for creative in copies:
+            typer.echo(creative.model_dump_json())
+    finally:
+        connection.close()
+
+
+@creative_app.command("render")
+def creative_render(
+    creative_id: str, database: str = "data/engine.db", output: str = "data/creatives"
+):
+    import json
+    from pathlib import Path
+
+    from arb.creative.render import render_creative
+    from arb.db import Repository, connect, migrate
+    from arb.models import Creative
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        creative = Repository(connection, Creative).get(creative_id)
+        if creative is None:
+            raise typer.BadParameter("Criativo desconhecido")
+        result = render_creative(creative, Path(output))
+        creative.asset_path = result["video"] or result["images"][0]
+        with connection:
+            Repository(connection, Creative).update(creative)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()
+
+
+scheduler_app = typer.Typer(help="Ciclos locais e simulação acelerada")
+app.add_typer(scheduler_app, name="scheduler")
+
+
+@scheduler_app.command("simulate")
+def scheduler_simulate(
+    database: str = typer.Option(...),
+    output: str = "reports/scheduler-sim",
+    start: str = "2026-10-05",
+    seed: int = 42,
+):
+    import json
+    from datetime import date
+    from pathlib import Path
+
+    from arb.scheduler.simulation import simulate
+
+    try:
+        result = simulate(
+            Path(database), start=date.fromisoformat(start), seed=seed, output=Path(output)
+        )
+    except (ValueError, FileExistsError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@scheduler_app.command("once")
+def scheduler_once(database: str = typer.Option(...), output: str = "reports", root: str = "."):
+    """Último slot vencido: fonte offline ausente congela simulação; não acessa APIs."""
+    import json
+    from datetime import UTC, datetime, timedelta
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler import ZONE, run_cycle, schedule
+
+    now = datetime.now(UTC)
+    today = now.astimezone(ZONE).date()
+    slot = max(s for s in schedule(today - timedelta(days=1), today) if s <= now)
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = run_cycle(connection, slot, now=now, root=Path(root), output=Path(output))
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()
+
+
+@app.command("panic")
+def panic_command(database: str = "data/engine.db"):
+    """Pausa entidades simuladas; indica manualmente as pausas remotas pendentes."""
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.panic import panic
+
+    if not Path(database).is_file():
+        raise typer.BadParameter("Banco não encontrado")
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = panic(connection)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+        if result["remote_pause_pending"] or result["errors"]:
+            raise typer.Exit(1)
+    finally:
+        connection.close()
+
+
+@db_app.command("restore")
+def db_restore(backup: str, database: str = typer.Option(...)):
+    """Restaura backup validado em caminho novo; recusa sobrescrita."""
+    from pathlib import Path
+
+    from arb.db.restore import restore_new
+
+    try:
+        target = restore_new(Path(backup), Path(database))
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"Restauração OK em banco novo: {target}")

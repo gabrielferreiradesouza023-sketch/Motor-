@@ -6,7 +6,9 @@ def test_agent_constitution_and_future_board():
     assert "## 0. Princípios inegociáveis" in (root / "AGENTS.md").read_text()
     assert "## 9. Protocolo multiagente" in (root / "AGENTS.md").read_text()
     for number in range(5, 30):
-        task = (root / f"ops/board/todo/T-{number:02d}.md").read_text()
+        paths = list((root / "ops/board").glob(f"*/T-{number:02d}.md"))
+        assert len(paths) == 1
+        task = paths[0].read_text()
         for heading in [
             "## Objetivo",
             "## Arquivos",

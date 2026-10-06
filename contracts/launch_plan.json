@@ -1,0 +1,438 @@
+{
+  "$defs": {
+    "Angle": {
+      "additionalProperties": false,
+      "properties": {
+        "audience_pain": {
+          "minLength": 1,
+          "title": "Audience Pain",
+          "type": "string"
+        },
+        "hook_line": {
+          "minLength": 1,
+          "title": "Hook Line",
+          "type": "string"
+        },
+        "hypothesis": {
+          "minLength": 1,
+          "title": "Hypothesis",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "offer_id": {
+          "minLength": 1,
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "promise": {
+          "minLength": 1,
+          "title": "Promise",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "approved",
+            "testing",
+            "validated",
+            "killed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "offer_id",
+        "hypothesis",
+        "promise",
+        "audience_pain",
+        "hook_line",
+        "status"
+      ],
+      "title": "Angle",
+      "type": "object"
+    },
+    "Creative": {
+      "additionalProperties": false,
+      "properties": {
+        "angle_id": {
+          "minLength": 1,
+          "title": "Angle Id",
+          "type": "string"
+        },
+        "asset_path": {
+          "minLength": 1,
+          "title": "Asset Path",
+          "type": "string"
+        },
+        "copy_primary": {
+          "minLength": 1,
+          "title": "Copy Primary",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "image",
+            "video"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "headline": {
+          "minLength": 1,
+          "title": "Headline",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "policy_lint": {
+          "enum": [
+            "passed",
+            "failed"
+          ],
+          "title": "Policy Lint",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "approved",
+            "testing",
+            "validated",
+            "killed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "angle_id",
+        "format",
+        "copy_primary",
+        "headline",
+        "asset_path",
+        "policy_lint",
+        "status"
+      ],
+      "title": "Creative",
+      "type": "object"
+    },
+    "Entity": {
+      "additionalProperties": false,
+      "properties": {
+        "angle_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Angle Id"
+        },
+        "creative_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Creative Id"
+        },
+        "daily_budget_cents": {
+          "minimum": 0,
+          "title": "Daily Budget Cents",
+          "type": "integer"
+        },
+        "gate": {
+          "enum": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "T"
+          ],
+          "title": "Gate",
+          "type": "string"
+        },
+        "geo": {
+          "pattern": "^[A-Z]{2}$",
+          "title": "Geo",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "campaign",
+            "adset",
+            "ad"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "meta_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Meta Id"
+        },
+        "offer_id": {
+          "minLength": 1,
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "offer_id",
+        "geo",
+        "gate",
+        "daily_budget_cents",
+        "status"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "Offer": {
+      "additionalProperties": false,
+      "properties": {
+        "affiliate_link": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Affiliate Link",
+          "type": "string"
+        },
+        "allows_paid_traffic": {
+          "title": "Allows Paid Traffic",
+          "type": "boolean"
+        },
+        "commission_brl_cents": {
+          "minimum": 0,
+          "title": "Commission Brl Cents",
+          "type": "integer"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "hotmart_product_id": {
+          "minLength": 1,
+          "title": "Hotmart Product Id",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "language": {
+          "minLength": 1,
+          "title": "Language",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "niche": {
+          "minLength": 1,
+          "title": "Niche",
+          "type": "string"
+        },
+        "price_local": {
+          "minimum": 0,
+          "title": "Price Local",
+          "type": "integer"
+        },
+        "sales_page_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Sales Page Url",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "approved",
+            "testing",
+            "validated",
+            "killed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "hotmart_product_id",
+        "name",
+        "niche",
+        "language",
+        "commission_brl_cents",
+        "price_local",
+        "currency",
+        "allows_paid_traffic",
+        "sales_page_url",
+        "affiliate_link",
+        "score",
+        "status"
+      ],
+      "title": "Offer",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Entradas completas e imutáveis por hash; a execução revalida a elegibilidade.",
+  "properties": {
+    "age_max": {
+      "const": 65,
+      "default": 65,
+      "title": "Age Max",
+      "type": "integer"
+    },
+    "age_min": {
+      "const": 18,
+      "default": 18,
+      "title": "Age Min",
+      "type": "integer"
+    },
+    "angles": {
+      "items": {
+        "$ref": "#/$defs/Angle"
+      },
+      "title": "Angles",
+      "type": "array"
+    },
+    "budget_type": {
+      "const": "ABO",
+      "default": "ABO",
+      "title": "Budget Type",
+      "type": "string"
+    },
+    "creatives": {
+      "items": {
+        "$ref": "#/$defs/Creative"
+      },
+      "title": "Creatives",
+      "type": "array"
+    },
+    "daily_budget_cents": {
+      "exclusiveMinimum": 0,
+      "maximum": 6000,
+      "title": "Daily Budget Cents",
+      "type": "integer"
+    },
+    "destination_url": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Destination Url",
+      "type": "string"
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/Entity"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "geo": {
+      "pattern": "^[A-Z]{2}$",
+      "title": "Geo",
+      "type": "string"
+    },
+    "interests": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 0,
+      "title": "Interests",
+      "type": "array"
+    },
+    "language": {
+      "const": "es",
+      "default": "es",
+      "title": "Language",
+      "type": "string"
+    },
+    "objective": {
+      "const": "InitiateCheckout",
+      "default": "InitiateCheckout",
+      "title": "Objective",
+      "type": "string"
+    },
+    "offer": {
+      "$ref": "#/$defs/Offer"
+    }
+  },
+  "required": [
+    "offer",
+    "angles",
+    "creatives",
+    "geo",
+    "daily_budget_cents",
+    "destination_url",
+    "entities"
+  ],
+  "title": "LaunchPlan",
+  "type": "object"
+}

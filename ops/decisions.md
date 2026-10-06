@@ -15,3 +15,135 @@
 - Action.live mantém bool conforme a seção 8.2 para registros de auditoria; a F0 não
   executa ações externas e doctor recusa LIVE_MODE diferente de false.
 - JSONs de métricas/payload são objetos. Contratos gerados de forma determinística.
+
+## ADR-003 — Snapshots e validação sintética (T-08)
+- Snapshots persistidos representam intervalos não sobrepostos; somar contadores é válido.
+  F5 deverá converter insights cumulativos em deltas auditáveis, incluindo correções negativas
+  em mecanismo próprio, sem gravar cumulativos como se fossem intervalos.
+- Simulação tem três ofertas, três ângulos e três criativos por ângulo por padrão.
+  Um combo é vencedor plantado; perdas incluem atenção, intenção e ausência de vendas.
+- Tráfego usa Bernoulli por evento e CPM com ruído. Não lê regras para definir probabilidades.
+- Aceite de 50 seeds mede este cenário sintético, não prevê lucratividade de campanhas reais.
+
+## ADR-004 — P&L e receita tardia (T-10)
+- P&L acumulado recalcula as vendas pelo status atual e preserva decisões append-only.
+- Sem timestamp do clique no contrato SaleEvent, a atribuição diária retroativa é por
+  coorte da primeira atividade conhecida da entidade, não pelo dia em que o CSV foi importado.
+  É uma aproximação explícita; atribuição real por clique requer contrato/ADR futuro.
+- Reopened é indicador no relatório para entidade morta cujo ROI se tornou positivo;
+  não reativa anúncios automaticamente. Receita esperada não retorna ao caixa disponível.
+
+## ADR-005 — Contrato da biblioteca de ângulos (T-12)
+- Adicionar AngleLearning como contrato público e migração 002 para registros por ângulo/geo.
+- Arquivar só ângulos pausados com kill ou pass do Portão 3/T. Hold não é veredito encerrado.
+- Consulta por nicho mantém contexto, formato, métricas e motivo. Repetir archive atualiza a
+  mesma chave e não duplica aprendizado. Decisões originais continuam append-only.
+
+## ADR-006 — Contratos de coleta manual (T-13)
+- OfferIntake contém Offer e avaliação manual; AdObservation contém anunciante e primeira
+  observação. Exportar JSON Schema de ambos. Datas de coleta são explícitas, sem scraping.
+- Importação CSV é estrita e atômica: cabeçalho exato, nenhuma coluna surpresa, duplicatas
+  rejeitadas, inteiros monetários e booleanos true/false. Não armazenar credenciais nos CSVs.
+- Um anunciante contado por oferta; idade é calculada na data observada, não inventada.
+
+## ADR-007 — Normalização da pontuação (T-14)
+- Pesos positivos da spec somam 85: normalizar para 100 e aplicar penalidade de até 15.
+  Comissão líquida é saturada em R$100; prova de mercado em 5 anunciantes antigos.
+  São escalas iniciais explícitas, ainda sem dados reais de marketplace.
+- Os filtros usam comissão nominal mínima R$40 conforme texto do Portão 0.
+- Aprovação new_offer tem exposição zero e hash de ofertas completas. Ranking não aprova
+  ofertas, não cria campanha e não expande exposição. Preservar decisões existentes.
+
+## ADR-008 — Ingestão de rastreio (T-18)
+- BridgeEvent é contrato explícito; exportação D1 tem cursores persistidos por origem.
+- Recibos deduplicam eventos antes de gerar snapshots de contadores de ponte.
+  Colisão de timestamp no mesmo ad ganha microssegundos sem perder o timestamp no recibo.
+- Comissão e rastreio não podem mudar silenciosamente numa transação existente.
+  Reembolsos/chargebacks atualizam status, sem apagar decisões ou aceitar regressão para approved.
+- /sale recebe contrato normalizado de teste; adaptador do webhook real aguarda V-01.
+
+## ADR-009 — Insights cumulativos, correções e sincronização completa (T-20)
+- MetricSnapshot ganha period_start opcional para atribuição à data da conta, mantendo ts
+  como coleta. Adicionar MetricAdjustment com deltas assinados para correções negativas.
+  Gerar contratos e migração 004. Logs de correção são append-only.
+- Meta diário é cumulativo: gravar só diferenças em relação ao último estado confirmado.
+  Repetir coleta não duplica gasto; correções não são descartadas nem sobrescrevem snapshots.
+- Todos os GETs terminam antes da transação; falha de página ou validação causa rollback
+  e um registro failed. last_collection só retorna tempo se o último ciclo ficou complete.
+- Descoberta de anúncio desconhecido exige mapping explícito ad_id→offer_id; não inventar
+  ofertas, comissão, creative ou atribuição. Mudanças manuais são auditadas e não revertidas.
+
+## ADR-010 — Desenvolvimento local de F6–F8 antes do aceite real de F5
+O usuário autorizou avançar em tudo que não exige cadastros ou gastos. Implementamos
+as próximas fases apenas com dados sintéticos, arquivos e transportes de teste;
+o aceite real de F5/F6 permanece pendente. Nenhuma chamada de escrita Meta ou envio
+real de Telegram será executado. LaunchPlan passa a ser contrato público exportado:
+contém entradas aprovadas, destino e estrutura ABO pausada. O hash cobre todas as
+entradas; execução reconstitui o plano para detectar alterações de estrutura.
+Orçamento diário total por oferta limitado a 6000 centavos, dividido entre conjuntos.
+
+## ADR-011 — Copy local sem alegações inventadas
+Gerador usa templates editoriais em espanhol, sem LLM/API paga. O lint normaliza
+acentos, caixa e caracteres invisíveis; rejeita termos banidos, promessas e números
+sem URL HTTPS explicitamente declarada. Declarar URL não verifica uma alegação:
+a revisão humana precisa confirmar fonte, tradução e compatibilidade com a política.
+Região indica contexto do leitor, sem afirmar disponibilidade regional da oferta.
+Todos os criativos permanecem candidatos, sem publicação nem aprovação automática.
+
+## ADR-012 — Render sem serviços pagos nem mídia de terceiros
+Chromium headless renderiza HTML escapado, sem recursos externos, com DNS bloqueado
+para rede e verificação real de overflow/zona segura pelo DOM. São produzidos PNGs
+1080×1350 e 1080×1920; ffmpeg combina slides com H.264/AAC por 12 segundos.
+A trilha é uma tríade sintetizada originalmente pelo projeto e dedicada a CC0-1.0,
+sem fonograma de terceiros. Metadados de direitos acompanham cada vídeo.
+Margens conservadoras: 120 px laterais, 200 superiores e 260 inferiores; revisar
+visualmente no placement real, pois overlays das plataformas podem mudar.
+Chromium usa no-sandbox por limitações do sandbox desta máquina isolada; somente templates
+próprios escapados são renderizados. Não aceitar HTML arbitrário como entrada.
+
+Playwright controla o Chromium instalado via protocolo de automação; o CLI headless
+da imagem não concluiu. Não baixar browsers novos: executable_path usa binário local,
+com caches XDG temporários graváveis e recursos de rede bloqueados por contexto.
+
+## ADR-013 — Scheduler local com checkpoints e trava de processo
+Migração 005 registra ciclos por instante UTC dos horários 09/18/23:30 São Paulo.
+Lock flock por banco impede ciclos simultâneos; encerramento de processo libera a
+trava automaticamente. Checkpoints permitem retomar relatório após falha sem repetir
+coleta, decisões ou ações. Decisões têm IDs determinísticos por ciclo/entidade.
+Fonte de sync é interface injetável, sem credenciais nem rede por padrão. Fonte ausente
+ou falha congela entidades simuladas; pass não aumenta verba nem ativa nada. Entidades
+Meta observadas recebem alerta de pausa pendente, sem falsificar estado remoto.
+O scheduler agrega folhas da hierarquia e correções de métricas. Pausa ao atingir teto
+mesmo com hold/pass, sem depender de kill. Falha de alerta não desfaz pausa. Usar Linux
+neste cloud; Windows pode executar via WSL ou implementar trava nativa antes de operar.
+
+## ADR-014 — Alertas opcionais, entrega incerta e ausência de credenciais
+Alertas locais incluem freios, dados atrasados, propostas pendentes e vendas sem
+casamento. A CLI não habilita Telegram. Adaptador só é usado com cliente, credenciais
+e flag de envio explicitamente fornecidos; nesta sessão somente MockTransport.
+Actions guardam conteúdo resumido e resultado, sem token/chat de destino ou respostas.
+Tentativa é registrada antes do envio: timeout/falha vira uncertain e não é reenviada
+automaticamente, pois Telegram não oferece chave idempotente para sendMessage.
+Sem autorização/configuração real, dispatch é disabled, sem requisições externas.
+Falta/falha de alerta não compromete a execução anterior dos freios.
+
+## ADR-015 — Runbook exercitável sem exposição externa
+Panic só confirma pausas locais; entidades Meta observadas ficam remote_pause_pending,
+com código de saída 1. Restore usa backup SQLite consistente, valida contratos/checksums
+e publica atomicamente em caminho novo; recusa sobrescrita mesmo em concorrência.
+Restauração pode recuperar entidades ativas anteriores ao freio: exigir panic/revisão
+antes de voltar a usar a cópia. Rotação de token foi testada apenas por substituição de
+clientes read-only com tokens sintéticos; conta/provedor não foram alterados.
+
+## ADR-016 — Teto rígido nos Portões 3 e T (T-30)
+- Problema: a spec só mata G3/T "no teto com 0 vendas". Com 1–2 vendas a amostra nunca
+  é suficiente e a entidade fica em `insufficient_data` gastando sem limite; com 3+ vendas
+  e ROI ruim fica em `hold` indefinidamente. Só freios globais seguravam o gasto.
+- Decisão (aprovada pelo humano): `gate_3.hard_cap_multiplier: 1.5`. Em G3/T, gasto bruto
+  ≥ teto × 1,5 sem `pass` → `kill` com `rule_id` `g3.hard_cap`/`gT.hard_cap`, inclusive com
+  dados atrasados (é kill por teto). `pass` nunca é sobrescrito.
+- Faixa entre teto e teto rígido: mantém o comportamento anterior (até 50% extra para
+  combos com venda acumularem as 3 vendas exigidas).
+- Validação: 50 seeds inalteradas (50/50, 0 vencedores mortos, waste médio 0,93%).
+- Limite conhecido: o simulador planta um vencedor com margens irreais (checkout→compra
+  30%); calibrar com parâmetros realistas antes de operar. Multiplicador é calibrável via ADR.

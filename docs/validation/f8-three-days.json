@@ -1,0 +1,223 @@
+{
+  "mode": "simulation",
+  "cycles": [
+    {
+      "id": "2026-10-05T12:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo"
+      ],
+      "decisions": [
+        "04f72077-a45f-5784-b28e-3bda11e178e5",
+        "0572a1cf-37f0-5225-b1ab-1161cdc02e6a",
+        "0b9769d8-845d-5df3-8b1c-b5a1afc9bb2c",
+        "138c6cf4-eda7-5780-8f6a-5179a99800c1",
+        "19b0bdbb-588d-5806-828b-0d576ca3f647",
+        "27c9edc7-d569-533a-999f-e09c65ed8a37",
+        "2c0a2f9a-3ea8-5951-99a5-47f69f0adb55",
+        "2dc4f823-2bb5-55e6-9e18-f48d998b934f",
+        "2ea9826c-f0b2-57aa-8f6a-a2e296ec4d98",
+        "4764239e-ad2a-5bda-8564-a2dfb21af61b",
+        "52fabb4f-7861-52a8-9193-366ea4cb6951",
+        "5977403c-b61f-5776-b3d8-1a72c724f18d",
+        "5b543ff8-6766-5ad1-a2d5-8ee16d719bef",
+        "5d1f168b-72d1-5ce8-9f7b-ce2b5f72665d",
+        "666b2a9b-dc83-5095-9320-eb6fad6aeea2",
+        "72c55515-04a5-51c8-af60-27ef578abede",
+        "793e8f71-b5a9-55fa-9349-d4399c1950fe",
+        "8255ad80-b515-5293-b185-be4eab7a6b89",
+        "8c0c2f54-74c9-5fec-91e9-2d79dde79635",
+        "9c53f895-3205-5de5-8e90-32597947205c",
+        "9dd5d24c-2e14-5650-ac61-d00afd05a757",
+        "9def2a4e-b238-56a9-b189-dd80e5b1abf5",
+        "9eef1311-4c3d-54e6-ac76-7ba3d6974404",
+        "afb7866b-fcf4-5461-a755-9e775cb0bde4",
+        "b2365148-70b5-5258-90ea-ea137d9022b9",
+        "bd389c43-7fa8-5755-a3ca-723c814a5863",
+        "c09f2ddc-e12a-5823-853e-dcb008f6b34c",
+        "c10e96fd-c6c3-5ae8-90f4-3484b2620f25",
+        "c1f2969c-6189-5844-9e86-79682c1f36a0",
+        "c1f7e7ae-98f4-5b26-95d8-51814e7f95ac",
+        "d8b35fa4-c21d-53c8-9947-a8adff4b1bc5",
+        "d941a316-d4eb-58ba-b96c-d89e7e762e35",
+        "ddf3da16-a6c3-557a-a16b-41b69b83a46f",
+        "e623251d-46d5-586a-aedc-2a90fef351ef",
+        "e83541ae-2a48-5d0e-9a13-774f550d97b1",
+        "e8669e6f-88b3-5f19-8497-8235599f50bb"
+      ],
+      "pauses": [
+        "ad406e91-1027-4e6e-9ba6-b250d2951c8c",
+        "87cec58b-c154-43fd-bd63-508d56a78330",
+        "09090ff2-a060-49bc-a93f-a78877071630",
+        "7656a9c2-85e3-449d-a115-dd4d59293492",
+        "9e907342-782c-4dfa-b135-d4e070447a5a",
+        "6f27740e-7ead-4d6e-8c93-adb577fd70f3",
+        "60f2b2bd-c8b0-4e59-9659-a48128641fe3",
+        "1c74153f-d3b6-4baa-83bc-241e78cde475",
+        "9f6dcd72-fb6f-4682-9809-5b95f7a506c1",
+        "839c27b0-0d9e-4223-a8ed-35b20e11ead8",
+        "6c7c3167-1183-44c8-b8cc-23043404ac9c",
+        "1faad744-db67-4a4e-a0ac-ab4003089bac",
+        "ee19c76b-3871-4e2a-959b-07ec715ac5b1",
+        "024efcb8-c94a-4792-9172-2fb659701327",
+        "69c6088e-0105-4442-9086-88c54dcd424e",
+        "de94096d-cf21-42d9-b285-5dac1ce01ba7",
+        "f2898d88-dd16-4cb0-9a86-9c3bf9f48b82",
+        "3fc311cd-d37a-48e6-8527-a0b98b425220",
+        "d261a575-2d64-4eb9-ad3d-ed49ec60e85e",
+        "0262b25d-5a4c-4284-a69f-397b63fc07e2",
+        "19705efb-f646-4e54-80da-f9110c281e4c",
+        "3c5cc339-5760-4b0c-9eea-50aeac564578",
+        "b9c7c1ee-85a3-43b2-80d0-c55190c77421",
+        "2c593896-5cf5-4597-b0d6-fe9436ea6ef4",
+        "e3182d6b-f5c4-4686-8538-01923fc6f665",
+        "ce323dc5-b611-4364-8f78-44d8c965ff8f",
+        "8f5beb74-5b32-4ac5-ad3e-18bf381eaf20",
+        "ddd71bd3-7751-4d63-94d2-99bc60958bad",
+        "259c83b2-24ff-4f9a-a121-60f26fd8dfe9",
+        "48b4dba3-d99b-44fc-ae62-07461a70ff0c",
+        "254d6584-2de3-4805-b2b7-d39f0c72e3e5",
+        "2519c618-ebf6-4564-90d7-ddacc05d5621",
+        "4e55fdb4-a5c0-4eee-a05f-1388c87be2b6",
+        "2396e026-4520-46e8-9e03-49c8ac34ac27",
+        "951067f2-89a4-4502-b473-533c1d034366",
+        "ea289d4f-0cb9-440a-b37e-461ca5b7279f"
+      ],
+      "collection": "2026-10-05T09:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-05T21:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo"
+      ],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-05T18:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-06T02:30:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo"
+      ],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-05T23:30:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-06T12:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-06T09:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-06T21:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-06T18:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-07T02:30:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-06T23:30:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-07T12:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-07T09:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-07T21:00:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-07T18:00:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    },
+    {
+      "id": "2026-10-08T02:30:00+00:00",
+      "stages": [
+        "sync",
+        "rules",
+        "actions",
+        "report",
+        "alerts"
+      ],
+      "alerts": [],
+      "decisions": [],
+      "pauses": [],
+      "collection": "2026-10-07T23:30:00-03:00",
+      "report": "reports/scheduler-three-days/latest.html"
+    }
+  ],
+  "cycle_count": 9,
+  "snapshots": 27,
+  "paused": 39
+}

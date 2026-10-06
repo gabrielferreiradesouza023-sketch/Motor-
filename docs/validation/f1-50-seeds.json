@@ -1,0 +1,1415 @@
+{
+  "seeds": 50,
+  "found": 50,
+  "found_rate": 1.0,
+  "mean_waste_ratio": 0.009305118609720508,
+  "killed_winners": 0,
+  "rules_changed": false,
+  "runs": [
+    {
+      "seed": 0,
+      "spend_gross_cents": 50899,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0063459007053183756,
+      "cost_per_learning_cents": 1497.0294117647059,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 1,
+      "spend_gross_cents": 51024,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.010544057698338037,
+      "cost_per_learning_cents": 1500.7058823529412,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 2,
+      "spend_gross_cents": 50547,
+      "revenue_expected_cents": 61200,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.00953567966447069,
+      "cost_per_learning_cents": 1486.6764705882354,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 3,
+      "spend_gross_cents": 47328,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009127789046653144,
+      "cost_per_learning_cents": 1392.0,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 4,
+      "spend_gross_cents": 50647,
+      "revenue_expected_cents": 61200,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.005311272138527455,
+      "cost_per_learning_cents": 1489.6176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 5,
+      "spend_gross_cents": 50997,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.014804792438770907,
+      "cost_per_learning_cents": 1499.9117647058824,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 6,
+      "spend_gross_cents": 50447,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.005272860626003528,
+      "cost_per_learning_cents": 1483.735294117647,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 7,
+      "spend_gross_cents": 50239,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0018909612054380063,
+      "cost_per_learning_cents": 1477.6176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 8,
+      "spend_gross_cents": 46325,
+      "revenue_expected_cents": 40800,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.008958445763626552,
+      "cost_per_learning_cents": 1362.5,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 9,
+      "spend_gross_cents": 51140,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.008271411810715683,
+      "cost_per_learning_cents": 1504.1176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 10,
+      "spend_gross_cents": 50444,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.007909761319482992,
+      "cost_per_learning_cents": 1483.6470588235295,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 11,
+      "spend_gross_cents": 51086,
+      "revenue_expected_cents": 15300,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.016814782915084366,
+      "cost_per_learning_cents": 1502.5294117647059,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 12,
+      "spend_gross_cents": 50538,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0073805849064070604,
+      "cost_per_learning_cents": 1486.4117647058824,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 13,
+      "spend_gross_cents": 50606,
+      "revenue_expected_cents": 40800,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009544322807572225,
+      "cost_per_learning_cents": 1488.4117647058824,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 14,
+      "spend_gross_cents": 50711,
+      "revenue_expected_cents": 40800,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009918952495513793,
+      "cost_per_learning_cents": 1491.5,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 15,
+      "spend_gross_cents": 50537,
+      "revenue_expected_cents": 45900,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.011555889744147852,
+      "cost_per_learning_cents": 1486.3823529411766,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 16,
+      "spend_gross_cents": 54984,
+      "revenue_expected_cents": 51000,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.00634730103302779,
+      "cost_per_learning_cents": 1617.1764705882354,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 17,
+      "spend_gross_cents": 50890,
+      "revenue_expected_cents": 61200,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.011063077225388091,
+      "cost_per_learning_cents": 1496.764705882353,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 18,
+      "spend_gross_cents": 50457,
+      "revenue_expected_cents": 51000,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.010900370612600829,
+      "cost_per_learning_cents": 1484.0294117647059,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 19,
+      "spend_gross_cents": 50189,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.004363505947518381,
+      "cost_per_learning_cents": 1476.1470588235295,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 20,
+      "spend_gross_cents": 50900,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009017681728880157,
+      "cost_per_learning_cents": 1497.0588235294117,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 21,
+      "spend_gross_cents": 51061,
+      "revenue_expected_cents": 40800,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.013983274906484402,
+      "cost_per_learning_cents": 1501.7941176470588,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 22,
+      "spend_gross_cents": 50619,
+      "revenue_expected_cents": 15300,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.006578557458661767,
+      "cost_per_learning_cents": 1488.7941176470588,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 23,
+      "spend_gross_cents": 50991,
+      "revenue_expected_cents": 56100,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.007942578102018004,
+      "cost_per_learning_cents": 1499.735294117647,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 24,
+      "spend_gross_cents": 51309,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.013506402385546396,
+      "cost_per_learning_cents": 1509.0882352941176,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 25,
+      "spend_gross_cents": 51157,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.013937486560978948,
+      "cost_per_learning_cents": 1504.6176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 26,
+      "spend_gross_cents": 50483,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.004932353465523048,
+      "cost_per_learning_cents": 1484.7941176470588,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 27,
+      "spend_gross_cents": 50879,
+      "revenue_expected_cents": 51000,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.010809960887596061,
+      "cost_per_learning_cents": 1496.4411764705883,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 28,
+      "spend_gross_cents": 50970,
+      "revenue_expected_cents": 20400,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.014459485972140475,
+      "cost_per_learning_cents": 1499.1176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 29,
+      "spend_gross_cents": 51394,
+      "revenue_expected_cents": 56100,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.011518854340973654,
+      "cost_per_learning_cents": 1511.5882352941176,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 30,
+      "spend_gross_cents": 50404,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009900007935878105,
+      "cost_per_learning_cents": 1482.4705882352941,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 31,
+      "spend_gross_cents": 50502,
+      "revenue_expected_cents": 20400,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.004336461922300107,
+      "cost_per_learning_cents": 1485.3529411764705,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 32,
+      "spend_gross_cents": 50488,
+      "revenue_expected_cents": 15300,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.008417841863413088,
+      "cost_per_learning_cents": 1484.9411764705883,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 33,
+      "spend_gross_cents": 50630,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.011514912107446177,
+      "cost_per_learning_cents": 1489.1176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 34,
+      "spend_gross_cents": 51085,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.014916315944014878,
+      "cost_per_learning_cents": 1502.5,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 35,
+      "spend_gross_cents": 50905,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.008073863078283077,
+      "cost_per_learning_cents": 1497.2058823529412,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 36,
+      "spend_gross_cents": 50547,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0086849862504204,
+      "cost_per_learning_cents": 1486.6764705882354,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 37,
+      "spend_gross_cents": 50658,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.006593233053022228,
+      "cost_per_learning_cents": 1489.9411764705883,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 38,
+      "spend_gross_cents": 50747,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.01182335901629653,
+      "cost_per_learning_cents": 1492.5588235294117,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 39,
+      "spend_gross_cents": 50980,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.009690074539034916,
+      "cost_per_learning_cents": 1499.4117647058824,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 40,
+      "spend_gross_cents": 51461,
+      "revenue_expected_cents": 45900,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.012378305901556518,
+      "cost_per_learning_cents": 1513.5588235294117,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 41,
+      "spend_gross_cents": 51110,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0033065936216004695,
+      "cost_per_learning_cents": 1503.235294117647,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 42,
+      "spend_gross_cents": 50974,
+      "revenue_expected_cents": 30600,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.013006630831404246,
+      "cost_per_learning_cents": 1499.235294117647,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 43,
+      "spend_gross_cents": 51189,
+      "revenue_expected_cents": 51000,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.01713258707925531,
+      "cost_per_learning_cents": 1505.5588235294117,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 44,
+      "spend_gross_cents": 50778,
+      "revenue_expected_cents": 35700,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0044113592500689275,
+      "cost_per_learning_cents": 1493.4705882352941,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 45,
+      "spend_gross_cents": 50473,
+      "revenue_expected_cents": 40800,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.006874962851425514,
+      "cost_per_learning_cents": 1484.5,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 46,
+      "spend_gross_cents": 50783,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.011893743969438592,
+      "cost_per_learning_cents": 1493.6176470588234,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 47,
+      "spend_gross_cents": 50531,
+      "revenue_expected_cents": 15300,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.006649383546733688,
+      "cost_per_learning_cents": 1486.2058823529412,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 48,
+      "spend_gross_cents": 50399,
+      "revenue_expected_cents": 25500,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.0053175658247187445,
+      "cost_per_learning_cents": 1482.3235294117646,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    },
+    {
+      "seed": 49,
+      "spend_gross_cents": 53305,
+      "revenue_expected_cents": 15300,
+      "winners": [
+        "o0-a0"
+      ],
+      "killed_winners": [],
+      "planted_found": true,
+      "waste_ratio": 0.007785385986305225,
+      "cost_per_learning_cents": 1567.7941176470588,
+      "sampled_verdicts": 34,
+      "alerts": [
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "daily_cap: pausar até o próximo dia São Paulo",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana",
+        "emergency: ROI diário abaixo do limite; revisão humana"
+      ]
+    }
+  ]
+}

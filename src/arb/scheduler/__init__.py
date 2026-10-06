@@ -1,0 +1,303 @@
+"""Ciclos locais protegidos por lock de processo e checkpoints idempotentes."""
+
+import fcntl
+import json
+import sqlite3
+from collections.abc import Callable
+from datetime import UTC, date, datetime, time, timedelta
+from pathlib import Path
+from uuid import NAMESPACE_URL, uuid5
+from zoneinfo import ZoneInfo
+
+import yaml
+
+from arb.analyst import pnl
+from arb.analyst.report import generate_report
+from arb.config import Settings
+from arb.db import Repository, backup_daily
+from arb.launcher.actions import pause
+from arb.launcher.execute import require_simulation
+from arb.models import (
+    Creative,
+    Decision,
+    Entity,
+    MetricAdjustment,
+    MetricSnapshot,
+    Offer,
+    SaleEvent,
+)
+from arb.rules import controls, evaluate, load_rules
+
+ZONE = ZoneInfo("America/Sao_Paulo")
+
+
+def schedule(
+    start: date, end: date, *, cycles: tuple[str, ...] = ("09:00", "18:00", "23:30")
+) -> list[datetime]:
+    if end < start or (end - start).days > 366:
+        raise ValueError("intervalo inválido")
+    result = []
+    day = start
+    while day <= end:
+        result.extend(datetime.combine(day, time.fromisoformat(slot), ZONE) for slot in cycles)
+        day += timedelta(days=1)
+    return sorted(set(result))
+
+
+def family_ids(entity: Entity, entities: list[Entity]) -> set[str]:
+    family = {entity.id}
+    while True:
+        expanded = family | {e.id for e in entities if e.parent_id in family}
+        if expanded == family:
+            return family
+        family = expanded
+
+
+def run_cycle(
+    connection: sqlite3.Connection,
+    scheduled_at: datetime,
+    *,
+    sync_source: Callable[[sqlite3.Connection, datetime], datetime | None] | None = None,
+    report_fn: Callable = generate_report,
+    notify: Callable[[list[str]], object] | None = None,
+    root: Path = Path("."),
+    output: Path = Path("reports"),
+    now: datetime | None = None,
+) -> dict:
+    """Sync injetável somente leitura/local; falta/falha congela entidades simuladas.
+
+    Nunca solicita integração ou envio externos por padrão. Não modifica status
+    observado de entidades Meta. Falhas de alerta não interrompem proteção de verba.
+    """
+    require_simulation()
+    now = now or datetime.now(UTC)
+    settings = Settings.model_validate(yaml.safe_load((root / "config/settings.yaml").read_text()))
+    rules = load_rules(root / "config/rules.yaml")
+    if now.utcoffset() is None or scheduled_at.utcoffset() is None or scheduled_at > now:
+        raise ValueError("ciclo precisa ter fuso e não estar no futuro")
+    local = scheduled_at.astimezone(ZONE)
+    if local.strftime("%H:%M") not in settings.cycles or local.second or local.microsecond:
+        raise ValueError("horário não pertence aos ciclos São Paulo")
+    if connection.in_transaction:
+        raise ValueError("ciclo requer commit anterior")
+    database = Path(connection.execute("PRAGMA database_list").fetchone()[2])
+    if not str(database) or str(database) == ".":
+        raise ValueError("scheduler exige banco em arquivo")
+    with database.with_suffix(database.suffix + ".scheduler.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError("outro ciclo está em execução") from exc
+        return _run(
+            connection,
+            scheduled_at,
+            now,
+            sync_source,
+            report_fn,
+            notify,
+            root,
+            output,
+            settings,
+            rules,
+        )
+
+
+def _run(
+    connection, scheduled_at, now, sync_source, report_fn, notify, root, output, settings, rules
+):
+    key = scheduled_at.astimezone(UTC).isoformat()
+    previous = connection.execute(
+        "SELECT status,payload FROM scheduler_runs WHERE id=?", (key,)
+    ).fetchone()
+    if previous and previous[0] == "complete":
+        return json.loads(previous[1])
+    result = (
+        json.loads(previous[1])
+        if previous
+        else {
+            "id": key,
+            "stages": [],
+            "alerts": [],
+            "decisions": [],
+            "pauses": [],
+            "collection": None,
+        }
+    )
+    result.pop("error_kind", None)
+
+    def checkpoint(status="running"):
+        with connection:
+            connection.execute(
+                "INSERT INTO scheduler_runs VALUES(?,?,?,?) "
+                "ON CONFLICT(id) DO UPDATE SET status=excluded.status,payload=excluded.payload",
+                (key, now.isoformat(), status, json.dumps(result, sort_keys=True)),
+            )
+
+    checkpoint()
+    try:
+        if "sync" not in result["stages"]:
+            try:
+                collection = sync_source(connection, now) if sync_source else None
+                if collection is not None and (collection.utcoffset() is None or collection > now):
+                    raise ValueError("coleta inválida")
+                result["collection"] = collection.isoformat() if collection else None
+            except Exception:
+                connection.rollback()
+                result["collection"] = None
+                result["alerts"].append("sync_failed: coleta incompleta; proteção mantida")
+            result["stages"].append("sync")
+            checkpoint()
+        collection = datetime.fromisoformat(result["collection"]) if result["collection"] else None
+        stale = collection is None or now - collection > timedelta(
+            hours=rules.controls.stale_after_hours
+        )
+        entities = Repository(connection, Entity).list()
+        snapshots = Repository(connection, MetricSnapshot).list()
+        adjustments = Repository(connection, MetricAdjustment).list()
+        sales = Repository(connection, SaleEvent).list()
+        offers = {o.id: o for o in Repository(connection, Offer).list()}
+        creatives = {c.id: c for c in Repository(connection, Creative).list()}
+        if "rules" not in result["stages"]:
+            for entity in entities:
+                if entity.status != "active" or entity.gate == "0":
+                    continue
+                family = family_ids(entity, entities)
+                leaves = family - {e.parent_id for e in entities if e.id in family}
+                items = [s for s in snapshots if s.entity_id in leaves]
+                stamp = max((s.ts for s in items), default=now - timedelta(hours=7))
+                if stale:
+                    stamp = min(stamp, now - timedelta(hours=7))
+                totals = {
+                    field: sum(getattr(s, field) for s in items)
+                    + sum(a.deltas.get(field, 0) for a in adjustments if a.entity_id in leaves)
+                    for field in (
+                        "impressions",
+                        "video_3s_views",
+                        "link_clicks",
+                        "spend_platform_cents",
+                        "bridge_views",
+                        "checkout_clicks",
+                    )
+                }
+                combined = MetricSnapshot(entity_id=entity.id, ts=stamp, **totals)
+                decision = evaluate(
+                    entity,
+                    combined,
+                    [s for s in sales if s.matched_entity_id in leaves],
+                    offers[entity.offer_id].commission_brl_cents,
+                    rules,
+                    now,
+                    video=entity.creative_id not in creatives
+                    or creatives[entity.creative_id].format == "video",
+                    media_tax_rate=settings.media_tax_rate,
+                    refund_rate=settings.refund_rate,
+                )
+                decision.id = str(uuid5(NAMESPACE_URL, key + ":" + entity.id))
+                with connection:
+                    if Repository(connection, Decision).get(decision.id) is None:
+                        Repository(connection, Decision).add(decision)
+                result["decisions"].append(decision.id)
+            result["decisions"] = sorted(set(result["decisions"]))
+            result["stages"].append("rules")
+            checkpoint()
+        if "actions" not in result["stages"]:
+            data = pnl(
+                connection, media_tax_rate=settings.media_tax_rate, refund_rate=settings.refund_rate
+            )
+            # Gastos do dia por period_start; receitas do dia por timestamp da venda,
+            # sem reciclar receita esperada no caixa.
+            day = now.astimezone(ZONE).date()
+            daily = next(
+                (row for row in data["groups"]["daily"] if row["key"] == day.isoformat()), {}
+            )
+            revenue = sum(
+                int(s.commission_cents * (1 - settings.refund_rate))
+                for s in sales
+                if s.status == "approved"
+                and s.matched_entity_id is not None
+                and s.ts.astimezone(ZONE).date() == day
+            )
+            decisions = Repository(connection, Decision).list()
+            brakes = controls(
+                rules,
+                day_spend_cents=daily.get("spend_gross", 0),
+                day_revenue_cents=revenue,
+                total_spend_cents=data["totals"]["spend_gross"],
+                passed_gate_2=len(
+                    {d.entity_id for d in decisions if d.gate == "2" and d.verdict == "pass"}
+                ),
+                validated_combos=len(
+                    {d.entity_id for d in decisions if d.gate in {"3", "T"} and d.verdict == "pass"}
+                ),
+            )
+            result["alerts"].extend(brakes)
+            if stale:
+                result["alerts"].append("stale: dados atrasados/ausentes; simulação congelada")
+            targets = {e.id for e in entities if e.status == "active"} if brakes or stale else set()
+            for decision_id in result["decisions"]:
+                d = Repository(connection, Decision).get(decision_id)
+                if (
+                    d.verdict == "kill"
+                    or d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
+                ):
+                    entity = next(e for e in entities if e.id == d.entity_id)
+                    targets |= family_ids(entity, entities)
+            for entity_id in sorted(targets):
+                entity = Repository(connection, Entity).get(entity_id)
+                if entity.meta_id:
+                    result["alerts"].append(
+                        "remote_pause_pending: intervenção humana na Meta necessária"
+                    )
+                    continue
+                action = pause(
+                    connection,
+                    entity_id,
+                    reason="scheduler: regra/teto/dados atrasados/freio",
+                    now=now,
+                )
+                if action:
+                    result["pauses"].append(action.id)
+            result["stages"].append("actions")
+            checkpoint()
+        if "report" not in result["stages"]:
+            from arb.scheduler.alerts import collect
+
+            result["alerts"] = collect(
+                connection, result["alerts"], approval_dir=root / "ops/approvals/pending"
+            )
+            result["report"] = str(
+                report_fn(
+                    connection,
+                    output,
+                    approval_dir=root / "ops/approvals/pending",
+                    now=now,
+                    alert_messages=result["alerts"],
+                )
+            )
+            backup_daily(connection, database_backups(connection), day=now.astimezone(UTC).date())
+            result["stages"].append("report")
+            checkpoint()
+        if "alerts" not in result["stages"]:
+            from arb.scheduler.alerts import collect, dispatch
+
+            result["alerts"] = collect(
+                connection, result["alerts"], approval_dir=root / "ops/approvals/pending"
+            )
+            result["notification"] = dispatch(connection, key, result["alerts"], now=now)
+            if notify:
+                try:
+                    notify(result["alerts"])
+                except Exception:
+                    result["alerts"].append("notification_failed: consultar relatório local")
+            result["stages"].append("alerts")
+        checkpoint("complete")
+        return result
+    except Exception as exc:
+        connection.rollback()
+        result["error_kind"] = type(exc).__name__
+        checkpoint("failed")
+        raise
+
+
+def database_backups(connection):
+    return Path(connection.execute("PRAGMA database_list").fetchone()[2]).parent / "backups"

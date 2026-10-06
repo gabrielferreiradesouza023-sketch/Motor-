@@ -64,6 +64,8 @@ class Gate3(ConfigModel):
     min_sales: PositiveInt
     min_roi: Annotated[float, Field(ge=0)]
     epc_factor: Rate
+    # ADR-016: acima de teto × multiplicador, G3/T sem validação morre mesmo com vendas.
+    hard_cap_multiplier: Annotated[float, Field(gt=1, le=5)]
 
 
 class GateT(ConfigModel):

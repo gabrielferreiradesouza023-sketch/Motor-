@@ -3,7 +3,14 @@ name = "arb-engine"
 version = "0.1.0"
 description = "Fundação local e segura do motor de arbitragem"
 requires-python = ">=3.12,<3.13"
-dependencies = ["pydantic>=2.10,<3", "typer>=0.15,<1", "PyYAML>=6,<7", "jinja2>=3.1,<4", "httpx>=0.28,<1"]
+dependencies = [
+    "pydantic>=2.10,<3",
+    "typer>=0.15,<1",
+    "PyYAML>=6,<7",
+    "jinja2>=3.1,<4",
+    "httpx>=0.28,<1",
+    "playwright>=1.58,<2",
+]
 
 [project.scripts]
 arb = "arb.cli:app"
