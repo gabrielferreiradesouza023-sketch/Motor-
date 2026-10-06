@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "active": {
+      "title": "Active",
+      "type": "boolean"
+    },
+    "advertiser_id": {
+      "minLength": 1,
+      "title": "Advertiser Id",
+      "type": "string"
+    },
+    "first_seen": {
+      "format": "date",
+      "title": "First Seen",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "offer_id": {
+      "minLength": 1,
+      "title": "Offer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "offer_id",
+    "advertiser_id",
+    "first_seen",
+    "observed_at",
+    "active"
+  ],
+  "title": "AdObservation",
+  "type": "object"
+}

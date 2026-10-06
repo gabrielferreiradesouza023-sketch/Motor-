@@ -87,3 +87,22 @@ portões, controles, simulador e laboratório de 50 seeds. Aceite F1: encontrar 
 plantado em pelo menos 80% das seeds e waste_ratio médio abaixo de 10%.
 Nunca alterar rules.yaml sem ADR; nunca aumentar exposição sem aprovação.
 O runbook operacional completo (panic, tokens, operação contínua) pertence à T-29.
+
+## Scout — coleta CSV (F3)
+
+Exemplos sintéticos em `examples/scout/`; não são ofertas ou links reais.
+UTF-8, vírgula, cabeçalho exato na ordem apresentada, booleanos `true`/`false`,
+valores monetários em centavos inteiros, datas ISO `YYYY-MM-DD`.
+
+`offers.csv`: `id,hotmart_product_id,name,niche,language,commission_brl_cents,price_local,currency,allows_paid_traffic,sales_page_url,affiliate_link,native_spanish,sales_page_quality,popularity,policy_risk`.
+Qualidade manual 1–5, popularidade 0–100, risco 0–1. Niche usa os identificadores de policy.yaml.
+
+`adlibrary.csv`: `offer_id,advertiser_id,first_seen,observed_at,active`.
+Um anunciante por oferta, datas verificáveis. Não inventar tempo de atividade.
+
+```bash
+uv run arb scout import --offers examples/scout/offers.csv --adlibrary examples/scout/adlibrary.csv --database data/scout-example.db
+```
+
+Cabeçalho alterado, linha duplicada ou inválida é recusado antes da gravação.
+A avaliação manual permanece no CSV fonte; o banco contém os contratos Offer.

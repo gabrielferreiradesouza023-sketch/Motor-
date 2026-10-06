@@ -38,3 +38,10 @@
 - Arquivar só ângulos pausados com kill ou pass do Portão 3/T. Hold não é veredito encerrado.
 - Consulta por nicho mantém contexto, formato, métricas e motivo. Repetir archive atualiza a
   mesma chave e não duplica aprendizado. Decisões originais continuam append-only.
+
+## ADR-006 — Contratos de coleta manual (T-13)
+- OfferIntake contém Offer e avaliação manual; AdObservation contém anunciante e primeira
+  observação. Exportar JSON Schema de ambos. Datas de coleta são explícitas, sem scraping.
+- Importação CSV é estrita e atômica: cabeçalho exato, nenhuma coluna surpresa, duplicatas
+  rejeitadas, inteiros monetários e booleanos true/false. Não armazenar credenciais nos CSVs.
+- Um anunciante contado por oferta; idade é calculada na data observada, não inventada.

@@ -1,0 +1,4 @@
+offer_id,advertiser_id,first_seen,observed_at,active
+excel,example-advertiser-1,2026-08-01,2026-10-05,true
+pets,example-advertiser-2,2026-08-15,2026-10-05,true
+croche,example-advertiser-3,2026-09-01,2026-10-05,true

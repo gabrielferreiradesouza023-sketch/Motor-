@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
@@ -147,6 +147,22 @@ class AngleLearning(Model):
     archived_at: datetime
 
 
+class OfferIntake(Model):
+    offer: Offer
+    native_spanish: bool
+    sales_page_quality: Annotated[int, Field(strict=True, ge=1, le=5)]
+    popularity: Annotated[float, Field(ge=0, le=100)]
+    policy_risk: Annotated[float, Field(ge=0, le=1)]
+
+
+class AdObservation(Model):
+    offer_id: Identifier
+    advertiser_id: Identifier
+    first_seen: date
+    observed_at: date
+    active: bool
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -158,6 +174,8 @@ MODEL_TYPES = (
     Approval,
     Action,
     AngleLearning,
+    OfferIntake,
+    AdObservation,
 )
 
 

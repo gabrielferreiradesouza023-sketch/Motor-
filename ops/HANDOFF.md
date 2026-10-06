@@ -79,3 +79,6 @@ Relatório HTML móvel a partir da F1, conteúdo escapado e uma única pergunta;
 
 ### T-12 — 2026-10-06T01:51:24.939198+00:00
 F2 concluída: contrato AngleLearning, arquivo idempotente e consulta por nicho. Modelos/schema e migração registrados no ADR-005. Próximo: F3/T-13.
+
+### T-13 — 2026-10-06T01:52:52.930791+00:00
+Importadores CSV estritos e exemplos documentados; contratos de coleta gerados em ADR-006. Próximo: T-14.

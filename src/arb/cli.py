@@ -146,3 +146,31 @@ def library_query(niche: str, database: str = "data/engine.db"):
         )
     finally:
         connection.close()
+
+
+scout_app = typer.Typer(help="CSV manual de ofertas e anúncios")
+app.add_typer(scout_app, name="scout")
+
+
+@scout_app.command("import")
+def scout_import(offers: str, adlibrary: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.db import Repository, connect, migrate
+    from arb.models import Offer
+    from arb.scout import import_adlibrary, import_offers
+
+    try:
+        intake = import_offers(Path(offers))
+        observations = import_adlibrary(Path(adlibrary))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        with connection:
+            for item in intake:
+                Repository(connection, Offer).add(item.offer)
+    finally:
+        connection.close()
+    typer.echo(f"{len(intake)} ofertas importadas; {len(observations)} observações validadas")
