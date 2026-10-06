@@ -67,3 +67,6 @@ Controles globais e limite de escala implementados; ações reais permanecem ine
 
 ### T-08 — 2026-10-06T01:46:07.995207+00:00
 Gerador de população e tráfego sintético com verdade plantada e ruído implementado. Próximo: T-09.
+
+### T-09 — 2026-10-06T01:47:42.235473+00:00
+F1 validada em 50 seeds; resultados em docs/validation/f1-50-seeds.json, sem calibrar rules.yaml. CLI arb sim run e persistência opcional em banco novo. Próximo: F2/T-10.

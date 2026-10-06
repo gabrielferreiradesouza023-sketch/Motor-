@@ -65,3 +65,27 @@ def db_backup(database: str = "data/engine.db", output: str = "data/backups"):
     finally:
         connection.close()
     typer.echo(f"Backup OK: {target}")
+
+
+sim_app = typer.Typer(help="Laboratório sintético, sem APIs")
+app.add_typer(sim_app, name="sim")
+
+
+@sim_app.command("run")
+def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
+    """Budget em BRL inteiros. Persistência opcional em banco separado e novo."""
+    import json
+    import os
+    from pathlib import Path
+
+    from arb.sim.lab import persist, run_lab
+
+    if os.environ.get("LIVE_MODE", "false").lower() != "false":
+        raise typer.BadParameter("LIVE_MODE deve ser false")
+    try:
+        run = run_lab(seed, budget * 100)
+        if database:
+            persist(run, Path(database))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(run.summary(), ensure_ascii=False, indent=2))
