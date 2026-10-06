@@ -153,7 +153,11 @@ app.add_typer(scout_app, name="scout")
 
 
 @scout_app.command("import")
-def scout_import(offers: str, adlibrary: str, database: str = "data/engine.db"):
+def scout_import(
+    offers: str = typer.Option(...),
+    adlibrary: str = typer.Option(...),
+    database: str = "data/engine.db",
+):
     from pathlib import Path
 
     from arb.db import Repository, connect, migrate
@@ -178,8 +182,8 @@ def scout_import(offers: str, adlibrary: str, database: str = "data/engine.db"):
 
 @scout_app.command("rank")
 def scout_rank(
-    offers: str,
-    adlibrary: str,
+    offers: str = typer.Option(...),
+    adlibrary: str = typer.Option(...),
     database: str = "data/engine.db",
     output: str = "ops/approvals/pending",
 ):

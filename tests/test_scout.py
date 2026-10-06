@@ -38,3 +38,26 @@ def test_eliminatory_filters(change):
     modified = item.model_copy(update={"offer": item.offer.model_copy(update=change)})
     ranked, rejected = rank([modified], [])
     assert ranked == [] and item.offer.id in rejected
+
+
+def test_documented_cli_options(tmp_path):
+    from typer.testing import CliRunner
+
+    from arb.cli import app
+
+    runner = CliRunner()
+    arguments = [
+        "--offers",
+        str(ROOT / "examples/scout/offers.csv"),
+        "--adlibrary",
+        str(ROOT / "examples/scout/adlibrary.csv"),
+        "--database",
+        str(tmp_path / "scout.db"),
+    ]
+    imported = runner.invoke(app, ["scout", "import", *arguments])
+    assert imported.exit_code == 0, imported.output
+    ranked = runner.invoke(
+        app, ["scout", "rank", *arguments, "--output", str(tmp_path / "pending")]
+    )
+    assert ranked.exit_code == 0, ranked.output
+    assert '"excel"' in ranked.output and '"blocked"' in ranked.output

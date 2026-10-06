@@ -85,3 +85,6 @@ Importadores CSV estritos e exemplos documentados; contratos de coleta gerados e
 
 ### T-14 — 2026-10-06T01:53:57.047934+00:00
 Portão 0: ranking, filtros e aprovação pending top 3 com exposição zero e hash determinístico; repetição testada. Próximo: T-15.
+
+### T-14 — 2026-10-06T01:55:30.776236+00:00
+Correção da CLI do scout: --offers/--adlibrary agora são opções explícitas e o fluxo documentado import→rank tem teste funcional. F3 validada.
