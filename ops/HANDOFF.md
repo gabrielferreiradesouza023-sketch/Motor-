@@ -99,3 +99,6 @@ Copies neutras e CO/PE/MX com lint contra termos banidos, promessas e números s
 
 ### T-26 — 2026-10-06T02:36:42.752553+00:00
 Render real 3×3: PNG 1080×1350/1920 e três vídeos H.264/AAC de 12s. Overflow recusado no DOM, rede bloqueada e trilha original CC0. Playwright usa Chromium local, sem serviço pago.
+
+### T-27 — 2026-10-06T02:39:55.063202+00:00
+Nove ciclos São Paulo em três dias acelerados, lock de processo, checkpoints e replay sem duplicação. Sync ausente/falho congela simulação; freios antes de relatório/alertas. Evidência docs/validation/f8-three-days.json.

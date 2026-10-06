@@ -104,3 +104,15 @@ próprios escapados são renderizados. Não aceitar HTML arbitrário como entrad
 Playwright controla o Chromium instalado via protocolo de automação; o CLI headless
 da imagem não concluiu. Não baixar browsers novos: executable_path usa binário local,
 com caches XDG temporários graváveis e recursos de rede bloqueados por contexto.
+
+## ADR-013 — Scheduler local com checkpoints e trava de processo
+Migração 005 registra ciclos por instante UTC dos horários 09/18/23:30 São Paulo.
+Lock flock por banco impede ciclos simultâneos; encerramento de processo libera a
+trava automaticamente. Checkpoints permitem retomar relatório após falha sem repetir
+coleta, decisões ou ações. Decisões têm IDs determinísticos por ciclo/entidade.
+Fonte de sync é interface injetável, sem credenciais nem rede por padrão. Fonte ausente
+ou falha congela entidades simuladas; pass não aumenta verba nem ativa nada. Entidades
+Meta observadas recebem alerta de pausa pendente, sem falsificar estado remoto.
+O scheduler agrega folhas da hierarquia e correções de métricas. Pausa ao atingir teto
+mesmo com hold/pass, sem depender de kill. Falha de alerta não desfaz pausa. Usar Linux
+neste cloud; Windows pode executar via WSL ou implementar trava nativa antes de operar.

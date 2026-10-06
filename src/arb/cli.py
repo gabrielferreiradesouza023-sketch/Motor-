@@ -429,3 +429,51 @@ def creative_render(
         typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     finally:
         connection.close()
+
+
+scheduler_app = typer.Typer(help="Ciclos locais e simulação acelerada")
+app.add_typer(scheduler_app, name="scheduler")
+
+
+@scheduler_app.command("simulate")
+def scheduler_simulate(
+    database: str = typer.Option(...),
+    output: str = "reports/scheduler-sim",
+    start: str = "2026-10-05",
+    seed: int = 42,
+):
+    import json
+    from datetime import date
+    from pathlib import Path
+
+    from arb.scheduler.simulation import simulate
+
+    try:
+        result = simulate(
+            Path(database), start=date.fromisoformat(start), seed=seed, output=Path(output)
+        )
+    except (ValueError, FileExistsError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@scheduler_app.command("once")
+def scheduler_once(database: str = typer.Option(...), output: str = "reports", root: str = "."):
+    """Último slot vencido: fonte offline ausente congela simulação; não acessa APIs."""
+    import json
+    from datetime import UTC, datetime, timedelta
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler import ZONE, run_cycle, schedule
+
+    now = datetime.now(UTC)
+    today = now.astimezone(ZONE).date()
+    slot = max(s for s in schedule(today - timedelta(days=1), today) if s <= now)
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = run_cycle(connection, slot, now=now, root=Path(root), output=Path(output))
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()
