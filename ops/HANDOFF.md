@@ -93,3 +93,6 @@ Somente pausa automática; ativação simulada com aprovação separada e consum
 
 ### T-24 — 2026-10-06T02:29:21.168483+00:00
 Gerador determinístico de três hipóteses em espanhol, biblioteca elimina famílias mortas e prioriza evidências positivas; CLI persiste somente candidatos.
+
+### T-25 — 2026-10-06T02:30:46.984393+00:00
+Copies neutras e CO/PE/MX com lint contra termos banidos, promessas e números sem fonte declarada; candidatos sem aprovação automática. Fontes exigem conferência humana.

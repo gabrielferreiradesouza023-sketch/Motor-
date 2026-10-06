@@ -81,3 +81,11 @@ real de Telegram será executado. LaunchPlan passa a ser contrato público expor
 contém entradas aprovadas, destino e estrutura ABO pausada. O hash cobre todas as
 entradas; execução reconstitui o plano para detectar alterações de estrutura.
 Orçamento diário total por oferta limitado a 6000 centavos, dividido entre conjuntos.
+
+## ADR-011 — Copy local sem alegações inventadas
+Gerador usa templates editoriais em espanhol, sem LLM/API paga. O lint normaliza
+acentos, caixa e caracteres invisíveis; rejeita termos banidos, promessas e números
+sem URL HTTPS explicitamente declarada. Declarar URL não verifica uma alegação:
+a revisão humana precisa confirmar fonte, tradução e compatibilidade com a política.
+Região indica contexto do leitor, sem afirmar disponibilidade regional da oferta.
+Todos os criativos permanecem candidatos, sem publicação nem aprovação automática.

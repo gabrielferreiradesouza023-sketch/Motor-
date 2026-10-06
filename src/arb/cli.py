@@ -377,3 +377,29 @@ def creative_angles(offer_id: str, database: str = "data/engine.db"):
             typer.echo(angle.model_dump_json())
     finally:
         connection.close()
+
+
+@creative_app.command("copies")
+def creative_copies(angle_id: str, region: str = "neutral", database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.creative.copy import generate_copies
+    from arb.db import Repository, connect, migrate
+    from arb.models import Angle, Creative, Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        angle = Repository(connection, Angle).get(angle_id)
+        if angle is None:
+            raise typer.BadParameter("Ângulo desconhecido")
+        offer = Repository(connection, Offer).get(angle.offer_id)
+        copies = generate_copies(offer, angle, region=region)
+        with connection:
+            for creative in copies:
+                if Repository(connection, Creative).get(creative.id) is None:
+                    Repository(connection, Creative).add(creative)
+        for creative in copies:
+            typer.echo(creative.model_dump_json())
+    finally:
+        connection.close()
