@@ -61,3 +61,6 @@ Métricas oficiais puras implementadas; dinheiro arredondado HALF_UP e divisões
 
 ### T-06 — 2026-10-06T01:43:29.206311+00:00
 Portões 1/2/3/T, mínimos de amostra, teto e dados atrasados implementados. Próximo: T-07.
+
+### T-07 — 2026-10-06T01:45:00.660152+00:00
+Controles globais e limite de escala implementados; ações reais permanecem inexistentes. Próximo: T-08.

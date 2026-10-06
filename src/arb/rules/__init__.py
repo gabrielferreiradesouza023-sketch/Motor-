@@ -103,3 +103,50 @@ def evaluate(
         rule_id=rule_id,
         reason=reason,
     )
+
+
+def controls(
+    rules: Rules,
+    *,
+    day_spend_cents: int,
+    day_revenue_cents: int,
+    total_spend_cents: int,
+    passed_gate_2: int,
+    validated_combos: int,
+) -> list[str]:
+    """Retorna motivos de pausa/revisão. Nunca ativa ou aumenta orçamento."""
+    r = rules.controls
+    alerts = []
+    if day_spend_cents >= int(r.daily_cap_cents * r.pause_fraction):
+        alerts.append("daily_cap: pausar até o próximo dia São Paulo")
+    if day_spend_cents > r.emergency_min_spend_cents:
+        roi = (day_revenue_cents - day_spend_cents) / day_spend_cents
+        if roi < r.emergency_roi:
+            alerts.append("emergency: ROI diário abaixo do limite; revisão humana")
+    if total_spend_cents >= r.checkpoint_cents and passed_gate_2 == 0:
+        alerts.append("checkpoint: nenhum Portão 2; revisar ofertas, ângulos ou nicho")
+    if total_spend_cents >= r.total_cap_cents:
+        alerts.append(
+            "project_cap: teto total; encerrar afiliado"
+            if validated_combos == 0
+            else "project_cap: teto total; aguardar novo aporte aprovado"
+        )
+    return alerts
+
+
+def scale_allowed(
+    rules: Rules,
+    current_cents: int,
+    proposed_cents: int,
+    last_increase: datetime,
+    now: datetime,
+    *,
+    approved: bool,
+) -> bool:
+    return (
+        approved
+        and current_cents > 0
+        and proposed_cents > current_cents
+        and proposed_cents <= int(current_cents * (1 + rules.controls.max_scale_fraction))
+        and now - last_increase >= timedelta(hours=rules.controls.scale_interval_hours)
+    )
