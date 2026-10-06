@@ -89,3 +89,18 @@ sem URL HTTPS explicitamente declarada. Declarar URL não verifica uma alegaçã
 a revisão humana precisa confirmar fonte, tradução e compatibilidade com a política.
 Região indica contexto do leitor, sem afirmar disponibilidade regional da oferta.
 Todos os criativos permanecem candidatos, sem publicação nem aprovação automática.
+
+## ADR-012 — Render sem serviços pagos nem mídia de terceiros
+Chromium headless renderiza HTML escapado, sem recursos externos, com DNS bloqueado
+para rede e verificação real de overflow/zona segura pelo DOM. São produzidos PNGs
+1080×1350 e 1080×1920; ffmpeg combina slides com H.264/AAC por 12 segundos.
+A trilha é uma tríade sintetizada originalmente pelo projeto e dedicada a CC0-1.0,
+sem fonograma de terceiros. Metadados de direitos acompanham cada vídeo.
+Margens conservadoras: 120 px laterais, 200 superiores e 260 inferiores; revisar
+visualmente no placement real, pois overlays das plataformas podem mudar.
+Chromium usa no-sandbox por limitações do sandbox desta máquina isolada; somente templates
+próprios escapados são renderizados. Não aceitar HTML arbitrário como entrada.
+
+Playwright controla o Chromium instalado via protocolo de automação; o CLI headless
+da imagem não concluiu. Não baixar browsers novos: executable_path usa binário local,
+com caches XDG temporários graváveis e recursos de rede bloqueados por contexto.

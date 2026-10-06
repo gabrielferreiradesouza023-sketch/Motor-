@@ -403,3 +403,29 @@ def creative_copies(angle_id: str, region: str = "neutral", database: str = "dat
             typer.echo(creative.model_dump_json())
     finally:
         connection.close()
+
+
+@creative_app.command("render")
+def creative_render(
+    creative_id: str, database: str = "data/engine.db", output: str = "data/creatives"
+):
+    import json
+    from pathlib import Path
+
+    from arb.creative.render import render_creative
+    from arb.db import Repository, connect, migrate
+    from arb.models import Creative
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        creative = Repository(connection, Creative).get(creative_id)
+        if creative is None:
+            raise typer.BadParameter("Criativo desconhecido")
+        result = render_creative(creative, Path(output))
+        creative.asset_path = result["video"] or result["images"][0]
+        with connection:
+            Repository(connection, Creative).update(creative)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()

@@ -96,3 +96,6 @@ Gerador determinístico de três hipóteses em espanhol, biblioteca elimina fam�
 
 ### T-25 — 2026-10-06T02:30:46.984393+00:00
 Copies neutras e CO/PE/MX com lint contra termos banidos, promessas e números sem fonte declarada; candidatos sem aprovação automática. Fontes exigem conferência humana.
+
+### T-26 — 2026-10-06T02:36:42.752553+00:00
+Render real 3×3: PNG 1080×1350/1920 e três vídeos H.264/AAC de 12s. Overflow recusado no DOM, rede bloqueada e trilha original CC0. Playwright usa Chromium local, sem serviço pago.
