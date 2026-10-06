@@ -113,3 +113,12 @@ Planted reproduz histórico nas 50 seeds; realistic/pessimistic 200 seeds cada s
 
 ### BATCH-02 T-32
 Grid 81 variantes × 2 perfis × 100 seeds; duas execuções JSON idênticas, regras validadas em memória e rules.yaml intacto. HTML local ordenável/Pareto. Hard cap não autoriza ultrapassar pausa nominal do simulador.
+
+
+## Bloqueios
+- T-33: proposta documental concluída, aplicação do ADR-018 bloqueada por decisão humana.
+  Escolher/rejeitar calibração e tolerância de risco. config/rules.yaml permanece intacto.
+  T-34–T-39 são independentes dessa escolha e podem prosseguir em testes locais.
+
+### BATCH-02 T-33
+Proposta com 3 opções e números rastreáveis (células 032/040/075), conta financeira G3, ADR-018 Proposto com diff exato. Aplicação bloqueada por decisão humana registrada em Bloqueios; regras intactas.

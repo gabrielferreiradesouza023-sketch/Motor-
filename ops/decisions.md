@@ -156,3 +156,27 @@ multiplica CPM por 1,25 e compra por 0,6. Vencedor/borderline são papéis relat
 sem garantia de lucro ou de passar portões. Seed sorteia posições, nenhuma calibração
 foi aplicada a rules.yaml. Planted conserva RNG/valores/algoritmo histórico, inclusive
 posição fixa para regressão; somente perfis diagnósticos sorteiam posições.
+
+
+## ADR-018 — Calibração G3 equilibrada
+Status: **Proposto** (decisão humana pendente; não aplicado).
+
+Fonte: docs/validation/calibration-proposal.md e células 040 dos dois perfis no grid.
+Recomendação: aumentar teto nominal a 3× comissão líquida e exigir 2 vendas mínimas,
+sem alterar ROI, EPC, CTR, teto rígido, tetos diários/cartão/conta/projeto.
+Tradeoff: maior acerto sintético e gasto total cerca de 13% maior; amostra menor e resultados
+pessimistas fracos não autorizam operação real. Alternativas e limitações no documento.
+
+Diff exato proposto para config/rules.yaml (apenas estes dois valores):
+```diff
+ gate_3:
+-  commission_cap_multiplier: 2
+-  min_sales: 3
++  commission_cap_multiplier: 3
++  min_sales: 2
+   min_roi: 0.30
+   epc_factor: 0.7
+   hard_cap_multiplier: 1.5
+```
+
+Até decisão humana permanecem as regras atuais. Não implementar este diff neste batch.
