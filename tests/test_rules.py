@@ -63,6 +63,56 @@ def test_money_gate_and_transfer(records):
         evaluate(entity, snapshot, sales[:2], 5000, load_rules(), snapshot.ts).verdict
         == "insufficient_data"
     )
-    # Vendas existem mas não validam ROI; G3 não permite kill automático por teto nesse caso.
-    snapshot = snapshot.model_copy(update={"spend_platform_cents": 20000})
+    # Vendas existem mas não validam ROI: entre teto e teto rígido, continua em hold.
+    # Teto = 2 × int(5000 × 0,85) = 8500; teto rígido = 12750 brutos (ADR-016).
+    snapshot = snapshot.model_copy(update={"spend_platform_cents": 10000})
     assert evaluate(entity, snapshot, sales, 5000, load_rules(), snapshot.ts).verdict == "hold"
+
+
+@pytest.mark.parametrize("gate", ["3", "T"])
+@pytest.mark.parametrize(
+    "platform_cents,sale_count,verdict,rule",
+    [
+        # 11283 × 1,13 = 12750 brutos: exatamente no teto rígido do G3.
+        (11283, 1, "kill", "hard_cap"),
+        (11283, 2, "kill", "hard_cap"),
+        (11282, 2, "insufficient_data", "sample"),
+        # Com 3 vendas, ROI ruim e acima do teto rígido também morre.
+        (20000, 3, "kill", "hard_cap"),
+    ],
+)
+def test_hard_cap_kills_unvalidated_money_gate(
+    records, gate, platform_cents, sale_count, verdict, rule
+):
+    rules = load_rules()
+    sales = [
+        records[5].model_copy(update={"id": str(n), "hotmart_tx_id": str(n)})
+        for n in range(sale_count)
+    ]
+    entity = records[3].model_copy(update={"gate": gate})
+    if gate == "T":
+        # Teto T = 8000 brutos; teto rígido 12000. Escala os gastos para o mesmo limite.
+        platform_cents = {11283: 10620, 11282: 10619, 20000: 20000}[platform_cents]
+    snapshot = records[4].model_copy(update={"spend_platform_cents": platform_cents})
+    decision = evaluate(entity, snapshot, sales, 5000, rules, snapshot.ts)
+    assert decision.verdict == verdict
+    assert decision.rule_id == f"g{gate}.{rule}"
+    expected_cap = 8000 if gate == "T" else 8500
+    assert decision.metrics_json["hard_cap_cents"] == int(expected_cap * 1.5)
+
+
+def test_hard_cap_never_overrides_validated_combo(records):
+    sales = [
+        records[5].model_copy(update={"id": str(n), "hotmart_tx_id": str(n)}) for n in range(3)
+    ]
+    entity = records[3].model_copy(update={"gate": "3"})
+    decision = evaluate(entity, records[4], sales, 5000, load_rules(), records[4].ts)
+    assert decision.verdict == "pass"
+    assert decision.metrics_json["hard_cap_cents"] == 12750
+
+
+def test_hard_cap_multiplier_must_exceed_one():
+    rules = load_rules().model_dump()
+    rules["gate_3"]["hard_cap_multiplier"] = 1.0
+    with pytest.raises(ValueError):
+        type(load_rules()).model_validate(rules)

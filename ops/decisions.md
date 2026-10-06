@@ -134,3 +134,16 @@ e publica atomicamente em caminho novo; recusa sobrescrita mesmo em concorrênci
 Restauração pode recuperar entidades ativas anteriores ao freio: exigir panic/revisão
 antes de voltar a usar a cópia. Rotação de token foi testada apenas por substituição de
 clientes read-only com tokens sintéticos; conta/provedor não foram alterados.
+
+## ADR-016 — Teto rígido nos Portões 3 e T (T-30)
+- Problema: a spec só mata G3/T "no teto com 0 vendas". Com 1–2 vendas a amostra nunca
+  é suficiente e a entidade fica em `insufficient_data` gastando sem limite; com 3+ vendas
+  e ROI ruim fica em `hold` indefinidamente. Só freios globais seguravam o gasto.
+- Decisão (aprovada pelo humano): `gate_3.hard_cap_multiplier: 1.5`. Em G3/T, gasto bruto
+  ≥ teto × 1,5 sem `pass` → `kill` com `rule_id` `g3.hard_cap`/`gT.hard_cap`, inclusive com
+  dados atrasados (é kill por teto). `pass` nunca é sobrescrito.
+- Faixa entre teto e teto rígido: mantém o comportamento anterior (até 50% extra para
+  combos com venda acumularem as 3 vendas exigidas).
+- Validação: 50 seeds inalteradas (50/50, 0 vencedores mortos, waste médio 0,93%).
+- Limite conhecido: o simulador planta um vencedor com margens irreais (checkout→compra
+  30%); calibrar com parâmetros realistas antes de operar. Multiplicador é calibrável via ADR.
