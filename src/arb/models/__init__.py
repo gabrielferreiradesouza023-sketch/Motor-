@@ -191,6 +191,24 @@ class MetricAdjustment(Model):
     reason: Identifier
 
 
+class LaunchPlan(Model):
+    """Entradas completas e imutáveis por hash; a execução revalida a elegibilidade."""
+
+    offer: Offer
+    angles: list[Angle]
+    creatives: list[Creative]
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    daily_budget_cents: Annotated[int, Field(strict=True, gt=0, le=6000)]
+    destination_url: HttpUrl
+    entities: list[Entity]
+    objective: Literal["InitiateCheckout"] = "InitiateCheckout"
+    budget_type: Literal["ABO"] = "ABO"
+    age_min: Literal[18] = 18
+    age_max: Literal[65] = 65
+    language: Literal["es"] = "es"
+    interests: list[str] = Field(default_factory=list, max_length=0)
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -206,6 +224,7 @@ MODEL_TYPES = (
     AdObservation,
     BridgeEvent,
     MetricAdjustment,
+    LaunchPlan,
 )
 
 

@@ -81,3 +81,6 @@
 - Hook de vídeo via actions/video_view aguarda confirmação V-06 na versão Meta escolhida.
 - Snapshot.ts registra coleta; period_start permite atribuição diária do insight.
 - Reopened é indicador de revisão e não reativa anúncios.
+
+### T-21 — 2026-10-06T02:26:08.529331+00:00
+Plano ABO determinístico e pausado, limites e elegibilidade revalidados. Desenvolvimento local autorizado; aceitações reais F5/F6 continuam pendentes.
