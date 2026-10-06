@@ -23,6 +23,11 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+      - name: Ferramentas de render (ffmpeg/ffprobe; Chrome já vem no runner)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          echo "CHROMIUM_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)" >> "$GITHUB_ENV"
       - name: Instalar dependências (lock congelado)
         run: uv sync --frozen
       - name: Ruff lint
@@ -30,7 +35,9 @@ jobs:
       - name: Ruff format
         run: uv run ruff format --check
       - name: Testes
-        run: uv run pytest -q
+        run: uv run pytest -q -rs
+      - name: Garantir que testes de render rodaram
+        run: uv run pytest -q tests/test_render.py -rs | tee render.log && ! grep -q SKIPPED render.log
       - name: Doctor
         run: uv run arb doctor
       - name: Contratos sincronizados com os modelos
@@ -39,3 +46,23 @@ jobs:
           git diff --exit-code -- contracts/
       - name: Varredura de segredos
         run: uv run pre-commit run --all-files
+
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Instalar dependências (lock congelado)
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Testes
+        run: npm test
