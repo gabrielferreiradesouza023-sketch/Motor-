@@ -43,7 +43,7 @@
     "signature": {
       "anyOf": [
         {
-          "pattern": "^[0-9a-f]{64}$",
+          "pattern": "^[0-9a-f]{128}$",
           "type": "string"
         },
         {

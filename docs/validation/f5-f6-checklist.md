@@ -13,9 +13,11 @@ não aprova gasto, não assina propostas, não envia mensagens e não faz deploy
    inspeciona somente **nomes presentes**, sem provar valores não vazios, validade ou acesso:
    META_ACCESS_TOKEN, META_AD_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
    CLOUDFLARE_D1_DATABASE_ID e HOTMART_WEBHOOK_SECRET.
-3. Manter APPROVAL_SIGNING_KEY exclusivamente no ambiente do humano/runtime sob seu
-   controle. Agentes não recebem, geram, leem nem imprimem essa chave. Não há valor exemplo
-   no repo. Somente o operador deve provisionar a chave por seu procedimento seguro.
+3. Na máquina humana (nunca no host do motor nem no cloud dos agentes), rodar
+   `arb approve keygen --output ~/.arb/approval_ed25519`, exportar
+   `APPROVAL_PRIVATE_KEY_FILE` apontando para esse arquivo e colar a chave pública
+   impressa em `config/settings.yaml` (`approval_public_key`) por PR revisado (ADR-022).
+   O motor só conhece a chave pública; agentes nunca recebem a privada.
 4. Confirmar V-06 e definir META_API_VERSION (`vN.N`) no host humano. A conta precisa de
    BRL e America/Sao_Paulo. O leitor verifica moeda/fuso antes de ler `spend_cap`.
 5. **Defesa independente:** configurar `spend_cap` positivo na conta Meta, em centavos BRL,
@@ -55,10 +57,10 @@ impresso. Corrigir as instruções por check; não burlar erros alterando limite
 1. No terminal interativo do humano, revisar kind/exposição/hash/resumo antes de usar
    `arb approve sign ops/approvals/pending/<id>.json`. Sem tty o comando recusa. Testar
    `arb approve verify ops/approvals/approved/<id>.json` no mesmo ambiente protegido.
-   Arquivos antigos sem assinatura são recusados. Mudança de qualquer campo invalida HMAC.
+   Arquivos antigos sem assinatura são recusados. Mudança de qualquer campo invalida a assinatura Ed25519.
 2. Launch e activate têm aprovações distintas. Uma aprovação consumida não pode reativar
    depois de pausa. O executor de exposição real continua fora deste batch: só o escritor
-   de pausa existe. Não interpretar HMAC/preflight como disponibilidade de launch real.
+   de pausa existe. Não interpretar assinatura/preflight como disponibilidade de launch real.
 3. Confirmar revisão dos testes de panic: POST exato `status=PAUSED`, intent antes do HTTP,
    resultado append-only, erro sanitizado. Em simulação o comando mantém
    `remote_pause_pending`; nenhum token real foi usado para o teste deste escritor.

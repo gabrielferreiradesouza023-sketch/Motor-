@@ -17,3 +17,4 @@ ops/dry_runs/*
 worker/node_modules/
 worker/.wrangler/
 worker/.dev.vars
+.coverage

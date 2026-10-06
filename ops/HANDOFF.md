@@ -91,3 +91,10 @@ esta entrega. Cards T-31–T-39 com evidência em review; LOCK vazio ao encerrar
 
 ### BATCH-02 T-39
 Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTransport nos testes. 37 casos de presença/cap/cartão/backup/trava/alerta/panic, valores sensíveis omitidos, HMAC nunca lido mesmo presente. Checklist português e HANDOFF reescrito; offline retorna erros esperados sem rede. Gate final com coverage e render; rules.yaml intacto.
+
+## T-40 (Claude) — Ed25519 e ADR-018 aplicado
+- BATCH-02 (#28) mergeado. ADR-018 aceito pelo humano: G3 com 2 vendas e teto 3× aplicado.
+- Aprovação agora Ed25519 (ADR-022): privada só na máquina humana, pública em settings.yaml.
+- **Pendente do humano:** `arb approve keygen --output ~/.arb/approval_ed25519` na própria
+  máquina e PR com `approval_public_key`. Até lá launch/activate são recusados (fail-closed).
+- Pendentes reais F5/F6 seguem em docs/validation/f5-f6-checklist.md.

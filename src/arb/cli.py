@@ -563,6 +563,25 @@ def approve_sign(file: str):
     typer.echo(f"Aprovação humana assinada: {destination}")
 
 
+@approve_app.command("keygen")
+def approve_keygen(output: str = typer.Option(..., help="Arquivo da chave privada, fora do repo")):
+    """Gera a chave Ed25519 humana (0600) e mostra a chave pública para versionar."""
+    from pathlib import Path
+
+    from arb.launcher.approval import is_interactive, keygen
+
+    if not is_interactive():
+        raise typer.BadParameter("keygen exige tty interativo na máquina humana")
+    try:
+        public = keygen(Path(output), Path.cwd())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(f"chave não gerada: {exc}") from None
+    typer.echo(f"Chave privada gravada (0600): {Path(output).expanduser()}")
+    typer.echo("Exporte APPROVAL_PRIVATE_KEY_FILE com esse caminho, só nesta máquina.")
+    typer.echo("Cole em config/settings.yaml via PR revisado por você:")
+    typer.echo(f"approval_public_key: {public}")
+
+
 @approve_app.command("verify")
 def approve_verify(file: str):
     from pathlib import Path

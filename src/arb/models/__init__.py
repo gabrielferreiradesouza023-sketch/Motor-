@@ -118,7 +118,7 @@ class Approval(Model):
     max_exposure_cents: Cents
     status: Literal["pending", "approved", "rejected"]
     decided_at: datetime | None = None
-    signature: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
+    signature: Annotated[str, Field(pattern=r"^[0-9a-f]{128}$")] | None = None
 
 
 class Action(Model):

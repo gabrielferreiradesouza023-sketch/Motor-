@@ -159,7 +159,7 @@ posição fixa para regressão; somente perfis diagnósticos sorteiam posições
 
 
 ## ADR-018 — Calibração G3 equilibrada
-Status: **Proposto** (decisão humana pendente; não aplicado).
+Status: **Aceito** pelo humano em 2026-10-06 (opção equilibrada); aplicado em rules.yaml (T-40/Claude).
 
 Fonte: docs/validation/calibration-proposal.md e células 040 dos dois perfis no grid.
 Recomendação: aumentar teto nominal a 3× comissão líquida e exigir 2 vendas mínimas,
@@ -181,9 +181,14 @@ Diff exato proposto para config/rules.yaml (apenas estes dois valores):
 
 Até decisão humana permanecem as regras atuais. Não implementar este diff neste batch.
 
+Aplicação (Claude): verificação pós-aplicação reproduz o grid — realistic 43/100 achados,
+waste 2,53%; pessimistic 16/100, waste 3,87%; planted 50/50, waste 0,77%. Testes de lógica
+de G3 e o histórico `planted` passam a fixar as regras anteriores (`pinned_rules` em
+tests/conftest.py) para manter limites exatos; teste novo verifica os valores vigentes.
+
 
 ## ADR-019 — Aprovação HMAC verificável
-Status: Aceito para implementação local; uso real depende do operador.
+Status: **Substituído pelo ADR-022** (HMAC simétrico: quem verifica também assina).
 
 Approval.signature opcional no contrato para propostas pending e registros legados, mas
 obrigatória no consumo de approved. HMAC-SHA256 do JSON UTF-8 canônico (sort_keys,
@@ -240,3 +245,23 @@ ressuscitar estado ativo: ler/reconciliar antes de operação. Aprovação para 
 independente e não implementa executor de exposição real. Todos os testes deste batch
 injetam MockTransport e mockam a função de modo; nenhum LIVE_MODE=true operacional,
 credencial real ou chamada Meta real usada.
+
+
+## ADR-022 — Aprovação humana com Ed25519 (T-40)
+Status: **Aceito** pelo humano em 2026-10-06; substitui o mecanismo do ADR-019.
+
+Problema: HMAC é simétrico. No live a chave precisaria estar no host do motor, e quem pode
+verificar pode assinar — um agente com acesso a esse ambiente forjaria aprovações de gasto.
+Decisão: assinatura Ed25519 sobre o mesmo JSON canônico (todos os campos exceto
+`signature`, agora 128 hex). Chave **privada** só na máquina humana, em arquivo fora do
+repositório com permissão 0600, apontado por `APPROVAL_PRIVATE_KEY_FILE`. Chave **pública**
+versionada em `config/settings.yaml` (`approval_public_key`); motor, preflight e agentes só a
+leem — verificar nunca permite assinar.
+- `arb approve keygen --output <arquivo>`: exige tty, recusa caminho dentro do repo, nunca
+  sobrescreve, grava 0600 e imprime a chave pública para o humano colar via PR.
+- `sign` recusa chave privada ausente, com permissão aberta, inválida ou que não
+  corresponda à pública versionada. `verify` falha fechado sem chave pública válida.
+- Alterar `approval_public_key` equivale a trocar quem aprova gasto: só por PR revisado e
+  mergeado pelo humano. Agentes nunca geram, leem ou recebem a chave privada.
+- Doctor avisa e preflight dá erro enquanto `approval_public_key` for null.
+- Sem aprovações reais existentes: nenhuma migração de assinaturas HMAC necessária.

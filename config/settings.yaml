@@ -7,3 +7,5 @@ media_tax_rate: 0.13
 refund_rate: 0.15
 refund_min_sales: 20
 meta_api_version: null
+# ADR-022: gerar com `arb approve keygen` na máquina humana e colar aqui via PR.
+approval_public_key: null
