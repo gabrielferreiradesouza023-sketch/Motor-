@@ -7,7 +7,15 @@ from test_plan import launch_fixture
 
 from arb.creative import generate_angles
 from arb.creative.copy import generate_copies
-from arb.creative.render import image, png_size, render_creative
+from arb.creative.render import capabilities, image, png_size, render_creative
+
+
+@pytest.fixture(scope="module", autouse=True)
+def require_render_tools():
+    try:
+        capabilities()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
 
 def test_three_angles_three_creatives_real_render(tmp_path):
