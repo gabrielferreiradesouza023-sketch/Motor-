@@ -106,3 +106,12 @@ uv run arb scout import --offers examples/scout/offers.csv --adlibrary examples/
 
 Cabeçalho alterado, linha duplicada ou inválida é recusado antes da gravação.
 A avaliação manual permanece no CSV fonte; o banco contém os contratos Offer.
+
+Para a triagem completa:
+
+```bash
+uv run arb scout rank --offers examples/scout/offers.csv --adlibrary examples/scout/adlibrary.csv --database data/scout-example.db
+```
+
+O resultado gera proposta `new_offer` em `ops/approvals/pending/`, sem aprovar automaticamente.
+Use o prompt versionado `src/arb/scout/collect_prompt.md` para a coleta assistida no navegador.

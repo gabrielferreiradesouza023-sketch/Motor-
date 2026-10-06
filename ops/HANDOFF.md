@@ -85,3 +85,6 @@ Importadores CSV estritos e exemplos documentados; contratos de coleta gerados e
 
 ### T-14 — 2026-10-06T01:53:57.047934+00:00
 Portão 0: ranking, filtros e aprovação pending top 3 com exposição zero e hash determinístico; repetição testada. Próximo: T-15.
+
+### T-15 — 2026-10-06T01:54:33.110443+00:00
+F3 concluída: importação, triagem, top 3 e prompt versionado de coleta manual. Próximo: F4/T-16; V-01/V-02 seguem pendentes para integração real.
