@@ -55,3 +55,6 @@
 - Backup é invocado por comando; agendamento contínuo fica para T-27/F8.
 - Hook invoca uv run --frozen para funcionar também fora da venv; requer caches conforme README.
 - Todas as interpretações iniciais estão em ops/decisions.md (ADR-001/002).
+
+### T-05 — 2026-10-06T01:42:37.723952+00:00
+Métricas oficiais puras implementadas; dinheiro arredondado HALF_UP e divisões por zero retornam None. Próximo: T-06.
