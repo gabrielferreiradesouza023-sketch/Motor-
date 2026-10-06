@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+from conftest import pinned_rules
 from pydantic import ValidationError
 
 from arb.config import SimProfiles, load_sim_profiles
@@ -32,7 +33,8 @@ def test_profiles_strict_and_positions():
 
 def test_planted_matches_versioned_history():
     previous = json.loads(Path("docs/validation/f1-50-seeds.json").read_text())
-    runs = [run_lab(seed).summary() for seed in range(50)]
+    # Histórico gravado com G3 anterior ao ADR-018; regressão do algoritmo, não das regras.
+    runs = [run_lab(seed, rules=pinned_rules()).summary() for seed in range(50)]
     assert [
         {key: run[key] for key in old} for run, old in zip(runs, previous["runs"], strict=True)
     ] == previous["runs"]

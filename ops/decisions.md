@@ -159,7 +159,7 @@ posição fixa para regressão; somente perfis diagnósticos sorteiam posições
 
 
 ## ADR-018 — Calibração G3 equilibrada
-Status: **Proposto** (decisão humana pendente; não aplicado).
+Status: **Aceito** pelo humano em 2026-10-06 (opção equilibrada); aplicado em rules.yaml (T-40/Claude).
 
 Fonte: docs/validation/calibration-proposal.md e células 040 dos dois perfis no grid.
 Recomendação: aumentar teto nominal a 3× comissão líquida e exigir 2 vendas mínimas,
@@ -180,6 +180,11 @@ Diff exato proposto para config/rules.yaml (apenas estes dois valores):
 ```
 
 Até decisão humana permanecem as regras atuais. Não implementar este diff neste batch.
+
+Aplicação (Claude): verificação pós-aplicação reproduz o grid — realistic 43/100 achados,
+waste 2,53%; pessimistic 16/100, waste 3,87%; planted 50/50, waste 0,77%. Testes de lógica
+de G3 e o histórico `planted` passam a fixar as regras anteriores (`pinned_rules` em
+tests/conftest.py) para manter limites exatos; teste novo verifica os valores vigentes.
 
 
 ## ADR-019 — Aprovação HMAC verificável

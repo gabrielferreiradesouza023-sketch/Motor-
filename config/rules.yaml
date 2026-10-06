@@ -15,8 +15,8 @@ gate_2:
   kill_bridge_rate: 0.08
   pass_bridge_rate: 0.15
 gate_3:
-  commission_cap_multiplier: 2
-  min_sales: 3
+  commission_cap_multiplier: 3
+  min_sales: 2
   min_roi: 0.30
   epc_factor: 0.7
   hard_cap_multiplier: 1.5

@@ -1,6 +1,6 @@
 # Proposta de calibração — BATCH-02 T-33
 
-Status: **Proposto; requer decisão humana. Nenhuma regra aplicada.**
+Status: **Decidido — opção equilibrada aceita pelo humano em 2026-10-06 e aplicada (ADR-018).**
 
 Fonte: [calibration-grid.json](calibration-grid.json), seeds 0–99 por perfil e célula;
 81 variantes × 2 perfis × 100 seeds. Distribuições de `config/sim_profiles.yaml` são

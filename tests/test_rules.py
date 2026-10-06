@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from conftest import pinned_rules
 
 from arb.rules import evaluate, load_rules
 
@@ -24,21 +25,21 @@ from arb.rules import evaluate, load_rules
 def test_gate_boundaries(records, gate, changes, verdict):
     entity = records[3].model_copy(update={"gate": gate})
     snapshot = records[4].model_copy(update=changes)
-    result = evaluate(entity, snapshot, [], 5000, load_rules(), snapshot.ts, video=False)
+    result = evaluate(entity, snapshot, [], 5000, pinned_rules(), snapshot.ts, video=False)
     assert result.verdict == verdict
     assert result.reason and result.rule_id
 
 
 def test_video_and_stale(records):
     entity, snapshot = records[3:5]
-    assert evaluate(entity, snapshot, [], 5000, load_rules(), snapshot.ts).verdict == "kill"
+    assert evaluate(entity, snapshot, [], 5000, pinned_rules(), snapshot.ts).verdict == "kill"
     for hours, expected in [(6, "pass"), (7, "insufficient_data")]:
         decision = evaluate(
             entity,
             snapshot,
             [],
             5000,
-            load_rules(),
+            pinned_rules(),
             snapshot.ts + timedelta(hours=hours),
             video=False,
         )
@@ -46,7 +47,13 @@ def test_video_and_stale(records):
     expensive = snapshot.model_copy(update={"spend_platform_cents": 2000})
     assert (
         evaluate(
-            entity, expensive, [], 5000, load_rules(), snapshot.ts + timedelta(hours=7), video=False
+            entity,
+            expensive,
+            [],
+            5000,
+            pinned_rules(),
+            snapshot.ts + timedelta(hours=7),
+            video=False,
         ).verdict
         == "kill"
     )
@@ -58,15 +65,15 @@ def test_money_gate_and_transfer(records):
     ]
     entity = records[3].model_copy(update={"gate": "3"})
     snapshot = records[4]
-    assert evaluate(entity, snapshot, sales, 5000, load_rules(), snapshot.ts).verdict == "pass"
+    assert evaluate(entity, snapshot, sales, 5000, pinned_rules(), snapshot.ts).verdict == "pass"
     assert (
-        evaluate(entity, snapshot, sales[:2], 5000, load_rules(), snapshot.ts).verdict
+        evaluate(entity, snapshot, sales[:2], 5000, pinned_rules(), snapshot.ts).verdict
         == "insufficient_data"
     )
     # Vendas existem mas não validam ROI: entre teto e teto rígido, continua em hold.
     # Teto = 2 × int(5000 × 0,85) = 8500; teto rígido = 12750 brutos (ADR-016).
     snapshot = snapshot.model_copy(update={"spend_platform_cents": 10000})
-    assert evaluate(entity, snapshot, sales, 5000, load_rules(), snapshot.ts).verdict == "hold"
+    assert evaluate(entity, snapshot, sales, 5000, pinned_rules(), snapshot.ts).verdict == "hold"
 
 
 @pytest.mark.parametrize("gate", ["3", "T"])
@@ -84,7 +91,7 @@ def test_money_gate_and_transfer(records):
 def test_hard_cap_kills_unvalidated_money_gate(
     records, gate, platform_cents, sale_count, verdict, rule
 ):
-    rules = load_rules()
+    rules = pinned_rules()
     sales = [
         records[5].model_copy(update={"id": str(n), "hotmart_tx_id": str(n)})
         for n in range(sale_count)
@@ -106,13 +113,30 @@ def test_hard_cap_never_overrides_validated_combo(records):
         records[5].model_copy(update={"id": str(n), "hotmart_tx_id": str(n)}) for n in range(3)
     ]
     entity = records[3].model_copy(update={"gate": "3"})
-    decision = evaluate(entity, records[4], sales, 5000, load_rules(), records[4].ts)
+    decision = evaluate(entity, records[4], sales, 5000, pinned_rules(), records[4].ts)
     assert decision.verdict == "pass"
     assert decision.metrics_json["hard_cap_cents"] == 12750
 
 
 def test_hard_cap_multiplier_must_exceed_one():
-    rules = load_rules().model_dump()
+    rules = pinned_rules().model_dump()
     rules["gate_3"]["hard_cap_multiplier"] = 1.0
     with pytest.raises(ValueError):
         type(load_rules()).model_validate(rules)
+
+
+def test_adr018_calibration_in_rules_yaml(records):
+    """ADR-018 (aceito): G3 com 2 vendas e teto nominal 3× comissão líquida."""
+    rules = load_rules()
+    assert rules.gate_3.min_sales == 2
+    assert rules.gate_3.commission_cap_multiplier == 3
+    sales = [
+        records[5].model_copy(update={"id": str(n), "hotmart_tx_id": str(n)}) for n in range(2)
+    ]
+    entity = records[3].model_copy(update={"gate": "3"})
+    decision = evaluate(entity, records[4], sales, 5000, rules, records[4].ts)
+    assert decision.verdict == "pass"
+    assert decision.metrics_json["cap_cents"] == 3 * 4250
+    assert decision.metrics_json["hard_cap_cents"] == int(3 * 4250 * 1.5)
+    one_sale = evaluate(entity, records[4], sales[:1], 5000, rules, records[4].ts)
+    assert one_sale.verdict == "insufficient_data"

@@ -119,3 +119,21 @@ def records():
 def synthetic_approval_key(monkeypatch):
     # Substitui o ambiente antes de qualquer teste; nunca usa chave de produção.
     monkeypatch.setenv("APPROVAL_SIGNING_KEY", "synthetic-fixture-hmac-not-a-real-key")
+
+
+def pinned_rules():
+    """Regras com G3 anterior ao ADR-018 (2× teto, 3 vendas).
+
+    Testes de lógica e o histórico `planted` foram escritos com esses valores; fixá-los
+    mantém os limites exatos independentes da calibração vigente em rules.yaml.
+    """
+    from arb.rules import load_rules
+
+    rules = load_rules()
+    return rules.model_copy(
+        update={
+            "gate_3": rules.gate_3.model_copy(
+                update={"commission_cap_multiplier": 2, "min_sales": 3}
+            )
+        }
+    )
