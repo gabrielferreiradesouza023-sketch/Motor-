@@ -1,0 +1,46 @@
+{
+  "validated_at": "2026-10-06T02:49:27.166369+00:00",
+  "tested_code_commit": "50e067b",
+  "pytest": {
+    "passed": 234,
+    "skipped": 0,
+    "failed": 0
+  },
+  "worker_tests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "ruff": "passed",
+  "doctor": "passed",
+  "typescript": "passed",
+  "functional_cli_commands": 11,
+  "accelerated_cycles": 9,
+  "render": {
+    "creatives": 9,
+    "png_sizes": [
+      [
+        1080,
+        1350
+      ],
+      [
+        1080,
+        1920
+      ]
+    ],
+    "videos": 3,
+    "seconds_per_video": 12,
+    "video_codec": "h264",
+    "audio_codec": "aac"
+  },
+  "live_mode": false,
+  "real_campaigns_created": 0,
+  "real_spend": 0,
+  "real_messages_sent": 0,
+  "accounts_created": 0,
+  "merges_performed": 0,
+  "open_prs": 24,
+  "cloud_draft_saved": true,
+  "cloud_published": false,
+  "real_f5_f6_acceptance": "pending",
+  "pre_commit": "passed"
+}
