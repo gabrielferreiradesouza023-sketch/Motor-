@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "decided_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided At"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "launch",
+        "activate",
+        "scale",
+        "new_offer"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "max_exposure_cents": {
+      "minimum": 0,
+      "title": "Max Exposure Cents",
+      "type": "integer"
+    },
+    "plan_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Plan Hash",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "plan_hash",
+    "kind",
+    "summary",
+    "max_exposure_cents",
+    "status"
+  ],
+  "title": "Approval",
+  "type": "object"
+}

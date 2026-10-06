@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets
+        entry: uv run --frozen detect-secrets-hook
+        language: system
+        exclude: ^(uv\.lock|docs/arb-engine-spec-v1\.md)$

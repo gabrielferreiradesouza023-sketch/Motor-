@@ -1,0 +1,163 @@
+"""Contratos públicos da F0. Valores monetários sempre em centavos inteiros."""
+
+import json
+import re
+from datetime import datetime
+from pathlib import Path
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+
+Identifier = Annotated[str, Field(min_length=1)]
+Cents = Annotated[int, Field(strict=True, ge=0)]
+Count = Annotated[int, Field(strict=True, ge=0)]
+Gate = Literal["0", "1", "2", "3", "T"]
+
+
+class Model(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True, allow_inf_nan=False)
+
+    @field_validator("*", mode="after")
+    @classmethod
+    def timezone_required(cls, value):
+        if isinstance(value, datetime) and value.utcoffset() is None:
+            raise ValueError("timestamp precisa de fuso horário")
+        return value
+
+
+class Offer(Model):
+    id: Identifier
+    hotmart_product_id: Identifier
+    name: Identifier
+    niche: Identifier
+    language: Identifier
+    commission_brl_cents: Cents
+    price_local: Cents  # centavos na moeda local
+    currency: Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+    allows_paid_traffic: bool
+    sales_page_url: HttpUrl
+    affiliate_link: HttpUrl
+    score: Annotated[float, Field(ge=0, le=100)]
+    status: Literal["candidate", "approved", "testing", "validated", "killed"]
+
+
+class Angle(Model):
+    id: Identifier
+    offer_id: Identifier
+    hypothesis: Identifier
+    promise: Identifier
+    audience_pain: Identifier
+    hook_line: Identifier
+    status: Literal["candidate", "approved", "testing", "validated", "killed"]
+
+
+class Creative(Model):
+    id: Identifier
+    angle_id: Identifier
+    format: Literal["image", "video"]
+    copy_primary: Identifier
+    headline: Identifier
+    asset_path: Identifier
+    policy_lint: Literal["passed", "failed"]
+    status: Literal["candidate", "approved", "testing", "validated", "killed"]
+
+
+class Entity(Model):
+    id: Identifier
+    kind: Literal["campaign", "adset", "ad"]
+    meta_id: Identifier | None = None
+    parent_id: Identifier | None = None
+    offer_id: Identifier
+    angle_id: Identifier | None = None
+    creative_id: Identifier | None = None
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    gate: Gate
+    daily_budget_cents: Cents
+    status: Literal["active", "paused"]
+
+
+class MetricSnapshot(Model):
+    entity_id: Identifier
+    ts: datetime
+    impressions: Count
+    video_3s_views: Count
+    link_clicks: Count
+    spend_platform_cents: Cents
+    bridge_views: Count
+    checkout_clicks: Count
+
+
+class SaleEvent(Model):
+    id: Identifier
+    source: Literal["webhook", "csv"]
+    hotmart_tx_id: Identifier
+    ts: datetime
+    commission_cents: Cents
+    status: Literal["approved", "refunded", "chargeback"]
+    tracking_param: Identifier | None = None
+    matched_entity_id: Identifier | None = None
+
+
+class Decision(Model):
+    id: Identifier
+    ts: datetime
+    entity_id: Identifier
+    gate: Gate
+    verdict: Literal["pass", "kill", "insufficient_data", "hold"]
+    metrics_json: dict[str, Any]
+    rule_id: Identifier
+    reason: Identifier
+
+
+class Approval(Model):
+    id: Identifier
+    plan_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+    kind: Literal["launch", "activate", "scale", "new_offer"]
+    summary: Identifier
+    max_exposure_cents: Cents
+    status: Literal["pending", "approved", "rejected"]
+    decided_at: datetime | None = None
+
+
+class Action(Model):
+    id: Identifier
+    ts: datetime
+    actor: Literal["engine", "human", "agent:codex", "agent:claude"]
+    kind: Identifier
+    payload_json: dict[str, Any]
+    approval_id: Identifier | None = None
+    live: bool
+    result: Identifier
+
+
+MODEL_TYPES = (
+    Offer,
+    Angle,
+    Creative,
+    Entity,
+    MetricSnapshot,
+    SaleEvent,
+    Decision,
+    Approval,
+    Action,
+)
+
+
+def contract_name(model: type[Model]) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", model.__name__).lower() + ".json"
+
+
+def contract_text(model: type[Model]) -> str:
+    return (
+        json.dumps(model.model_json_schema(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    )
+
+
+def export_contracts(directory: Path) -> list[Path]:
+    directory.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for model in MODEL_TYPES:
+        path = directory / contract_name(model)
+        path.write_text(contract_text(model), encoding="utf-8")
+        paths.append(path)
+    return paths

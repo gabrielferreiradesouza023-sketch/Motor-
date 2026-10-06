@@ -1,0 +1,97 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "affiliate_link": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Affiliate Link",
+      "type": "string"
+    },
+    "allows_paid_traffic": {
+      "title": "Allows Paid Traffic",
+      "type": "boolean"
+    },
+    "commission_brl_cents": {
+      "minimum": 0,
+      "title": "Commission Brl Cents",
+      "type": "integer"
+    },
+    "currency": {
+      "pattern": "^[A-Z]{3}$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "hotmart_product_id": {
+      "minLength": 1,
+      "title": "Hotmart Product Id",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "language": {
+      "minLength": 1,
+      "title": "Language",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "niche": {
+      "minLength": 1,
+      "title": "Niche",
+      "type": "string"
+    },
+    "price_local": {
+      "minimum": 0,
+      "title": "Price Local",
+      "type": "integer"
+    },
+    "sales_page_url": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Sales Page Url",
+      "type": "string"
+    },
+    "score": {
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Score",
+      "type": "number"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "approved",
+        "testing",
+        "validated",
+        "killed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "hotmart_product_id",
+    "name",
+    "niche",
+    "language",
+    "commission_brl_cents",
+    "price_local",
+    "currency",
+    "allows_paid_traffic",
+    "sales_page_url",
+    "affiliate_link",
+    "score",
+    "status"
+  ],
+  "title": "Offer",
+  "type": "object"
+}

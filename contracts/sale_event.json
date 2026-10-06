@@ -1,0 +1,78 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "commission_cents": {
+      "minimum": 0,
+      "title": "Commission Cents",
+      "type": "integer"
+    },
+    "hotmart_tx_id": {
+      "minLength": 1,
+      "title": "Hotmart Tx Id",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "matched_entity_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Matched Entity Id"
+    },
+    "source": {
+      "enum": [
+        "webhook",
+        "csv"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "approved",
+        "refunded",
+        "chargeback"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tracking_param": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tracking Param"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "hotmart_tx_id",
+    "ts",
+    "commission_cents",
+    "status"
+  ],
+  "title": "SaleEvent",
+  "type": "object"
+}

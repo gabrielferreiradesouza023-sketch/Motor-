@@ -1,0 +1,9 @@
+lab_geos: [CO, PE]
+transfer_geos: [MX]
+timezone: America/Sao_Paulo
+currency: BRL
+cycles: ["09:00", "18:00", "23:30"]
+media_tax_rate: 0.13
+refund_rate: 0.15
+refund_min_sales: 20
+meta_api_version: null

@@ -1,0 +1,4 @@
+allowed_niches: [ingles, oficios_beleza, confeitaria_gastronomia, pets, artesanato_croche, excel_produtividade, fotografia_celular]
+forbidden_niches: [saude, emagrecimento, suplementos, financas, credito, investimentos, renda_rapida, apostas, emprego, adulto, relacionamento_seducao]
+banned_terms: ["resultado garantido", "renda garantida", "resultado garantizado", "ingresos garantizados"]
+forbidden_practices: [cloaking, perfis_falsos, depoimentos_inventados, promessa_garantida, marca_sem_autorizacao, lance_em_marca]

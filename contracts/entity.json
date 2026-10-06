@@ -1,0 +1,116 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "angle_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Angle Id"
+    },
+    "creative_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Creative Id"
+    },
+    "daily_budget_cents": {
+      "minimum": 0,
+      "title": "Daily Budget Cents",
+      "type": "integer"
+    },
+    "gate": {
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "T"
+      ],
+      "title": "Gate",
+      "type": "string"
+    },
+    "geo": {
+      "pattern": "^[A-Z]{2}$",
+      "title": "Geo",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "campaign",
+        "adset",
+        "ad"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "meta_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Meta Id"
+    },
+    "offer_id": {
+      "minLength": 1,
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "paused"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "offer_id",
+    "geo",
+    "gate",
+    "daily_budget_cents",
+    "status"
+  ],
+  "title": "Entity",
+  "type": "object"
+}

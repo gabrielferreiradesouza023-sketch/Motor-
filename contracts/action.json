@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "enum": [
+        "engine",
+        "human",
+        "agent:codex",
+        "agent:claude"
+      ],
+      "title": "Actor",
+      "type": "string"
+    },
+    "approval_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Approval Id"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "minLength": 1,
+      "title": "Kind",
+      "type": "string"
+    },
+    "live": {
+      "title": "Live",
+      "type": "boolean"
+    },
+    "payload_json": {
+      "additionalProperties": true,
+      "title": "Payload Json",
+      "type": "object"
+    },
+    "result": {
+      "minLength": 1,
+      "title": "Result",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "ts",
+    "actor",
+    "kind",
+    "payload_json",
+    "live",
+    "result"
+  ],
+  "title": "Action",
+  "type": "object"
+}

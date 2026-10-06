@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "bridge_views": {
+      "minimum": 0,
+      "title": "Bridge Views",
+      "type": "integer"
+    },
+    "checkout_clicks": {
+      "minimum": 0,
+      "title": "Checkout Clicks",
+      "type": "integer"
+    },
+    "entity_id": {
+      "minLength": 1,
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "impressions": {
+      "minimum": 0,
+      "title": "Impressions",
+      "type": "integer"
+    },
+    "link_clicks": {
+      "minimum": 0,
+      "title": "Link Clicks",
+      "type": "integer"
+    },
+    "spend_platform_cents": {
+      "minimum": 0,
+      "title": "Spend Platform Cents",
+      "type": "integer"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    },
+    "video_3s_views": {
+      "minimum": 0,
+      "title": "Video 3S Views",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "entity_id",
+    "ts",
+    "impressions",
+    "video_3s_views",
+    "link_clicks",
+    "spend_platform_cents",
+    "bridge_views",
+    "checkout_clicks"
+  ],
+  "title": "MetricSnapshot",
+  "type": "object"
+}

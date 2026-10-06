@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "entity_id": {
+      "minLength": 1,
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "gate": {
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "T"
+      ],
+      "title": "Gate",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "metrics_json": {
+      "additionalProperties": true,
+      "title": "Metrics Json",
+      "type": "object"
+    },
+    "reason": {
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "rule_id": {
+      "minLength": 1,
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "kill",
+        "insufficient_data",
+        "hold"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "ts",
+    "entity_id",
+    "gate",
+    "verdict",
+    "metrics_json",
+    "rule_id",
+    "reason"
+  ],
+  "title": "Decision",
+  "type": "object"
+}

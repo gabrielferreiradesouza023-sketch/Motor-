@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "audience_pain": {
+      "minLength": 1,
+      "title": "Audience Pain",
+      "type": "string"
+    },
+    "hook_line": {
+      "minLength": 1,
+      "title": "Hook Line",
+      "type": "string"
+    },
+    "hypothesis": {
+      "minLength": 1,
+      "title": "Hypothesis",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "offer_id": {
+      "minLength": 1,
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "promise": {
+      "minLength": 1,
+      "title": "Promise",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "approved",
+        "testing",
+        "validated",
+        "killed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "offer_id",
+    "hypothesis",
+    "promise",
+    "audience_pain",
+    "hook_line",
+    "status"
+  ],
+  "title": "Angle",
+  "type": "object"
+}

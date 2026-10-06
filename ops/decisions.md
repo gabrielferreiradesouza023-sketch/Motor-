@@ -1,0 +1,17 @@
+# Decisões arquiteturais
+
+## ADR-001 — Fundação em simulação e configuração inicial (T-01)
+- Usar o checkout existente Motor- como raiz do monorepo arb-engine; sem worktree novo.
+- Registrar os valores iniciais da spec em rules.yaml, sem calibração; mudanças exigem ADR.
+- Nenhuma integração externa na F0. Variáveis de integração faltantes são avisos, não erros.
+- Não ler .env, nem automaticamente: usar variáveis exportadas; LIVE_MODE ausente equivale a false.
+- Configuração local validada de forma estrita. Graph API permanece não definida até V-06/F5.
+- Revisão de T-01 a T-03 aguarda T-04: o doctor completo depende delas. Não apresentar stub como aprovação.
+
+## ADR-002 — Contratos iniciais (T-02)
+- Nove modelos da seção 8.2, timestamps com fuso, extras proibidos e centavos inteiros não negativos.
+- price_local também usa centavos na moeda local; conversão só na apresentação.
+- Gate serializado como string (inclusive T). Status de ângulo/criativo segue o ciclo de oferta.
+- Action.live mantém bool conforme a seção 8.2 para registros de auditoria; a F0 não
+  executa ações externas e doctor recusa LIVE_MODE diferente de false.
+- JSONs de métricas/payload são objetos. Contratos gerados de forma determinística.

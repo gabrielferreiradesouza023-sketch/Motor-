@@ -1,0 +1,17 @@
+CREATE TABLE offers (id TEXT PRIMARY KEY, payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE angles (id TEXT PRIMARY KEY, offer_id TEXT NOT NULL REFERENCES offers(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE creatives (id TEXT PRIMARY KEY, angle_id TEXT NOT NULL REFERENCES angles(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE entities (id TEXT PRIMARY KEY, parent_id TEXT REFERENCES entities(id), offer_id TEXT NOT NULL REFERENCES offers(id), angle_id TEXT REFERENCES angles(id), creative_id TEXT REFERENCES creatives(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE metric_snapshots (entity_id TEXT NOT NULL REFERENCES entities(id), ts TEXT NOT NULL, payload TEXT NOT NULL CHECK(json_valid(payload)), PRIMARY KEY(entity_id, ts));
+CREATE TABLE sale_events (id TEXT PRIMARY KEY, hotmart_tx_id TEXT NOT NULL UNIQUE, matched_entity_id TEXT REFERENCES entities(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE decisions (id TEXT PRIMARY KEY, entity_id TEXT NOT NULL REFERENCES entities(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE approvals (id TEXT PRIMARY KEY, payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE TABLE actions (id TEXT PRIMARY KEY, approval_id TEXT REFERENCES approvals(id), payload TEXT NOT NULL CHECK(json_valid(payload)));
+CREATE INDEX snapshots_ts ON metric_snapshots(ts);
+CREATE INDEX sales_entity ON sale_events(matched_entity_id);
+CREATE TRIGGER snapshots_no_update BEFORE UPDATE ON metric_snapshots BEGIN SELECT RAISE(ABORT, 'snapshots are append-only'); END;
+CREATE TRIGGER snapshots_no_delete BEFORE DELETE ON metric_snapshots BEGIN SELECT RAISE(ABORT, 'snapshots are append-only'); END;
+CREATE TRIGGER decisions_no_update BEFORE UPDATE ON decisions BEGIN SELECT RAISE(ABORT, 'decisions are append-only'); END;
+CREATE TRIGGER decisions_no_delete BEFORE DELETE ON decisions BEGIN SELECT RAISE(ABORT, 'decisions are append-only'); END;
+CREATE TRIGGER actions_no_update BEFORE UPDATE ON actions BEGIN SELECT RAISE(ABORT, 'actions are append-only'); END;
+CREATE TRIGGER actions_no_delete BEFORE DELETE ON actions BEGIN SELECT RAISE(ABORT, 'actions are append-only'); END;

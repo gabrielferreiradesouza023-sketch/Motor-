@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "angle_id": {
+      "minLength": 1,
+      "title": "Angle Id",
+      "type": "string"
+    },
+    "asset_path": {
+      "minLength": 1,
+      "title": "Asset Path",
+      "type": "string"
+    },
+    "copy_primary": {
+      "minLength": 1,
+      "title": "Copy Primary",
+      "type": "string"
+    },
+    "format": {
+      "enum": [
+        "image",
+        "video"
+      ],
+      "title": "Format",
+      "type": "string"
+    },
+    "headline": {
+      "minLength": 1,
+      "title": "Headline",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "policy_lint": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "title": "Policy Lint",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "approved",
+        "testing",
+        "validated",
+        "killed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "angle_id",
+    "format",
+    "copy_primary",
+    "headline",
+    "asset_path",
+    "policy_lint",
+    "status"
+  ],
+  "title": "Creative",
+  "type": "object"
+}
