@@ -96,3 +96,6 @@ Ponte estática mobile em espanhol com conteúdo educativo, CTA único, pixel/ev
 
 ### T-17 — 2026-10-06T02:01:06.812852+00:00
 Worker/D1 local validado: typecheck, 2 testes Node e smoke funcional de origem/auth/idempotência/rate limit. Sem deploy. Tokens somente fixtures locais; webhook Hotmart nativo aguarda V-01. Próximo: T-18.
+
+### T-18 — 2026-10-06T02:05:29.753599+00:00
+F4 E2E passou com JS da ponte e Worker/D1 reais locais: visita→clique→venda falsa casada→replay→reembolso. CSV, cursores atômicos, retomada e deduplicação testados. Sem deploy; V-01/V-02 pendentes. Próximo: F5/T-19.

@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
 
 
 @app.command()
@@ -256,3 +256,42 @@ def bridge_build(
     finally:
         connection.close()
     typer.echo(f"Ponte gerada: {target}")
+
+
+sales_app = typer.Typer(help="Vendas normalizadas de CSV")
+app.add_typer(sales_app, name="sales")
+sync_app = typer.Typer(help="Sincronização somente leitura de fontes externas")
+app.add_typer(sync_app, name="sync")
+
+
+@sales_app.command("import")
+def sales_import(csv_file: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.tracker import import_sales
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        count = import_sales(connection, Path(csv_file))
+    finally:
+        connection.close()
+    typer.echo(f"{count} vendas novas/atualizadas")
+
+
+@sync_app.command("events")
+def sync_events(worker_url: str = typer.Option(...), database: str = "data/engine.db"):
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.tracker.sync import sync
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = sync(connection, worker_url, os.environ.get("TRACKER_SYNC_TOKEN", ""))
+    finally:
+        connection.close()
+    typer.echo(f"Sincronização: {result}")

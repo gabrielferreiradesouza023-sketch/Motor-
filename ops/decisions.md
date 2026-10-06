@@ -53,3 +53,11 @@
 - Os filtros usam comissão nominal mínima R$40 conforme texto do Portão 0.
 - Aprovação new_offer tem exposição zero e hash de ofertas completas. Ranking não aprova
   ofertas, não cria campanha e não expande exposição. Preservar decisões existentes.
+
+## ADR-008 — Ingestão de rastreio (T-18)
+- BridgeEvent é contrato explícito; exportação D1 tem cursores persistidos por origem.
+- Recibos deduplicam eventos antes de gerar snapshots de contadores de ponte.
+  Colisão de timestamp no mesmo ad ganha microssegundos sem perder o timestamp no recibo.
+- Comissão e rastreio não podem mudar silenciosamente numa transação existente.
+  Reembolsos/chargebacks atualizam status, sem apagar decisões ou aceitar regressão para approved.
+- /sale recebe contrato normalizado de teste; adaptador do webhook real aguarda V-01.

@@ -151,3 +151,27 @@ webhook Hotmart ainda depende de V-01. Não foi feito deploy, nem afirmado supor
 à conta Hotmart. Reembolso é um novo evento com novo id e o mesmo hotmart_tx_id.
 Wrangler pode avisar sobre Request.cf não disponível no proxy; o teste local usa o
 fallback documentado e não depende de metadados reais de borda.
+
+## Vendas e eventos (F4)
+
+```bash
+uv run arb sales import sales.csv
+uv run arb sync events --worker-url https://worker-do-operador.example
+# Com wrangler dev e fixtures locais configuradas:
+uv run python worker/test/e2e.py
+```
+
+A URL acima é um placeholder, não um serviço publicado. `sync events` lê
+TRACKER_SYNC_TOKEN exportado no processo; nunca lê .env. O E2E usa somente tokens
+sintéticos conhecidos, roda o JS gerado num contexto de navegador simulado e faz chamadas
+reais ao Worker/D1 local. O SDK externo do pixel é substituído no teste, sem chamadas Meta.
+Cobre visita, clique, parâmetro no redirect, venda falsa, casamento, replay e reembolso.
+
+CSV de vendas: cabeçalho exato `hotmart_tx_id,ts,commission_cents,status,tracking_param`.
+Timestamp ISO com fuso, comissão em centavos; status approved/refunded/chargeback.
+Rastreio vazio permanece unmatched no relatório. Repetir a mesma venda não duplica;
+reembolso atualiza status sem apagar histórico. Divergência de comissão/rastreio é recusada
+com rollback. Páginas de exportação têm commit atômico e cursores para retomada após falha.
+
+V-01 (webhook real) e V-02 (parâmetro Hotmart real) continuam pendentes. O receptor é
+normalizado para testes; não foi conectado a Hotmart, Cloudflare remoto ou Meta.

@@ -163,6 +163,14 @@ class AdObservation(Model):
     active: bool
 
 
+class BridgeEvent(Model):
+    id: Identifier
+    kind: Literal["view", "checkout_click"]
+    ad_id: Identifier
+    geo: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
+    ts: datetime
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -176,6 +184,7 @@ MODEL_TYPES = (
     AngleLearning,
     OfferIntake,
     AdObservation,
+    BridgeEvent,
 )
 
 
