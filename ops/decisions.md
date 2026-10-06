@@ -24,3 +24,11 @@
   Um combo é vencedor plantado; perdas incluem atenção, intenção e ausência de vendas.
 - Tráfego usa Bernoulli por evento e CPM com ruído. Não lê regras para definir probabilidades.
 - Aceite de 50 seeds mede este cenário sintético, não prevê lucratividade de campanhas reais.
+
+## ADR-004 — P&L e receita tardia (T-10)
+- P&L acumulado recalcula as vendas pelo status atual e preserva decisões append-only.
+- Sem timestamp do clique no contrato SaleEvent, a atribuição diária retroativa é por
+  coorte da primeira atividade conhecida da entidade, não pelo dia em que o CSV foi importado.
+  É uma aproximação explícita; atribuição real por clique requer contrato/ADR futuro.
+- Reopened é indicador no relatório para entidade morta cujo ROI se tornou positivo;
+  não reativa anúncios automaticamente. Receita esperada não retorna ao caixa disponível.

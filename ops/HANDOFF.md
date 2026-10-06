@@ -70,3 +70,6 @@ Gerador de população e tráfego sintético com verdade plantada e ruído imple
 
 ### T-09 — 2026-10-06T01:47:42.235473+00:00
 F1 validada em 50 seeds; resultados em docs/validation/f1-50-seeds.json, sem calibrar rules.yaml. CLI arb sim run e persistência opcional em banco novo. Próximo: F2/T-10.
+
+### T-10 — 2026-10-06T01:48:49.535753+00:00
+P&L por oferta/ângulo/criativo/geo/coorte, meta-métricas, receita tardia e reembolso testados. Aproximação de atribuição por coorte registrada em ADR-004. Próximo: T-11.
