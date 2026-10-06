@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_MODE: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Instalar dependências (lock congelado)
+        run: uv sync --frozen
+      - name: Ruff lint
+        run: uv run ruff check
+      - name: Ruff format
+        run: uv run ruff format --check
+      - name: Testes
+        run: uv run pytest -q
+      - name: Doctor
+        run: uv run arb doctor
+      - name: Contratos sincronizados com os modelos
+        run: |
+          uv run arb contracts export
+          git diff --exit-code -- contracts/
+      - name: Varredura de segredos
+        run: uv run pre-commit run --all-files
