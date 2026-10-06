@@ -215,3 +215,44 @@ def scout_rank(
             indent=2,
         )
     )
+
+
+bridge_app = typer.Typer(help="Gerar página-ponte estática")
+app.add_typer(bridge_app, name="bridge")
+
+
+@bridge_app.command("build")
+def bridge_build(
+    offer_id: str,
+    content_file: str,
+    worker_url: str = typer.Option(...),
+    pixel_id: str = typer.Option(...),
+    tracking_key: str = typer.Option(...),
+    slug: str = typer.Option(...),
+    database: str = "data/engine.db",
+    output: str = "bridges_out",
+):
+    from pathlib import Path
+
+    from arb.bridge import build
+    from arb.db import Repository, connect, migrate
+    from arb.models import Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        offer = Repository(connection, Offer).get(offer_id)
+        if offer is None:
+            raise typer.BadParameter("Oferta desconhecida")
+        target = build(
+            offer,
+            Path(content_file).read_text(),
+            slug,
+            worker_url=worker_url,
+            pixel_id=pixel_id,
+            tracking_key=tracking_key,
+            output=Path(output),
+        )
+    finally:
+        connection.close()
+    typer.echo(f"Ponte gerada: {target}")

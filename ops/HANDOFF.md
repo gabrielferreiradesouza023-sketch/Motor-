@@ -90,3 +90,6 @@ Portão 0: ranking, filtros e aprovação pending top 3 com exposição zero e h
 F3 concluída: importação, triagem, top 3 e prompt versionado de coleta manual. Próximo: F4/T-16; V-01/V-02 seguem pendentes para integração real.
 ### T-14 — 2026-10-06T01:55:30.776236+00:00
 Correção da CLI do scout: --offers/--adlibrary agora são opções explícitas e o fluxo documentado import→rank tem teste funcional. F3 validada.
+
+### T-16 — 2026-10-06T01:56:45.646740+00:00
+Ponte estática mobile em espanhol com conteúdo educativo, CTA único, pixel/eventos e rastreio explícito; sem deploy. V-02 exige validar tracking_key real. Próximo: T-17.

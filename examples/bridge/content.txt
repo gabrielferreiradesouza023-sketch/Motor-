@@ -1,0 +1,3 @@
+Antes de crear una fórmula en Excel, organiza los datos en columnas con encabezados claros. Evita combinar celdas dentro de una tabla: dificulta ordenar y filtrar información. Guarda una copia antes de modificar un archivo importante.
+
+Para practicar, crea una lista de compras con precio y cantidad. Multiplica ambas columnas y usa SUMA para comprobar el total. Cambia una cantidad y revisa cómo se actualiza el resultado. Esta práctica permite entender referencias de celdas sin usar datos personales.
