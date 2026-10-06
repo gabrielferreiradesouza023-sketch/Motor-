@@ -347,3 +347,33 @@ def sync_meta(
         reader.close()
         connection.close()
     typer.echo(f"Meta somente leitura: {result}")
+
+
+creative_app = typer.Typer(help="Candidatos locais; nenhum envio ou aprovação automática")
+app.add_typer(creative_app, name="creative")
+
+
+@creative_app.command("angles")
+def creative_angles(offer_id: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.analyst.library import query
+    from arb.creative import generate_angles
+    from arb.db import Repository, connect, migrate
+    from arb.models import Angle, Offer
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        offer = Repository(connection, Offer).get(offer_id)
+        if offer is None:
+            raise typer.BadParameter("Oferta desconhecida")
+        angles = generate_angles(offer, query(connection, offer.niche))
+        with connection:
+            for angle in angles:
+                if Repository(connection, Angle).get(angle.id) is None:
+                    Repository(connection, Angle).add(angle)
+        for angle in angles:
+            typer.echo(angle.model_dump_json())
+    finally:
+        connection.close()

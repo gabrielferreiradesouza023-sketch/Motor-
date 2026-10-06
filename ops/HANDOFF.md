@@ -90,3 +90,6 @@ Execução dry-run auditada, aprovação por arquivo e hash, revalidação no ba
 
 ### T-23 — 2026-10-06T02:28:27.073165+00:00
 Somente pausa automática; ativação simulada com aprovação separada e consumo único. Estado remoto observado não é falsificado; escrita Meta real segue bloqueada.
+
+### T-24 — 2026-10-06T02:29:21.168483+00:00
+Gerador determinístico de três hipóteses em espanhol, biblioteca elimina famílias mortas e prioriza evidências positivas; CLI persiste somente candidatos.
