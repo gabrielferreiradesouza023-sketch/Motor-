@@ -134,3 +134,6 @@ PauseWriter aceita só POST numérico status=PAUSED; modo false não cria transp
 
 ### BATCH-02 T-37
 Hypothesis derandomize: 13 propriedades parametrizadas (~1400 exemplos), 2,42s <30s; amostra/stale/monotonicidade/hard cap/pass, dinheiro inteiro/zero divisão/controles/escala. Encontrado e corrigido TypeError G3/T com vendas, cliques e bridge_views=0: EPC None não pode validar; teto rígido ainda mata. rules.yaml intacto.
+
+### BATCH-02 T-38
+CI exige cobertura combinada >=95% em rules/metrics/launcher/safety/meta.pause e >=80% arb. 41 testes novos de falhas/rollback e barreira negativa. Medição diagnóstica atingiu 100% de linhas+branches nos cinco grupos; gates finais geram docs/validation/coverage.json. Nenhum pragma no cover ou exclusão de decisão.
