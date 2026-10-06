@@ -58,3 +58,6 @@
 
 ### T-05 — 2026-10-06T01:42:37.723952+00:00
 Métricas oficiais puras implementadas; dinheiro arredondado HALF_UP e divisões por zero retornam None. Próximo: T-06.
+
+### T-06 — 2026-10-06T01:43:29.206311+00:00
+Portões 1/2/3/T, mínimos de amostra, teto e dados atrasados implementados. Próximo: T-07.
