@@ -17,7 +17,9 @@ def doctor(root: str = "."):
         typer.echo(f"ERRO: {error}", err=True)
     if errors:
         raise typer.Exit(1)
-    typer.echo("Doctor OK — F0 local, LIVE_MODE=false; sem integrações externas.")
+    typer.echo(
+        "Doctor OK — fundação local, LIVE_MODE=false; integrações reais têm aceite separado."
+    )
 
 
 contracts_app = typer.Typer(help="Contratos JSON Schema")
@@ -295,3 +297,53 @@ def sync_events(worker_url: str = typer.Option(...), database: str = "data/engin
     finally:
         connection.close()
     typer.echo(f"Sincronização: {result}")
+
+
+@sync_app.command("meta")
+def sync_meta(
+    since: str = typer.Option(...),
+    until: str = typer.Option(...),
+    database: str = "data/engine.db",
+    mapping_file: str | None = None,
+):
+    import json
+    import os
+    from datetime import date
+    from pathlib import Path
+
+    import yaml
+
+    from arb.db import connect, migrate
+    from arb.meta.read import MetaReadError, Reader
+    from arb.meta.sync import sync
+
+    if os.environ.get("LIVE_MODE", "false").lower() != "false":
+        raise typer.BadParameter("LIVE_MODE precisa ser false")
+    version = os.environ.get("META_API_VERSION") or yaml.safe_load(
+        Path("config/settings.yaml").read_text()
+    ).get("meta_api_version")
+    try:
+        reader = Reader(
+            os.environ.get("META_ACCESS_TOKEN", ""),
+            os.environ.get("META_AD_ACCOUNT_ID", ""),
+            version or "",
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        mapping = json.loads(Path(mapping_file).read_text()) if mapping_file else {}
+        result = sync(
+            connection,
+            reader,
+            date.fromisoformat(since),
+            date.fromisoformat(until),
+            mapping=mapping,
+        )
+    except (MetaReadError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        reader.close()
+        connection.close()
+    typer.echo(f"Meta somente leitura: {result}")

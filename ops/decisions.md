@@ -61,3 +61,14 @@
 - Comissão e rastreio não podem mudar silenciosamente numa transação existente.
   Reembolsos/chargebacks atualizam status, sem apagar decisões ou aceitar regressão para approved.
 - /sale recebe contrato normalizado de teste; adaptador do webhook real aguarda V-01.
+
+## ADR-009 — Insights cumulativos, correções e sincronização completa (T-20)
+- MetricSnapshot ganha period_start opcional para atribuição à data da conta, mantendo ts
+  como coleta. Adicionar MetricAdjustment com deltas assinados para correções negativas.
+  Gerar contratos e migração 004. Logs de correção são append-only.
+- Meta diário é cumulativo: gravar só diferenças em relação ao último estado confirmado.
+  Repetir coleta não duplica gasto; correções não são descartadas nem sobrescrevem snapshots.
+- Todos os GETs terminam antes da transação; falha de página ou validação causa rollback
+  e um registro failed. last_collection só retorna tempo se o último ciclo ficou complete.
+- Descoberta de anúncio desconhecido exige mapping explícito ad_id→offer_id; não inventar
+  ofertas, comissão, creative ou atribuição. Mudanças manuais são auditadas e não revertidas.

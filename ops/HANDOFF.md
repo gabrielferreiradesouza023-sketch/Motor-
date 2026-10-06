@@ -102,3 +102,6 @@ F4 E2E passou com JS da ponte e Worker/D1 reais locais: visita→clique→venda 
 
 ### T-19 — 2026-10-06T02:08:07.969923+00:00
 Cliente Graph exclusivamente GET implementado e testado com transporte simulado: paginação segura, retry, rate limit, token expirado e conta BRL/São Paulo. Leitura real bloqueada: token/conta/versão ausentes. Próximo: T-20; F5 ainda sem aceite real.
+
+### T-20 — 2026-10-06T02:12:34.981763+00:00
+Sync Meta somente GET: deltas cumulativos idempotentes, reconciliação humana, correções negativas append-only e rollback/failed em coleta incompleta. F1–F4 validadas localmente. F5 bloqueada no aceite real por token/conta/versão; F6–F8 intocadas. PRs pendentes por api.github.com bloqueado.

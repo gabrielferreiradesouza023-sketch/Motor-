@@ -79,6 +79,7 @@ class Entity(Model):
 class MetricSnapshot(Model):
     entity_id: Identifier
     ts: datetime
+    period_start: date | None = None
     impressions: Count
     video_3s_views: Count
     link_clicks: Count
@@ -171,6 +172,25 @@ class BridgeEvent(Model):
     ts: datetime
 
 
+class MetricAdjustment(Model):
+    id: Identifier
+    entity_id: Identifier
+    ts: datetime
+    period_start: date
+    deltas: dict[
+        Literal[
+            "impressions",
+            "video_3s_views",
+            "link_clicks",
+            "spend_platform_cents",
+            "bridge_views",
+            "checkout_clicks",
+        ],
+        Annotated[int, Field(strict=True)],
+    ]
+    reason: Identifier
+
+
 MODEL_TYPES = (
     Offer,
     Angle,
@@ -185,6 +205,7 @@ MODEL_TYPES = (
     OfferIntake,
     AdObservation,
     BridgeEvent,
+    MetricAdjustment,
 )
 
 

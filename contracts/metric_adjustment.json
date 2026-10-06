@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "deltas": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "enum": [
+          "impressions",
+          "video_3s_views",
+          "link_clicks",
+          "spend_platform_cents",
+          "bridge_views",
+          "checkout_clicks"
+        ]
+      },
+      "title": "Deltas",
+      "type": "object"
+    },
+    "entity_id": {
+      "minLength": 1,
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "period_start": {
+      "format": "date",
+      "title": "Period Start",
+      "type": "string"
+    },
+    "reason": {
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "entity_id",
+    "ts",
+    "period_start",
+    "deltas",
+    "reason"
+  ],
+  "title": "MetricAdjustment",
+  "type": "object"
+}

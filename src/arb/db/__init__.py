@@ -15,6 +15,7 @@ from arb.models import (
     Creative,
     Decision,
     Entity,
+    MetricAdjustment,
     MetricSnapshot,
     Model,
     Offer,
@@ -25,6 +26,7 @@ MIGRATIONS = Path(__file__).parent / "migrations"
 T = TypeVar("T", bound=Model)
 # Nome de tabela, chave pública e colunas relacionais. Nunca interpolar entrada do usuário.
 TABLES = {
+    MetricAdjustment: ("metric_adjustments", ("id",), ("entity_id",)),
     AngleLearning: ("angle_library", ("id",), ("angle_id", "offer_id")),
     Offer: ("offers", ("id",), ()),
     Angle: ("angles", ("id",), ("offer_id",)),
@@ -36,7 +38,7 @@ TABLES = {
     Approval: ("approvals", ("id",), ()),
     Action: ("actions", ("id",), ("approval_id",)),
 }
-APPEND_ONLY = (MetricSnapshot, Decision, Action)
+APPEND_ONLY = (MetricSnapshot, MetricAdjustment, Decision, Action)
 
 
 def connect(path: Path) -> sqlite3.Connection:

@@ -175,3 +175,43 @@ com rollback. Páginas de exportação têm commit atômico e cursores para reto
 
 V-01 (webhook real) e V-02 (parâmetro Hotmart real) continuam pendentes. O receptor é
 normalizado para testes; não foi conectado a Hotmart, Cloudflare remoto ou Meta.
+
+## Meta somente leitura — F5 com aceite real pendente
+
+```bash
+# Requisitos exportados de forma segura: META_ACCESS_TOKEN, META_AD_ACCOUNT_ID,
+# META_API_VERSION (validar V-06; settings.yaml também aceita meta_api_version).
+uv run arb sync meta --since 2026-10-01 --until 2026-10-05 --mapping-file mapping.json
+```
+
+Exemplo de mapping explícito para anúncios ainda desconhecidos:
+
+```json
+{"123456789": {"offer_id": "excel", "geo": "CO"}}
+```
+
+Usar IDs reais e ofertas existentes no banco; nunca inventar geo ou comissão. O cliente
+faz somente GET, verifica BRL/São Paulo, pagina por cursor e respeita rate limit/retry.
+Não segue URLs next externas, não envia token na query e sanitiza erros. Configuração de
+nova oferta ou geo do laboratório não altera a conta Meta.
+
+Insights diários cumulativos geram apenas deltas. Snapshot.ts registra coleta e
+period_start a data da conta. Restatements negativos ficam em MetricAdjustment append-only
+e são incorporados ao P&L. Todas as páginas devem terminar antes da gravação; erro causa
+rollback e ciclo failed. `last_collection` retorna None se o último ciclo falhou, bloqueando
+consumidores futuros de tomar pass com coleta parcial. Reconciliação audita mudanças
+observadas como actor=human; não desfaz edições e não faz nenhuma escrita externa.
+
+**Ainda não validado com conta real:** token, conta e versão estão ausentes neste ambiente.
+Os testes usam transporte HTTP simulado, sem alegar integração Meta real. O campo de
+views de vídeo usa actions/video_view e também deve ser confirmado na validação V-06.
+F6–F8 permanecem em todo, sem escrita Meta, render de mídia ou operação contínua.
+
+## Branches e revisão
+
+Trabalhar sempre em `codex/<tarefa>`, commit e push de ops/LOCK no início. Entregar PR para
+main e aguardar revisão do Claude antes do merge. Nunca fazer push direto em main.
+As branches deste lote são encadeadas por dependência; revisar/mesclar em ordem crescente.
+A F0 foi enviada a main antes desta instrução; nenhuma tarefa posterior foi enviada a main.
+A criação automática dos PRs foi bloqueada pelo proxy a api.github.com. Branch publicada
+não é PR aberto. Aplicar a inclusão do domínio nas configurações antes de retomar a abertura.

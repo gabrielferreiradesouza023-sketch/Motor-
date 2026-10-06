@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 from arb.db import Repository
 from arb.metrics import cost_per_learning, spend_gross, summarize, waste_ratio
-from arb.models import Decision, Entity, MetricSnapshot, SaleEvent
+from arb.models import Decision, Entity, MetricAdjustment, MetricSnapshot, SaleEvent
 
 
 def pnl(
@@ -20,6 +20,7 @@ def pnl(
     entities = {e.id: e for e in Repository(connection, Entity).list()}
     snapshots = Repository(connection, MetricSnapshot).list()
     sales = Repository(connection, SaleEvent).list()
+    adjustments = Repository(connection, MetricAdjustment).list()
     decisions = Repository(connection, Decision).list()
     fields = (
         "impressions",
@@ -32,7 +33,7 @@ def pnl(
     zones = ZoneInfo("America/Sao_Paulo")
     first_dates = {}
     for s in snapshots:
-        d = s.ts.astimezone(zones).date().isoformat()
+        d = (s.period_start or s.ts.astimezone(zones).date()).isoformat()
         first_dates[s.entity_id] = min(first_dates.get(s.entity_id, d), d)
     rows = {}
     for level in ("offer", "angle", "creative", "geo", "daily"):
@@ -40,7 +41,7 @@ def pnl(
         for s in snapshots:
             entity = entities[s.entity_id]
             key = (
-                s.ts.astimezone(zones).date().isoformat()
+                (s.period_start or s.ts.astimezone(zones).date()).isoformat()
                 if level == "daily"
                 else entity.geo
                 if level == "geo"
@@ -60,7 +61,16 @@ def pnl(
             aggregate = MetricSnapshot(
                 entity_id=str(key),
                 ts=max(s.ts for s in items),
-                **{f: sum(getattr(s, f) for s in items) for f in fields},
+                **{
+                    f: sum(getattr(s, f) for s in items)
+                    + sum(
+                        a.deltas.get(f, 0)
+                        for a in adjustments
+                        if a.entity_id in ids
+                        and (level != "daily" or a.period_start.isoformat() == key)
+                    )
+                    for f in fields
+                },
             )
             stats = summarize(
                 aggregate, matched, media_tax_rate=media_tax_rate, refund_rate=refund_rate
@@ -75,7 +85,10 @@ def pnl(
     total = MetricSnapshot(
         entity_id="all",
         ts=max((s.ts for s in snapshots), default=datetime.now(UTC)),
-        **{f: sum(getattr(s, f) for s in snapshots) for f in fields},
+        **{
+            f: sum(getattr(s, f) for s in snapshots) + sum(a.deltas.get(f, 0) for a in adjustments)
+            for f in fields
+        },
     )
     matched = [s for s in sales if s.matched_entity_id in entities]
     totals = summarize(total, matched, media_tax_rate=media_tax_rate, refund_rate=refund_rate)
