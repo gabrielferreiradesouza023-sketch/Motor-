@@ -89,3 +89,19 @@ def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
     typer.echo(json.dumps(run.summary(), ensure_ascii=False, indent=2))
+
+
+@app.command("report")
+def report(database: str = "data/engine.db", output: str = "reports"):
+    from pathlib import Path
+
+    from arb.analyst.report import generate_report
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        target = generate_report(connection, Path(output))
+    finally:
+        connection.close()
+    typer.echo(f"Relatório gerado: {target}")

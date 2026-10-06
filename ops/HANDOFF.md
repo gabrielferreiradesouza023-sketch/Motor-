@@ -73,3 +73,6 @@ F1 validada em 50 seeds; resultados em docs/validation/f1-50-seeds.json, sem cal
 
 ### T-10 — 2026-10-06T01:48:49.535753+00:00
 P&L por oferta/ângulo/criativo/geo/coorte, meta-métricas, receita tardia e reembolso testados. Aproximação de atribuição por coorte registrada em ADR-004. Próximo: T-11.
+
+### T-11 — 2026-10-06T01:50:29.384127+00:00
+Relatório HTML móvel a partir da F1, conteúdo escapado e uma única pergunta; latest mais cópia datada. Ordem temporal corrigida por teste de escaping. Próximo: T-12.
