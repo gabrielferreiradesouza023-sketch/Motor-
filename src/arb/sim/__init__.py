@@ -1,9 +1,10 @@
 """Tráfego sintético com verdade plantada, independente das regras do motor."""
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 
+from arb.config import load_sim_profiles
 from arb.models import Angle, Creative, Entity, MetricSnapshot, Offer, SaleEvent
 
 
@@ -15,6 +16,7 @@ class Truth:
     purchase: float
     cpm_cents: int
     winner: bool = False
+    role: str = "loser"
 
 
 @dataclass
@@ -26,7 +28,9 @@ class Population:
     truth: dict[str, Truth]
 
 
-def population(seed: int, offers: int = 3, angles: int = 3, creatives: int = 3) -> Population:
+def population(
+    seed: int, offers: int = 3, angles: int = 3, creatives: int = 3, *, profile: str = "planted"
+) -> Population:
     if min(offers, angles, creatives) < 1:
         raise ValueError("dimensões precisam ser positivas")
     rng = random.Random(seed)
@@ -125,6 +129,46 @@ def population(seed: int, offers: int = 3, angles: int = 3, creatives: int = 3) 
                 else:
                     truth = Truth(rng.uniform(0.002, 0.006), 0.18, 0.04, 0.01, 1000)
                 result.truth[cid] = truth
+    profiles = load_sim_profiles()
+    if profile not in type(profiles).model_fields:
+        raise ValueError("perfil desconhecido")
+    if profile == "planted":
+        for cid, truth in result.truth.items():
+            role = (
+                "winner"
+                if truth.winner
+                else "borderline_winner"
+                if cid.startswith("o1-a0-")
+                else "loser"
+            )
+            result.truth[cid] = replace(truth, role=role)
+    else:
+        if len(result.angles) < 2:
+            raise ValueError("perfil realista exige ao menos dois ângulos")
+        sampler = random.Random(seed ^ 0xA8B)
+        winner, borderline = sampler.sample([a.id for a in result.angles], 2)
+        trap = next((a.id for a in result.angles if a.id not in {winner, borderline}), None)
+        distributions = getattr(profiles, profile)
+        for creative in result.creatives:
+            role = (
+                "winner"
+                if creative.angle_id == winner
+                else "borderline_winner"
+                if creative.angle_id == borderline
+                else "attention_trap"
+                if creative.angle_id == trap
+                else "loser"
+            )
+            dist = getattr(distributions, role)
+            result.truth[creative.id] = Truth(
+                ctr=sampler.uniform(*dist.ctr),
+                hook=sampler.uniform(*dist.hook),
+                checkout=sampler.uniform(*dist.checkout),
+                purchase=sampler.uniform(*dist.purchase),
+                cpm_cents=sampler.randint(*dist.cpm_cents),
+                winner=role == "winner",
+                role=role,
+            )
     return result
 
 

@@ -147,3 +147,12 @@ clientes read-only com tokens sintéticos; conta/provedor não foram alterados.
 - Validação: 50 seeds inalteradas (50/50, 0 vencedores mortos, waste médio 0,93%).
 - Limite conhecido: o simulador planta um vencedor com margens irreais (checkout→compra
   30%); calibrar com parâmetros realistas antes de operar. Multiplicador é calibrável via ADR.
+
+## ADR-017 — Perfis diagnósticos uniformes (T-31)
+Faixas são hipóteses fornecidas no card T-31, não dados coletados nem estimativas
+estatísticas de mercado. Distribuições uniformes independentes por criativo, papéis
+compartilhados por ângulo. Realistic usa CPM R$8–20 e taxas sugeridas; pessimistic
+multiplica CPM por 1,25 e compra por 0,6. Vencedor/borderline são papéis relativos,
+sem garantia de lucro ou de passar portões. Seed sorteia posições, nenhuma calibração
+foi aplicada a rules.yaml. Planted conserva RNG/valores/algoritmo histórico, inclusive
+posição fixa para regressão; somente perfis diagnósticos sorteiam posições.

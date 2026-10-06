@@ -107,3 +107,6 @@ F0–F8 + T-30 mergeados na `main` (#24, #26); CI com render e Worker (#27). T-0
 para `board/done`. Próximo trabalho: `ops/batches/BATCH-02.md` (T-31–T-39) — simulador
 realista e calibração (sem alterar rules.yaml), aprovação assinada, guarda central de escrita,
 escritor de pausa (mock), testes de propriedade, cobertura e preflight.
+
+### BATCH-02 T-31
+Planted reproduz histórico nas 50 seeds; realistic/pessimistic 200 seeds cada sem erro. Distribuições/posições/summary determinísticos; docs/validation/sim-profiles.json. ADR-017 documenta hipóteses.

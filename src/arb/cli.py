@@ -74,7 +74,9 @@ app.add_typer(sim_app, name="sim")
 
 
 @sim_app.command("run")
-def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
+def sim_run(
+    seed: int = 42, budget: int = 2400, database: str | None = None, profile: str = "planted"
+):
     """Budget em BRL inteiros. Persistência opcional em banco separado e novo."""
     import json
     import os
@@ -85,7 +87,7 @@ def sim_run(seed: int = 42, budget: int = 2400, database: str | None = None):
     if os.environ.get("LIVE_MODE", "false").lower() != "false":
         raise typer.BadParameter("LIVE_MODE deve ser false")
     try:
-        run = run_lab(seed, budget * 100)
+        run = run_lab(seed, budget * 100, profile=profile)
         if database:
             persist(run, Path(database))
     except ValueError as exc:

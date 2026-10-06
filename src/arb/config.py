@@ -136,5 +136,39 @@ class Policy(ConfigModel):
 
 
 def validate_config(root: Path) -> None:
+    load_sim_profiles(root / "config/sim_profiles.yaml")
     for name, model in [("rules", Rules), ("settings", Settings), ("policy", Policy)]:
         model.model_validate(yaml.safe_load((root / "config" / f"{name}.yaml").read_text()))
+
+
+class SimDistribution(ConfigModel):
+    cpm_cents: tuple[PositiveInt, PositiveInt]
+    ctr: tuple[Rate, Rate]
+    hook: tuple[Rate, Rate]
+    checkout: tuple[Rate, Rate]
+    purchase: tuple[Rate, Rate]
+
+    @model_validator(mode="after")
+    def ordered(self):
+        for field in type(self).model_fields:
+            low, high = getattr(self, field)
+            if low > high:
+                raise ValueError(f"faixa invertida: {field}")
+        return self
+
+
+class SimProfile(ConfigModel):
+    winner: SimDistribution
+    borderline_winner: SimDistribution
+    attention_trap: SimDistribution
+    loser: SimDistribution
+
+
+class SimProfiles(ConfigModel):
+    planted: SimProfile
+    realistic: SimProfile
+    pessimistic: SimProfile
+
+
+def load_sim_profiles(path: Path = Path("config/sim_profiles.yaml")) -> SimProfiles:
+    return SimProfiles.model_validate(yaml.safe_load(path.read_text()))

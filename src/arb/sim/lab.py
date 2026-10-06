@@ -23,6 +23,7 @@ class Run:
     killed_winners: list[str] = field(default_factory=list)
     alerts: list[str] = field(default_factory=list)
     excess_cents: int = 0
+    profile: str = "planted"
 
     def summary(self) -> dict:
         gross = spend_gross(sum(s.spend_platform_cents for s in self.snapshots))
@@ -30,7 +31,40 @@ class Run:
             d.verdict in ("pass", "kill") and d.metrics_json["sample_sufficient"]
             for d in self.decisions
         )
+        truth_winners = {
+            c.angle_id for c in self.population.creatives if self.population.truth[c.id].winner
+        }
+        borderline = {
+            c.angle_id
+            for c in self.population.creatives
+            if self.population.truth[c.id].role == "borderline_winner"
+        }
+        deaths = [
+            dict(entity_id=d.entity_id, gate=d.gate, rule_id=d.rule_id)
+            for d in self.decisions
+            if d.verdict == "kill"
+            and any(
+                e.id == d.entity_id and e.angle_id in truth_winners
+                for e in self.population.entities
+            )
+        ]
+        first_pass = next(
+            (d.ts for d in self.decisions if d.gate == "3" and d.verdict == "pass"), None
+        )
         return {
+            "profile": self.profile,
+            "winner_found": bool(truth_winners & set(self.winners)),
+            "borderline_found": bool(borderline & set(self.winners)),
+            "winner_deaths": deaths,
+            "spend_to_first_g3_pass_cents": spend_gross(
+                sum(
+                    s.spend_platform_cents
+                    for s in self.snapshots
+                    if first_pass and s.ts <= first_pass
+                )
+            )
+            if first_pass
+            else None,
             "seed": self.seed,
             "spend_gross_cents": gross,
             "revenue_expected_cents": rev_expected(self.sales),
@@ -44,13 +78,13 @@ class Run:
         }
 
 
-def run_lab(seed: int, budget_cents: int = 240000) -> Run:
+def run_lab(seed: int, budget_cents: int = 240000, *, profile: str = "planted") -> Run:
     if budget_cents <= 0:
         raise ValueError("orçamento precisa ser positivo")
     r = load_rules()
     budget_cents = min(budget_cents, r.controls.total_cap_cents)
-    p = population(seed)
-    run = Run(seed, p)
+    p = population(seed, profile=profile)
+    run = Run(seed, p, profile=profile)
     rng = random.Random(seed)
     ads = [e for e in p.entities if e.kind == "ad"]
     groups = {e.angle_id: e for e in p.entities if e.kind == "adset"}
@@ -153,11 +187,13 @@ def run_lab(seed: int, budget_cents: int = 240000) -> Run:
                 # G3 com poucas vendas: parar no teto para revisão, nunca continuar gastando.
                 stages[aid] = "hold"
                 run.alerts.append(f"{aid}: teto com vendas insuficientes; revisão humana")
-        if (
-            all(states[e.id] == "kill" for e in ads if e.angle_id == "o0-a0")
-            or stages["o0-a0"] == "killed"
-        ):
-            run.killed_winners = ["o0-a0"]
+        true_winners = {c.angle_id for c in p.creatives if p.truth[c.id].winner}
+        run.killed_winners = sorted(
+            aid
+            for aid in true_winners
+            if all(states[e.id] == "kill" for e in ads if e.angle_id == aid)
+            or stages[aid] == "killed"
+        )
     for e in p.entities:
         e.status = "paused"
     return run
