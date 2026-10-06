@@ -19,6 +19,7 @@ gate_3:
   min_sales: 3
   min_roi: 0.30
   epc_factor: 0.7
+  hard_cap_multiplier: 1.5
 gate_T:
   cap_cents: 8000
 controls:

@@ -90,8 +90,17 @@ def evaluate(
             verdict, rule_id, reason = "pass", f"g{gate}.pass", "Combo validado: vendas, ROI e CPC"
     if verdict in ("hold", "insufficient_data") and cap_kill:
         verdict, rule_id, reason = "kill", f"g{gate}.cap", "Teto atingido sem passar"
+    # ADR-016: G3/T com vendas mas sem validação não pode gastar indefinidamente.
+    hard_cap = int(cap * rules.gate_3.hard_cap_multiplier) if gate in ("3", "T") else None
+    if hard_cap is not None and verdict != "pass" and spent >= hard_cap:
+        verdict, rule_id, reason = (
+            "kill",
+            f"g{gate}.hard_cap",
+            "Teto rígido atingido sem validar o combo",
+        )
     metrics["sample_sufficient"] = sampled
     metrics["cap_cents"] = cap
+    metrics["hard_cap_cents"] = hard_cap
     metrics["stale"] = stale
     return Decision(
         id=str(uuid4()),

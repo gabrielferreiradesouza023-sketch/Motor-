@@ -96,3 +96,8 @@ local das tarefas T-01–T-29 está entregue; não iniciar operação real a par
 PR #24 confirmado: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/24
 Lista de 24 PRs sincronizada com GitHub; evidência final em docs/validation/f8-summary.json.
 install_script/start_skill salvos no rascunho cloud, sem publicação automática.
+
+### T-30 (Claude) — teto rígido G3/T
+Entregue em `claude/inspiring-davinci-o0loro`, PR sobre `codex/t-29`. ADR-016: G3/T sem
+validação morre em 1,5 × teto mesmo com vendas. Próximo: simulador com parâmetros
+realistas e vencedores no limite para calibrar G3 (3 vendas dentro de ~R$ 102 é improvável).
