@@ -44,7 +44,15 @@ document.documentElement.dataset.layout=fits && box.top>=200?'ok':'overflow';
 def capabilities() -> dict[str, str]:
     result = {}
     for name in ("chromium", "ffmpeg", "ffprobe"):
-        path = shutil.which(name)
+        candidates = (
+            (os.environ.get("CHROMIUM_PATH"), "chromium", "chromium-browser", "google-chrome")
+            if name == "chromium"
+            else (name,)
+        )
+        path = next(
+            (found for candidate in candidates if candidate and (found := shutil.which(candidate))),
+            None,
+        )
         if path is None:
             raise ValueError(f"ferramenta local necessária: {name}")
         result[name] = path
