@@ -64,3 +64,6 @@ Portões 1/2/3/T, mínimos de amostra, teto e dados atrasados implementados. Pr�
 
 ### T-07 — 2026-10-06T01:45:00.660152+00:00
 Controles globais e limite de escala implementados; ações reais permanecem inexistentes. Próximo: T-08.
+
+### T-08 — 2026-10-06T01:46:07.995207+00:00
+Gerador de população e tráfego sintético com verdade plantada e ruído implementado. Próximo: T-09.

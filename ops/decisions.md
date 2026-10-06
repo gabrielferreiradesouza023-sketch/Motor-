@@ -15,3 +15,12 @@
 - Action.live mantém bool conforme a seção 8.2 para registros de auditoria; a F0 não
   executa ações externas e doctor recusa LIVE_MODE diferente de false.
 - JSONs de métricas/payload são objetos. Contratos gerados de forma determinística.
+
+## ADR-003 — Snapshots e validação sintética (T-08)
+- Snapshots persistidos representam intervalos não sobrepostos; somar contadores é válido.
+  F5 deverá converter insights cumulativos em deltas auditáveis, incluindo correções negativas
+  em mecanismo próprio, sem gravar cumulativos como se fossem intervalos.
+- Simulação tem três ofertas, três ângulos e três criativos por ângulo por padrão.
+  Um combo é vencedor plantado; perdas incluem atenção, intenção e ausência de vendas.
+- Tráfego usa Bernoulli por evento e CPM com ruído. Não lê regras para definir probabilidades.
+- Aceite de 50 seeds mede este cenário sintético, não prevê lucratividade de campanhas reais.
