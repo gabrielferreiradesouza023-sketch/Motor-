@@ -143,3 +143,7 @@ Artefatos financeiros 0600 e diretorios 0700, symlinks recusados e ACL aviso for
 ### T-66 — Codex, BATCH-04
 Pacote systemd deterministico em false, check de hashes horarios modos e flock; 16 testes novos; 2 bypasses de symlink corrigidos; drill 42 identico
 741 passed in 214.90s (0:03:34); cobertura 90.02%; gates locais verdes.
+
+### T-67 — Codex, BATCH-04
+Kit F5 GET-only no host humano, matriz de 14 testes, evidência redigida com SHA256 e permissões fechadas; drill seed 42 idêntico ao versionado.
+755 passed in 206.80s (0:03:26); cobertura 90.18%; gates locais verdes.

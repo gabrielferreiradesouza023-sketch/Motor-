@@ -6,18 +6,16 @@ não aprova gasto, não assina propostas, não envia mensagens e não faz deploy
 
 ## Preparar o host e as barreiras
 
-1. Claude revisar o PR BATCH-02; humano decidir ADR-018 ou manter as regras atuais.
-   Não aplicar a calibração só porque a simulação melhorou. As distribuições são hipóteses.
+1. #28/#29/#30 e #32 já foram revisados e mergeados. ADR-018 e a chave pública T-41
+   estão resolvidos; revisar o PR BATCH-04 antes de usar estes kits. Simulação não valida conta real.
 2. Usar um host persistente Linux/WSL com isolamento de operadores/agentes. Configurar
    segredos diretamente nesse host, nunca no chat/repositório/cloud dos agentes. Preflight
    inspeciona somente **nomes presentes**, sem provar valores não vazios, validade ou acesso:
    META_ACCESS_TOKEN, META_AD_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
    CLOUDFLARE_D1_DATABASE_ID e HOTMART_WEBHOOK_SECRET.
-3. Na máquina humana (nunca no host do motor nem no cloud dos agentes), rodar
-   `arb approve keygen --output ~/.arb/approval_ed25519`, exportar
-   `APPROVAL_PRIVATE_KEY_FILE` apontando para esse arquivo e colar a chave pública
-   impressa em `config/settings.yaml` (`approval_public_key`) por PR revisado (ADR-022).
-   O motor só conhece a chave pública; agentes nunca recebem a privada.
+3. A chave pública T-41 já está versionada. Na máquina assinadora humana, configurar
+   APPROVAL_PRIVATE_KEY_FILE para a chave existente; não gerar outra chave para este batch.
+   Nunca levar a privada ao motor/cloud. O motor só conhece a pública (ADR-022).
 4. Confirmar V-06 e definir META_API_VERSION (`vN.N`) no host humano. A conta precisa de
    BRL e America/Sao_Paulo. O leitor verifica moeda/fuso antes de ler `spend_cap`.
 5. **Defesa independente:** configurar `spend_cap` positivo na conta Meta, em centavos BRL,
@@ -73,8 +71,10 @@ impresso. Corrigir as instruções por check; não burlar erros alterando limite
 
 ## Decisões/aceites que continuam humanos
 
-- Claude revisar o PR e humano realizar o merge; Codex não faz merge.
-- Escolher/rejeitar ADR-018, tolerância de risco e novo experimento de calibração.
+- Claude revisar o PR BATCH-04 e humano realizar o merge; Codex não faz merge.
+- ADR-018 já aceita; experimentos/alterações futuros exigem nova decisão humana.
 - Validar V-01/V-02 Hotmart/rastreio e V-06 Graph com provedores reais, sem gastos automáticos.
 - Validar host, cartão, conta, observabilidade e reconciliação; provisionar segredos fora dos agentes.
 - Autorizar separadamente qualquer cadastro, deploy, live, envio ou exposição real em sessão futura.
+
+Kit F5 read-only: [f5-acceptance.md](f5-acceptance.md). A evidência real é produzida pelo humano no próprio host.

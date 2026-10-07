@@ -955,3 +955,32 @@ def service_check(output: str = "data/service", json_output: bool = typer.Option
     )
     if not result["ok"]:
         raise typer.Exit(1)
+
+
+accept_app = typer.Typer(help="Kits executados pelo humano no próprio host; cloud só mocks")
+app.add_typer(accept_app, name="accept")
+
+
+@accept_app.command("f5")
+def accept_f5(out: str = typer.Option(...), root: str = "."):
+    import os
+    from pathlib import Path
+
+    from arb.accept import f5, require_host, save
+    from arb.preflight import make_reader
+
+    reader = None
+    try:
+        require_host()
+        reader = make_reader(os.environ.get("META_API_VERSION", ""))
+        result = f5(reader, root=Path(root))
+        save(result, Path(out))
+        typer.echo("Aceite F5: " + result["status"])
+        if result["status"] != "passed":
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo("Kit F5 recusado; verificar modo, configuração e destino no host humano")
+        raise typer.Exit(1) from None
+    finally:
+        if reader is not None:
+            reader.close()
