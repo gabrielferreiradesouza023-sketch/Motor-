@@ -647,3 +647,36 @@ def ops_pending(
         typer.echo(json.dumps(rows, sort_keys=True) if json_output else f"Pendências: {len(rows)}")
     finally:
         connection.close()
+
+
+@ops_app.command("reconcile")
+def ops_reconcile(
+    database: str = "data/engine.db",
+    read_meta: bool = False,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    import json
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.meta.read import Reader
+    from arb.reconcile import reconcile
+
+    if not read_meta:
+        raise typer.BadParameter("leitura remota exige --read-meta no host humano autorizado")
+    reader = Reader(
+        os.environ.get("META_ACCESS_TOKEN", ""),
+        os.environ.get("META_AD_ACCOUNT_ID", ""),
+        os.environ.get("META_API_VERSION", ""),
+    )
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = reconcile(connection, reader)
+        typer.echo(json.dumps(result, sort_keys=True) if json_output else str(result))
+        if result["alerts"]:
+            raise typer.Exit(1)
+    finally:
+        connection.close()
+        reader.close()

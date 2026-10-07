@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-MONEY_MODULES = ("rules", "metrics", "launcher", "safety", "meta.pause", "ledger")
+MONEY_MODULES = ("rules", "metrics", "launcher", "safety", "meta.pause", "ledger", "reconcile")
 
 
 def percentage(summaries):

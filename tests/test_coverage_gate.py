@@ -27,6 +27,7 @@ def synthetic_report():
                 "src/arb/safety.py",
                 "src/arb/meta/pause.py",
                 "src/arb/ledger.py",
+                "src/arb/reconcile.py",
             ]
         },
     }

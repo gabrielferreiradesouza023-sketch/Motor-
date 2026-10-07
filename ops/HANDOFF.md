@@ -133,3 +133,7 @@ Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTranspor
 ### T-42 — Codex, BATCH-03
 Ledger órfão/incerto e bloqueio antes do segundo POST; CLI pending e aviso do doctor
 447 passed in 169.53s (0:02:49); cobertura 88.07%; gates locais verdes.
+
+### T-43 — Codex, BATCH-03
+Reconciliação append-only por GET; status desconhecido ou erro preserva pendência
+460 passed in 171.42s (0:02:51); cobertura 87.77%; gates locais verdes.
