@@ -149,3 +149,7 @@ Matriz de 18 quedas; corrigido reenvio do hook após entrega ou checkpoint; ADR-
 ### T-46 — Codex, BATCH-03
 Restore em quarentena; release humano após pausa e leitura; migração 006 e ADR-024
 492 passed in 161.71s (0:02:41); cobertura 87.8%; gates locais verdes.
+
+### T-47 — Codex, BATCH-03
+Snapshots pré-exposição retidos em 20; drill descartável falha em backup corrompido; integração de escala na T-51
+498 passed in 156.42s (0:02:36); cobertura 88.03%; gates locais verdes.

@@ -29,6 +29,7 @@ def synthetic_report():
                 "src/arb/ledger.py",
                 "src/arb/reconcile.py",
                 "src/arb/quarantine.py",
+                "src/arb/db/checkpoint.py",
             ]
         },
     }

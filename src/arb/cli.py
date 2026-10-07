@@ -709,3 +709,16 @@ def db_release(database: str = "data/engine.db", read_meta: bool = False):
         connection.close()
         if reader:
             reader.close()
+
+
+@db_app.command("drill")
+def db_drill(backups: str = "data/backups", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.db.checkpoint import drill
+
+    result = drill(Path(backups))
+    typer.echo(json.dumps(result, sort_keys=True) if json_output else f"Drill: {result['status']}")
+    if result["status"] != "passed":
+        raise typer.Exit(1)

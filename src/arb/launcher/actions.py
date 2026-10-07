@@ -100,6 +100,9 @@ def activate(
     if connection.in_transaction:
         raise ValueError("ativação requer conexão sem transação pendente")
     now = now or datetime.now(UTC)
+    from arb.db.checkpoint import snapshot_before
+
+    snapshot_before(connection, "activate", approval_id)
     connection.execute("BEGIN IMMEDIATE")
     try:
         entity = Repository(connection, Entity).get(entity_id)

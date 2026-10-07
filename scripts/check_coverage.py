@@ -13,6 +13,7 @@ MONEY_MODULES = (
     "ledger",
     "reconcile",
     "quarantine",
+    "db.checkpoint",
 )
 
 

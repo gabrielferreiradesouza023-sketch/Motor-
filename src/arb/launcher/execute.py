@@ -93,6 +93,9 @@ def execute(
     )
     if connection.in_transaction:
         raise ValueError("execute requer conexão sem transação pendente")
+    from arb.db.checkpoint import snapshot_before
+
+    snapshot_before(connection, "launch", fingerprint)
     connection.execute("BEGIN IMMEDIATE")
     try:
         for model, records in (
