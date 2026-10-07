@@ -33,6 +33,7 @@ def synthetic_report():
                 "src/arb/scout/approve.py",
                 "src/arb/creative/approve.py",
                 "src/arb/launcher/scale.py",
+                "src/arb/remote/__init__.py",
             ]
         },
     }

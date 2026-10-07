@@ -286,3 +286,11 @@ Novo kind creative_set, com envelope de ângulos e criativos ligado por hash à 
 Ed25519. Proposta exclui lint reprovado e reexecuta o lint; consumo confere conteúdo atual,
 assinado e kind, e aplica status approved atomicamente com Action. Exposição máxima zero:
 esta aprovação não substitui launch, activate ou scale. Contrato approval.json regenerado.
+
+## ADR-026 — Porta remota e FakeMeta (T-52)
+RemoteWriter opera sobre Entity e chaves de intenção do motor, nunca payloads Graph.
+FakeMeta cria pausado e oferece activate/budget/pause/read/locate, sem delete ou rede.
+Chaves e lookup determinísticos são uma hipótese do fake: a forma de localizar/deduplicar
+criação na Meta real é DESCONHECIDA, bloqueada até V-06/T-55. Não transferir essa garantia
+para o provedor. Timeout antes/depois, server_error, rate_limit e resposta inválida são
+falhas sintéticas; nenhuma versão, endpoint, campo ou permissão Graph é implementada aqui.

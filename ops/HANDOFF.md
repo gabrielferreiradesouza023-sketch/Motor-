@@ -169,3 +169,7 @@ Creative_set assinado com lint fresco e hash do conteúdo atual; ADR-025 e contr
 ### T-51 — Codex, BATCH-03
 Escala assinada +20% por 24 h com snapshot, revalidação, quarentena e ledger
 554 passed in 191.00s (0:03:11); cobertura 87.9%; gates locais verdes.
+
+### T-52 — Codex, BATCH-03
+Porta RemoteWriter e FakeMeta determinístico; cinco falhas injetáveis; ADR-026 bloqueia dedupe real
+577 passed in 184.18s (0:03:04); cobertura 88.2%; gates locais verdes.

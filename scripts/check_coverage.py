@@ -17,6 +17,7 @@ MONEY_MODULES = (
     "scout.approve",
     "creative.approve",
     "launcher.scale",
+    "remote",
 )
 
 
