@@ -1,0 +1,16 @@
+# ADR-031: esquema interno atual; não é um perfil de exportação Hotmart validado.
+columns:
+  hotmart_tx_id: hotmart_tx_id
+  ts: ts
+  commission_cents: commission_cents
+  status: status
+  tracking_param: tracking_param
+statuses:
+  approved: approved
+  refunded: refunded
+  chargeback: chargeback
+date_format: null
+timezone: null
+money_format: cents
+decimal_separator: '.'
+strict_headers: true

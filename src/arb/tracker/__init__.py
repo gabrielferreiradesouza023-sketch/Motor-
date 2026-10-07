@@ -2,9 +2,15 @@
 
 import csv
 import hashlib
+import re
 import sqlite3
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
+from pydantic import ValidationError
+
+from arb.config import SalesCSV
 from arb.db import Repository
 from arb.models import Entity, SaleEvent
 
@@ -57,16 +63,68 @@ def ingest(connection: sqlite3.Connection, sale: SaleEvent) -> bool:
     return True
 
 
-def import_sales(connection: sqlite3.Connection, path: Path) -> int:
+def mapped_row(row, mapping):
+    values = {key: row[column] for key, column in mapping.columns.items()}
+    if values["status"] not in mapping.statuses:
+        raise ValueError("status desconhecido; ajustar mapa de status")
+    values["status"] = mapping.statuses[values["status"]]
+    raw_money = values["commission_cents"]
+    try:
+        if mapping.money_format == "cents":
+            values["commission_cents"] = int(raw_money)
+        else:
+            separator = re.escape(mapping.decimal_separator)
+            if not re.fullmatch(r"[0-9]+(?:" + separator + r"[0-9]{1,2})?", raw_money):
+                raise ValueError("decimal inválido")
+            whole, _, fraction = raw_money.partition(mapping.decimal_separator)
+            values["commission_cents"] = int(whole) * 100 + int(fraction.ljust(2, "0"))
+    except ValueError:
+        raise ValueError(
+            "valor monetário inválido; sem arredondamento ou separador implícito"
+        ) from None
+    if mapping.date_format is not None or mapping.timezone is not None:
+        try:
+            stamp = (
+                datetime.strptime(values["ts"], mapping.date_format)
+                if mapping.date_format is not None
+                else datetime.fromisoformat(values["ts"])
+            )
+            if stamp.utcoffset() is None:
+                if mapping.timezone is None:
+                    raise ValueError("data sem fuso")
+                zone = ZoneInfo(mapping.timezone)
+                if (
+                    stamp.replace(tzinfo=zone, fold=0).utcoffset()
+                    != stamp.replace(tzinfo=zone, fold=1).utcoffset()
+                ):
+                    raise ValueError("data ambígua/inexistente")
+                stamp = stamp.replace(tzinfo=zone)
+            values["ts"] = stamp
+        except ValueError:
+            raise ValueError("data, formato ou fuso inválido; não inferir timezone") from None
+    return values
+
+
+def import_sales(
+    connection: sqlite3.Connection, path: Path, *, mapping: SalesCSV | None = None
+) -> int:
+    mapping = mapping or SalesCSV()
     with path.open(encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file)
-        if reader.fieldnames != HEADERS:
-            raise ValueError("Cabeçalho de vendas inválido; esperado: " + ",".join(HEADERS))
+        expected = [mapping.columns[key] for key in HEADERS]
+        fields = reader.fieldnames or []
+        if (
+            len(fields) != len(set(fields))
+            or not set(expected) <= set(fields)
+            or (mapping.strict_headers and fields != expected)
+        ):
+            raise ValueError("Cabeçalho de vendas inválido; conferir mapeamento declarado")
         parsed = []
         for number, row in enumerate(reader, 2):
             try:
                 if None in row or any(value is None for value in row.values()):
                     raise ValueError("colunas inválidas")
+                row = mapped_row(row, mapping)
                 parsed.append(
                     SaleEvent(
                         id="sale-" + hashlib.sha256(row["hotmart_tx_id"].encode()).hexdigest(),
@@ -79,7 +137,12 @@ def import_sales(connection: sqlite3.Connection, path: Path) -> int:
                     )
                 )
             except (ValueError, TypeError) as exc:
-                raise ValueError(f"Venda inválida na linha {number}") from exc
+                message = (
+                    "campos inválidos ou timestamp sem fuso"
+                    if isinstance(exc, ValidationError)
+                    else str(exc)
+                )
+                raise ValueError(f"Venda inválida na linha {number}: {message}") from None
     with connection:
         return sum(ingest(connection, sale) for sale in parsed)
 

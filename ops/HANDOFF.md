@@ -123,3 +123,7 @@ Consultas indexadas com equivalencia em 100000 Actions: pending 2.68 ms e last_i
 ### T-61 — Codex, BATCH-04
 Fallback de id curto opt-in com aliases historicos e colisoes recusadas; 12 testes novos e golden HTML da base; tracker.ids no gate de 95%; drill 42 identico
 672 passed in 204.99s (0:03:24); cobertura 89.45%; gates locais verdes.
+
+### T-62 — Codex, BATCH-04
+CSV declarativo, decimal exato e fuso explicito sem perfil de provedor; 18 testes novos; default preservado e drill 42 identico
+690 passed in 188.14s (0:03:08); cobertura 89.57%; gates locais verdes.

@@ -278,16 +278,19 @@ app.add_typer(sync_app, name="sync")
 
 
 @sales_app.command("import")
-def sales_import(csv_file: str, database: str = "data/engine.db"):
+def sales_import(
+    csv_file: str, database: str = "data/engine.db", mapping: str = "config/sales_csv.yaml"
+):
     from pathlib import Path
 
+    from arb.config import load_sales_csv
     from arb.db import connect, migrate
     from arb.tracker import import_sales
 
     connection = connect(Path(database))
     try:
         migrate(connection)
-        count = import_sales(connection, Path(csv_file))
+        count = import_sales(connection, Path(csv_file), mapping=load_sales_csv(Path(mapping)))
     finally:
         connection.close()
     typer.echo(f"{count} vendas novas/atualizadas")

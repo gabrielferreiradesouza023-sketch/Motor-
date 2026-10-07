@@ -327,3 +327,12 @@ por módulo de sua capacidade; colisão com token ou id completo de outra entida
 Migração 009 conserva aliases históricos, mesmo após mudança de configuração. A ponte
 mantém ad_id completo nos eventos e usa token apenas no link de afiliado. Com fallback
 ativo, ad desconhecido não produz rastreio; não atribuir venda à entidade errada.
+
+## ADR-031 — CSV declarativo com padrão interno preservado (T-62)
+config/sales_csv.yaml declara somente o esquema interno já existente. A CLI o carrega;
+a API Python sem mapping mantém os defaults anteriores, sem depender do cwd. Não há
+perfil Hotmart nem V-01 presumida. Cabeçalhos estritos por padrão; permissivo só por opção
+explícita, mantendo todas as colunas requeridas e recusando duplicação. Datas sem timezone
+não são inferidas: formato/fuso declarados ou erro, inclusive ambiguidades de DST.
+Decimal converte dígitos diretamente em centavos; não aceita agrupamento, expoente ou
+arredondamento. O parser nativo do timestamp e centavos inteiros permanecem no padrão.
