@@ -177,3 +177,15 @@ Porta RemoteWriter e FakeMeta determinístico; cinco falhas injetáveis; ADR-026
 ### T-53 — Codex, BATCH-03
 Journal FakeMeta de launch activate scale pause; 39 testes novos, matriz 20 casos e queda apos efeito sem duplicacao.
 616 passed in 180.40s (0:03:00); cobertura 88.7%; gates locais verdes.
+
+## Bloqueios — executor Graph (T-55 / BATCH-03)
+Faltam versão Graph (meta_api_version permanece null), conta/permissões verificadas,
+contrato de lookup/dedupe de criação após ACK perdido e limites/erros de taxa confirmados
+em documentação oficial e V-06. Quem decide: humano, com revisão do Claude. Impacto:
+executor real create/activate/scale e aceite F5/F6 bloqueados; T-54/T-56/T-57 independentes.
+Detalhes e perguntas em docs/validation/meta-executor-contract.md. Não inventar mapeamentos.
+Calibração ADR-018 e chave pública T-41 já foram mergeadas; não aguardam decisão novamente.
+
+### T-55 — Codex, BATCH-03
+Contrato documental Graph e bloqueios de versao permissoes dedupe e limites; sem mapeamento ou APIs reais.
+616 passed in 191.70s (0:03:11); cobertura 88.7%; gates locais verdes.
