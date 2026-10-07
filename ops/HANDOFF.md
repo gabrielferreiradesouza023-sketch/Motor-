@@ -141,3 +141,7 @@ Reconciliação append-only por GET; status desconhecido ou erro preserva pendê
 ### T-44 — Codex, BATCH-03
 Scheduler usa pausa auditada injetável; prioridade de pai, pendência bloqueada e falha parcial isolada
 467 passed in 153.69s (0:02:33); cobertura 87.96%; gates locais verdes.
+
+### T-45 — Codex, BATCH-03
+Matriz de 18 quedas; corrigido reenvio do hook após entrega ou checkpoint; ADR-023
+485 passed in 169.12s (0:02:49); cobertura 88.03%; gates locais verdes.

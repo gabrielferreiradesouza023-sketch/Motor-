@@ -265,3 +265,11 @@ leem — verificar nunca permite assinar.
   mergeado pelo humano. Agentes nunca geram, leem ou recebem a chave privada.
 - Doctor avisa e preflight dá erro enquanto `approval_public_key` for null.
 - Sem aprovações reais existentes: nenhuma migração de assinaturas HMAC necessária.
+
+## ADR-023 — Retomada e hook de notificação incerto (T-45)
+A matriz plantou queda após entrega do hook notify e antes/depois do checkpoint final:
+a retomada entregava duas vezes (3 casos falhavam). Registrar tentativa durável antes do
+hook, sem retry se já existir, preserva ADR-014; queda antes da entrega pode perder alerta,
+portanto o relatório local continua obrigatório. Hook é extensão local injetável, não
+configura Telegram nem dispensa sua aprovação. BaseException também marca ciclo failed,
+rollback e liberação do flock; tentativa/resultado permanecem append-only.

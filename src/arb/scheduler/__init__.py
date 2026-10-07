@@ -18,6 +18,7 @@ from arb.config import Settings
 from arb.db import Repository, backup_daily
 from arb.launcher.actions import pause
 from arb.models import (
+    Action,
     Creative,
     Decision,
     Entity,
@@ -316,15 +317,41 @@ def _run(
                 connection, result["alerts"], approval_dir=root / "ops/approvals/pending"
             )
             result["notification"] = dispatch(connection, key, result["alerts"], now=now)
-            if notify:
+            hook_id = str(uuid5(NAMESPACE_URL, key + ":notify-hook"))
+            if notify and Repository(connection, Action).get(hook_id) is None:
+                with connection:
+                    Repository(connection, Action).add(
+                        Action(
+                            id=hook_id,
+                            ts=now,
+                            actor="engine",
+                            kind="notify_hook",
+                            live=False,
+                            payload_json={"cycle_id": key},
+                            result="uncertain",
+                        )
+                    )
                 try:
                     notify(result["alerts"])
                 except Exception:
                     result["alerts"].append("notification_failed: consultar relatório local")
+                else:
+                    with connection:
+                        Repository(connection, Action).add(
+                            Action(
+                                id=hook_id + "-result",
+                                ts=now,
+                                actor="engine",
+                                kind="notify_hook_result",
+                                live=False,
+                                payload_json={"attempt_id": hook_id},
+                                result="completed",
+                            )
+                        )
             result["stages"].append("alerts")
         checkpoint("complete")
         return result
-    except Exception as exc:
+    except BaseException as exc:
         connection.rollback()
         result["error_kind"] = type(exc).__name__
         checkpoint("failed")
