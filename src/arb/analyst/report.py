@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 from jinja2 import Environment, select_autoescape
 
 from arb.analyst import pnl
+from arb.analyst.decisions import question as decision_question
+from arb.analyst.decisions import queue
 from arb.db import Repository
 from arb.ledger import pending as ledger_pending
 from arb.models import Approval
@@ -44,7 +46,8 @@ ops.backup_age_seconds is not none else 'ausente' }}</li>
 <li>Último drill: {{ 'verde' if ops.drill.status == 'passed' else 'falho ou ausente' }};
 idade (s): {{ ops.drill.age_seconds if ops.drill.age_seconds is not none else 'desconhecida' }}</li>
 <li>Última reconciliação: {{ ops.last_reconciliation or 'ausente' }}</li></ul>
-<p>Aprovações pendentes por tipo:</p><ul>{% for kind, count in ops.pending_approvals.items() %}
+<p>Aprovações pendentes por tipo (banco):</p><ul>
+{% for kind, count in ops.pending_approvals.items() %}
 <li>{{ kind }}: {{ count }}</li>{% else %}<li>Nenhuma.</li>{% endfor %}</ul></section>
 <section><h2>Aprendizado</h2><p>Desperdício: {{ t.waste_ratio|percent }} · Custo por aprendizado:
 {{ t.cost_per_learning_cents|money }}</p></section>
@@ -57,6 +60,15 @@ idade (s): {{ ops.drill.age_seconds if ops.drill.age_seconds is not none else 'd
 {% endfor %}</section>
 <section><h2>Alertas</h2><ul>{% for alert in alerts %}<li>{{ alert }}</li>{% endfor %}
 {% if unmatched %}<li>{{ unmatched }} vendas sem casamento.</li>{% endif %}</ul></section>
+<section><h2>Fila de decisões humanas</h2><p>Arquivos válidos pendentes por tipo:</p>
+<ul>{% for kind, count in queue_counts.items() %}<li>{{ kind }}: {{ count }}</li>
+{% else %}<li>Nenhuma.</li>{% endfor %}</ul><ul>{% for row in human_queue['items'] %}
+<li>{{ row.kind }} · {{ row.summary }} · Exposição {{ row.max_exposure_cents|money }}
+· Idade {{ row.age_seconds }} s · Hash {{ row.plan_hash_short }}
+<br><code>{{ row.command }}</code><br><small>{{ row.expiry_suggestion }}</small></li>
+{% else %}<li>Nenhuma proposta válida pendente.</li>{% endfor %}</ul>
+{% if human_queue.invalid %}<p>{{ human_queue.invalid }} arquivos inválidos exigem revisão.</p>
+{% endif %}<p>Idade baseada no mtime; informativa, sem validade automática.</p></section>
 <p class="decision-question">{{ question }}</p><footer>Revisar aprovações por arquivo.
 Nenhuma decisão neste relatório ativa ou aumenta exposição.</footer></main></body></html>"""
 
@@ -145,12 +157,8 @@ def generate_report(
     environment = Environment(autoescape=select_autoescape(default_for_string=True))
     environment.filters["money"] = lambda v: "—" if v is None else f"R$ {v / 100:,.2f}"
     environment.filters["percent"] = lambda v: "—" if v is None else f"{v * 100:.1f}%"
-    pending = sorted(approval_dir.glob("*.json"))
-    question = (
-        f"Aprovar ou rejeitar o plano pendente {pending[0].name}?"
-        if pending
-        else "Manter a simulação até a próxima revisão?"
-    )
+    human_queue = queue(approval_dir, now=instant)
+    question = decision_question(human_queue)
     terminal = [
         d
         for d in sorted(data["decisions"], key=lambda d: d["ts"])
@@ -165,6 +173,8 @@ def generate_report(
         alerts=data["alerts"],
         unmatched=len(data["unmatched"]),
         question=question,
+        human_queue=human_queue,
+        queue_counts=Counter(row["kind"] for row in human_queue["items"]),
     )
     output.mkdir(parents=True, exist_ok=True)
     dated = output / f"{stamp.strftime('%Y-%m-%d_%H%M%S')}.html"

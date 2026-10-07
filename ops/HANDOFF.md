@@ -127,3 +127,7 @@ Fallback de id curto opt-in com aliases historicos e colisoes recusadas; 12 test
 ### T-62 — Codex, BATCH-04
 CSV declarativo, decimal exato e fuso explicito sem perfil de provedor; 18 testes novos; default preservado e drill 42 identico
 690 passed in 188.14s (0:03:08); cobertura 89.57%; gates locais verdes.
+
+### T-63 — Codex, BATCH-04
+Fila por exposicao e idade, comando de assinatura, contagens de banco e arquivos preservadas; 12 testes novos; redacao e drill 42 identico
+702 passed in 203.85s (0:03:23); cobertura 89.67%; gates locais verdes.
