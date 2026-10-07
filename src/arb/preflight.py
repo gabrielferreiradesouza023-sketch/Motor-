@@ -3,10 +3,13 @@
 import fcntl
 import os
 import re
+import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from arb.analyst.report import operational_status
 from arb.db.restore import restore_new
 from arb.launcher.approval import configured_public_key
 from arb.launcher.panic import panic
@@ -159,6 +162,35 @@ def inspect(
         else "Backup do dia ausente ou não restaurável",
         "Executar arb db backup e ensaiar restore em destino novo; nunca sobrescrever o banco",
     )
+    operational = None
+    try:
+        with closing(sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro", uri=True)) as source:
+            operational = operational_status(source, now=now)
+    except Exception:
+        pass  # Não imprimir payloads, caminhos ou exceções do banco.
+    for name, ok, message, fix in (
+        (
+            "ledger",
+            operational is not None and not operational["pending"],
+            "Ledger vazio",
+            "Executar arb ops pending; reconciliar por leitura antes de retomar",
+        ),
+        (
+            "restore_quarantine",
+            operational is not None and not operational["quarantine"],
+            "Banco fora de quarentena",
+            "Pausar, reconciliar e usar arb db release no terminal humano",
+        ),
+        (
+            "backup_drill",
+            operational is not None and operational["drill"]["status"] == "passed",
+            "Drill de backup íntegro",
+            "Executar arb db drill e corrigir backup falho antes de retomar",
+        ),
+    ):
+        record(
+            name, ok, message if ok else message + ": condição não satisfeita ou indisponível", fix
+        )
     lock_ok = False
     try:
         # Não criar nem editar a trava do scheduler; testar o mesmo arquivo existente.

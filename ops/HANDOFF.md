@@ -193,3 +193,7 @@ Contrato documental Graph e bloqueios de versao permissoes dedupe e limites; sem
 ### T-54 — Codex, BATCH-03
 Drill isolado com 3 seeds 7 42 101 byte-identicas em 2 runs, seis invariantes e sete incidentes; 16 testes novos.
 632 passed in 193.37s (0:03:13); cobertura 89.31%; gates locais verdes.
+
+### T-56 — Codex, BATCH-03
+Painel operacional e preflight fail-closed para ledger quarentena backup e drill; 13 testes novos sem payloads sensiveis.
+645 passed in 185.74s (0:03:05); cobertura 89.36%; gates locais verdes.

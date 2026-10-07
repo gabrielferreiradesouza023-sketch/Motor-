@@ -13,6 +13,7 @@ from typer.testing import CliRunner
 from arb import preflight
 from arb.cli import app
 from arb.db import backup_daily, connect, migrate
+from arb.db.checkpoint import drill
 from arb.meta.read import Reader
 
 NOW = datetime(2026, 10, 6, 12, tzinfo=UTC)
@@ -27,6 +28,7 @@ def configured(tmp_path, monkeypatch):
     migrate(conn)
     backup_daily(conn, database.parent / "backups", day=NOW.date())
     conn.close()
+    assert drill(database.parent / "backups", now=NOW)["status"] == "passed"
     lock = database.with_suffix(".db.scheduler.lock")
     lock.write_text("preserve scheduler file")
     for name in (
@@ -256,3 +258,73 @@ def test_graph_requires_environment_even_when_settings_exist(configured, monkeyp
         settings.write_text(value)
         result, _ = run_check(configured)
         assert by_name(result)["graph_version"]["status"] == "erro"
+
+
+@pytest.mark.parametrize(
+    "case,check",
+    [
+        ("pending", "ledger"),
+        ("quarantine", "restore_quarantine"),
+        ("missing", "backup_drill"),
+        ("failed", "backup_drill"),
+        ("malformed", "backup_drill"),
+        ("future", "backup_drill"),
+        ("hash", "backup_drill"),
+        ("symlink", "backup_drill"),
+        ("path", "backup_drill"),
+        ("day_backup", "backup_restore"),
+    ],
+)
+def test_operational_blockers(configured, case, check):
+    from datetime import timedelta
+
+    from arb.db import Repository
+    from arb.models import Action
+
+    root, database, _ = configured
+    proof = database.parent / "backups/drill.json"
+    if case == "pending":
+        with connect(database) as conn:
+            Repository(conn, Action).add(
+                Action(
+                    id="planted-orphan",
+                    ts=NOW,
+                    actor="engine",
+                    kind="pause",
+                    result="intent",
+                    live=False,
+                    payload_json={"entity_id": "unknown"},
+                )
+            )
+    elif case == "quarantine":
+        with connect(database) as conn:
+            conn.execute(
+                "INSERT INTO restore_quarantine VALUES(?,?,?,?,NULL)",
+                ("q", "synthetic-private-marker", "a" * 64, NOW.isoformat()),
+            )
+    elif case == "missing":
+        proof.unlink()
+    elif case == "malformed":
+        proof.write_text("synthetic-private-marker")
+    elif case == "symlink":
+        target = root / "private-sentinel"
+        target.write_text("synthetic-private-marker")
+        proof.unlink()
+        proof.symlink_to(target)
+    elif case == "day_backup":
+        (database.parent / "backups/engine-2026-10-06.db").unlink()
+    else:
+        body = json.loads(proof.read_text())
+        if case == "failed":
+            body["status"] = "failed"
+            body["error"] = "synthetic-private-marker"
+        elif case == "future":
+            body["checked_at"] = (NOW + timedelta(seconds=1)).isoformat()
+        elif case == "hash":
+            body["sha256"] = "0" * 64
+        else:
+            body["backup"] = "../../private-sentinel"
+        proof.write_text(json.dumps(body))
+    result, _ = run_check(configured)
+    assert not result["ok"] and by_name(result)[check]["status"] == "erro"
+    assert "synthetic-private-marker" not in json.dumps(result)
