@@ -34,6 +34,8 @@ def synthetic_report():
                 "src/arb/creative/approve.py",
                 "src/arb/launcher/scale.py",
                 "src/arb/remote/__init__.py",
+                "src/arb/remote/journal.py",
+                "src/arb/remote/launch.py",
             ]
         },
     }

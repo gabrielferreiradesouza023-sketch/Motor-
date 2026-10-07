@@ -73,6 +73,7 @@ def execute(
     approval_dir: Path = Path("ops/approvals/approved"),
     output: Path = Path("ops/dry_runs"),
     now: datetime | None = None,
+    writer=None,
 ) -> Action:
     from arb.quarantine import require_released
 
@@ -93,6 +94,10 @@ def execute(
     )
     if connection.in_transaction:
         raise ValueError("execute requer conexão sem transação pendente")
+    if writer is not None:
+        from arb.remote.launch import execute as execute_fake
+
+        return execute_fake(connection, value, approval, writer, now=now)
     from arb.db.checkpoint import snapshot_before
 
     snapshot_before(connection, "launch", fingerprint)

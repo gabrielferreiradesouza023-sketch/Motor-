@@ -107,7 +107,9 @@ def propose(
     return path
 
 
-def apply(connection, approval_id, *, directory=Path("ops/approvals/approved"), now=None):
+def apply(
+    connection, approval_id, *, directory=Path("ops/approvals/approved"), now=None, writer=None
+):
     require_simulation()
     require_released(connection)
     if connection.in_transaction:
@@ -146,6 +148,21 @@ def apply(connection, approval_id, *, directory=Path("ops/approvals/approved"), 
     if intent(connection, entity, plan["to_budget_cents"]) != plan:
         raise ValueError("entidade alterada depois da proposta de escala")
     snapshot_before(connection, "scale", approval.id)
+    if writer is not None:
+        from arb.remote.journal import perform
+
+        return perform(
+            connection,
+            writer,
+            entity,
+            "scale",
+            "scale-apply-" + approval.id,
+            context=plan,
+            approval=approval,
+            now=now,
+        )
+    if entity.meta_id is not None:
+        raise ValueError("escala remota exige porta injetada; executor Graph indisponível")
     connection.execute("BEGIN IMMEDIATE")
     try:
         entity = Repository(connection, Entity).get(plan["entity_id"])

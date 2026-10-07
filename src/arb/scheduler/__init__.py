@@ -27,6 +27,7 @@ from arb.models import (
     Offer,
     SaleEvent,
 )
+from arb.remote.fake import FakeMeta
 from arb.rules import controls, evaluate, load_rules
 
 ZONE = ZoneInfo("America/Sao_Paulo")
@@ -268,7 +269,7 @@ def _run(
                 if entity_id in covered:
                     continue
                 entity = Repository(connection, Entity).get(entity_id)
-                if entity.meta_id and not safety.live_mode():
+                if entity.meta_id and not safety.live_mode() and not isinstance(writer, FakeMeta):
                     result["alerts"].append(
                         "remote_pause_pending: intervenção humana na Meta necessária"
                     )

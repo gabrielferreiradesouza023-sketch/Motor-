@@ -173,3 +173,7 @@ Escala assinada +20% por 24 h com snapshot, revalidação, quarentena e ledger
 ### T-52 — Codex, BATCH-03
 Porta RemoteWriter e FakeMeta determinístico; cinco falhas injetáveis; ADR-026 bloqueia dedupe real
 577 passed in 184.18s (0:03:04); cobertura 88.2%; gates locais verdes.
+
+### T-53 — Codex, BATCH-03
+Journal FakeMeta de launch activate scale pause; 39 testes novos, matriz 20 casos e queda apos efeito sem duplicacao.
+616 passed in 180.40s (0:03:00); cobertura 88.7%; gates locais verdes.

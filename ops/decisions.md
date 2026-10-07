@@ -294,3 +294,12 @@ Chaves e lookup determinísticos são uma hipótese do fake: a forma de localiza
 criação na Meta real é DESCONHECIDA, bloqueada até V-06/T-55. Não transferir essa garantia
 para o provedor. Timeout antes/depois, server_error, rate_limit e resposta inválida são
 falhas sintéticas; nenhuma versão, endpoint, campo ou permissão Graph é implementada aqui.
+
+## ADR-027 — Journal de exposição exclusivamente sintético (T-53)
+Launch, activate, scale e pause sobre FakeMeta registram intenção durável antes da chamada,
+validam aprovação Ed25519 quando aumentam exposição e só alteram estado local após prova
+compatível. Resposta perdida mantém ledger aberto; leitura resolve aplicado ou não aplicado
+antes de retry. Criação usa chave por plano/item; aggregate launch só fecha após todos os
+itens. Scheduler admite FakeMeta em LIVE_MODE=false, sem habilitar executor Graph. Sem
+writer, o caminho simulado existente permanece. Nenhuma garantia de dedupe é atribuída à
+Meta real: segue o bloqueio documental da ADR-026.

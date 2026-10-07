@@ -24,6 +24,12 @@ def observed_statuses(reader) -> dict[str, str]:
 def reconcile(connection, reader, *, now=None) -> dict:
     if connection.in_transaction:
         raise ValueError("reconciliação requer commit anterior")
+    from arb.remote.fake import FakeMeta
+
+    if isinstance(reader, FakeMeta):
+        from arb.remote.journal import reconcile_fake
+
+        return reconcile_fake(connection, reader, now=now)
     now = now or datetime.now(UTC)
     rows = pending(connection, now=now)
     result = {"resolved": [], "alerts": []}

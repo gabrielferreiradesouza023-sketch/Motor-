@@ -18,6 +18,8 @@ MONEY_MODULES = (
     "creative.approve",
     "launcher.scale",
     "remote",
+    "remote.journal",
+    "remote.launch",
 )
 
 
