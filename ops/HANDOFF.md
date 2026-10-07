@@ -147,3 +147,7 @@ Pacote systemd deterministico em false, check de hashes horarios modos e flock; 
 ### T-67 — Codex, BATCH-04
 Kit F5 GET-only no host humano, matriz de 14 testes, evidência redigida com SHA256 e permissões fechadas; drill seed 42 idêntico ao versionado.
 755 passed in 206.80s (0:03:26); cobertura 90.18%; gates locais verdes.
+
+### T-68 — Codex, BATCH-04
+Aceite de uma pausa com flag explícita, TTY e ledger durável; 26 testes novos e accept_pause 100%; migração 010 aplicada localmente; drill seed 42 idêntico.
+781 passed in 221.61s (0:03:41); cobertura 90.11%; gates locais verdes.

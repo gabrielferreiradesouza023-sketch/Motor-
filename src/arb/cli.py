@@ -984,3 +984,61 @@ def accept_f5(out: str = typer.Option(...), root: str = "."):
     finally:
         if reader is not None:
             reader.close()
+
+
+@accept_app.command("register-test")
+def accept_register_test(meta_id: str = typer.Option(...), database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.accept_pause import register_test
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        register_test(connection, meta_id)
+        typer.echo("Entidade registrada como teste pelo humano")
+    except (ValueError, OSError):
+        typer.echo("Cadastro recusado; verificar entidade local, tty, quarentena e pendências")
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
+
+
+@accept_app.command("pause")
+def accept_pause(
+    meta_id: str = typer.Option(...), out: str = typer.Option(...), database: str = "data/engine.db"
+):
+    import os
+    from pathlib import Path
+
+    from arb.accept import require_host, save
+    from arb.accept_pause import is_interactive, pause
+    from arb.db import connect, migrate
+    from arb.meta.pause import PauseWriter
+    from arb.preflight import make_reader
+
+    connection = reader = None
+    try:
+        require_host()
+        if not is_interactive():
+            raise ValueError("tty obrigatório")
+        connection = connect(Path(database))
+        migrate(connection)
+        reader = make_reader(os.environ.get("META_API_VERSION", ""))
+        result = pause(connection, meta_id, reader, PauseWriter.from_environment())
+        save(result, Path(out))
+        typer.echo("Aceite pausa: " + result["status"])
+        if result["status"] != "passed":
+            typer.echo(result["next_step"])
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo(
+            "Kit recusado; verificar entidade de teste e reconciliar pendências no host humano"
+        )
+        raise typer.Exit(1) from None
+    finally:
+        if reader is not None:
+            reader.close()
+        if connection is not None:
+            connection.close()

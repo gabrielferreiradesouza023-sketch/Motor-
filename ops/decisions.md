@@ -356,3 +356,10 @@ Integração do pacote plantou dois bypasses de caminho: CLI backup fazia resolv
 recusa de symlink, e preflight ainda abria o destino depois de detectar caminho financeiro
 inválido. Remover resolve prematuro e recusar abertura preserva modos e diagnóstico. Testes
 falharam antes das correções; nenhum alvo privado real foi lido nem serviço executado.
+
+## ADR-034 — Cadastro explícito da entidade de teste do aceite de pausa
+- Migração 010 adiciona flag separada vinculada a entity_id/meta_id, sem mudar arb.models.
+- Apenas anúncio único conhecido, cadastro humano em TTY, sem quarentena/pendências.
+- Intenção persistida antes do PauseWriter; GET posterior fecha como reconciled_paused.
+  Timeout ou estado diferente permanece uncertain, reconciliável por leitura existente.
+- Não cria entidades nem autoriza exposição; execução real pertence ao host humano.

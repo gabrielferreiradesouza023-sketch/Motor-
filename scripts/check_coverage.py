@@ -23,6 +23,7 @@ MONEY_MODULES = (
     "drill",
     "tracker.ids",
     "permissions",
+    "accept_pause",
 )
 
 
