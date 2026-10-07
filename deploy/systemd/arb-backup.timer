@@ -1,0 +1,8 @@
+[Unit]
+Description=arb daily backup
+[Timer]
+OnCalendar=*-*-* 00:10:00 UTC
+Persistent=true
+Unit=arb-backup.service
+[Install]
+WantedBy=timers.target

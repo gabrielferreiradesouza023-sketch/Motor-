@@ -139,3 +139,7 @@ Ack humano append-only idempotente sem reenvio, preflight de alertas criticos e 
 ### T-65 — Codex, BATCH-04
 Artefatos financeiros 0600 e diretorios 0700, symlinks recusados e ACL aviso fora de POSIX; 15 testes novos; permissions 100%; drill 42 identico
 725 passed in 210.51s (0:03:30); cobertura 90.0%; gates locais verdes.
+
+### T-66 — Codex, BATCH-04
+Pacote systemd deterministico em false, check de hashes horarios modos e flock; 16 testes novos; 2 bypasses de symlink corrigidos; drill 42 identico
+741 passed in 214.90s (0:03:34); cobertura 90.02%; gates locais verdes.

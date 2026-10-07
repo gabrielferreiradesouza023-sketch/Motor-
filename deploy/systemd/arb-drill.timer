@@ -1,0 +1,8 @@
+[Unit]
+Description=arb daily restore drill
+[Timer]
+OnCalendar=*-*-* 00:20:00 UTC
+Persistent=true
+Unit=arb-drill.service
+[Install]
+WantedBy=timers.target

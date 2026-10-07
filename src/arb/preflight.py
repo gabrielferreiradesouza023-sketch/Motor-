@@ -183,6 +183,8 @@ def inspect(
     )
     operational = None
     try:
+        if not privacy["ok"]:
+            raise ValueError("caminho financeiro inválido; não abrir banco")
         with closing(sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro", uri=True)) as source:
             operational = operational_status(source, now=now)
     except Exception:

@@ -1,0 +1,8 @@
+[Unit]
+Description=arb scheduled cycles
+[Timer]
+{% for cycle in cycles %}OnCalendar=*-*-* {{ cycle }}:00 America/Sao_Paulo
+{% endfor %}Persistent=true
+Unit=arb-scheduler.service
+[Install]
+WantedBy=timers.target

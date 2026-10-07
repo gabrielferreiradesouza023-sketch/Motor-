@@ -344,3 +344,15 @@ dados financeiros. Symlinks em qualquer componente recusados antes de leitura/es
 com O_NOFOLLOW na publicação. Doctor avisa por modo aberto e erra por symlink; preflight
 bloqueia ambos. Windows/non-POSIX: aviso sobre ACLs, sem inferir segurança por bits Unix.
 Nada lê .env nem chave privada para diagnosticar permissões.
+
+## ADR-033 — Serviço renderizado exclusivamente em simulação (T-66)
+Seis templates revisáveis e manifest determinístico, sem instalar/ativar processos. Scheduler
+usa ciclos IANA São Paulo (não fixa offset futuro); backup/drill diários UTC em 00:10/00:20.
+ExecStart aplica LIVE_MODE=false via env depois de EnvironmentFile; arquivo só referenciado,
+nunca lido. Check compara todos os bytes/hash com templates/configuração, modos, executable
+local e flock. Instalação, disponibilidade e eventual live permanecem decisões humanas.
+
+Integração do pacote plantou dois bypasses de caminho: CLI backup fazia resolve antes da
+recusa de symlink, e preflight ainda abria o destino depois de detectar caminho financeiro
+inválido. Remover resolve prematuro e recusar abertura preserva modos e diagnóstico. Testes
+falharam antes das correções; nenhum alvo privado real foi lido nem serviço executado.

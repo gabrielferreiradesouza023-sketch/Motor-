@@ -63,7 +63,7 @@ def db_backup(database: str = "data/engine.db", output: str = "data/backups"):
     connection = connect(Path(database))
     try:
         migrate(connection)
-        target = backup_daily(connection, Path(output).resolve())
+        target = backup_daily(connection, Path(output))
     finally:
         connection.close()
     typer.echo(f"Backup OK: {target}")
@@ -916,3 +916,42 @@ def drill_run(seed: int = 42, json_output: bool = typer.Option(False, "--json"))
         )
     except (ValueError, OSError) as exc:
         raise typer.BadParameter(str(exc)) from exc
+
+
+service_app = typer.Typer(help="Renderizar/verificar pacote; nunca instalar")
+app.add_typer(service_app, name="service")
+
+
+@service_app.command("render")
+def service_render(
+    root: str = typer.Option(...), user: str = typer.Option(...), output: str = "data/service"
+):
+    import json
+    from pathlib import Path
+
+    from arb.service import render
+
+    try:
+        result = render(Path(root), user, output=Path(output))
+        typer.echo(json.dumps(result, sort_keys=True))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from None
+
+
+@service_app.command("check")
+def service_check(output: str = "data/service", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.service import check
+
+    result = check(output=Path(output))
+    typer.echo(
+        json.dumps(result, sort_keys=True)
+        if json_output
+        else "Serviço verificado"
+        if result["ok"]
+        else "\n".join(result["errors"])
+    )
+    if not result["ok"]:
+        raise typer.Exit(1)
