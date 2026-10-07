@@ -16,6 +16,7 @@ MONEY_MODULES = (
     "db.checkpoint",
     "scout.approve",
     "creative.approve",
+    "launcher.scale",
 )
 
 

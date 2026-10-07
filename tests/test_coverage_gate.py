@@ -32,6 +32,7 @@ def synthetic_report():
                 "src/arb/db/checkpoint.py",
                 "src/arb/scout/approve.py",
                 "src/arb/creative/approve.py",
+                "src/arb/launcher/scale.py",
             ]
         },
     }

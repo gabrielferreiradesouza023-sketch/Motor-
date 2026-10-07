@@ -779,3 +779,48 @@ def creative_apply(
         raise typer.BadParameter(str(exc)) from exc
     finally:
         connection.close()
+
+
+scale_app = typer.Typer(help="Escala assinada em simulação")
+app.add_typer(scale_app, name="scale")
+
+
+@scale_app.command("propose")
+def scale_propose(
+    entity_id: str,
+    budget: int,
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.scale import propose
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(str(propose(connection, entity_id, budget, directory=Path(output))))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+@scale_app.command("apply")
+def scale_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.scale import apply
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(apply(connection, approval_id, directory=Path(approvals)).model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()

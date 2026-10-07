@@ -165,3 +165,7 @@ Consumo new_offer assinado e idempotente; envelope preservado e hash conferido n
 ### T-50 — Codex, BATCH-03
 Creative_set assinado com lint fresco e hash do conteúdo atual; ADR-025 e contratos
 537 passed in 163.01s (0:02:43); cobertura 87.96%; gates locais verdes.
+
+### T-51 — Codex, BATCH-03
+Escala assinada +20% por 24 h com snapshot, revalidação, quarentena e ledger
+554 passed in 191.00s (0:03:11); cobertura 87.9%; gates locais verdes.
