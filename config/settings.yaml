@@ -8,4 +8,4 @@ refund_rate: 0.15
 refund_min_sales: 20
 meta_api_version: null
 # ADR-022: gerar com `arb approve keygen` na máquina humana e colar aqui via PR.
-approval_public_key: null
+approval_public_key: a5e25bf6265a272c930699acc5c1b468b17b2156a126686d664225fd4bd195ef  # pragma: allowlist secret (chave pública Ed25519)

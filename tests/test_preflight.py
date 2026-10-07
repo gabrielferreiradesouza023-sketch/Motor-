@@ -6,6 +6,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+import yaml
 from conftest import SYNTHETIC_PUBLIC_HEX
 from typer.testing import CliRunner
 
@@ -35,11 +36,9 @@ def configured(tmp_path, monkeypatch):
     ):
         monkeypatch.setenv(name, "synthetic-private-value-" + name.lower())
     settings = tmp_path / "config/settings.yaml"
-    settings.write_text(
-        settings.read_text().replace(
-            "approval_public_key: null", f"approval_public_key: {SYNTHETIC_PUBLIC_HEX}"
-        )
-    )
+    data = yaml.safe_load(settings.read_text())
+    data["approval_public_key"] = SYNTHETIC_PUBLIC_HEX
+    settings.write_text(yaml.safe_dump(data))
     monkeypatch.setenv("META_API_VERSION", "v99.0")
     monkeypatch.setenv("CARD_LIMIT_CENTS", "240000")
     return tmp_path, database, lock
