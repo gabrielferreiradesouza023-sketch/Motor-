@@ -95,3 +95,15 @@ O motor não está pronto para dinheiro real.
 ### T-57 — Codex, BATCH-03
 Runbook comprovado por 11 comandos e 7 cenarios, HANDOFF consolidado e evidencias finais; 2 testes novos.
 647 passed in 180.38s (0:03:00); cobertura 89.36%; gates locais verdes.
+
+## BATCH-04 (planejado por Claude, a executar pelo Codex)
+- #31 (planejamento BATCH-03) e #32 (BATCH-03, T-42–T-57) revisados e mergeados (ceb98a0).
+  Revisão do #32: 647 testes, cobertura de dinheiro sem falhas, drill 7/42 determinístico e
+  igual ao versionado. Achados não bloqueantes viraram T-58 e T-59.
+- T-42–T-57 movidos para `board/done`.
+- Próximo: `ops/batches/BATCH-04.md`, T-58–T-71 — release alinhado, retomada de ciclos,
+  desempenho de auditoria, id curto de rastreio (V-02), mapeamento do CSV de vendas (V-01),
+  fila de decisões, ack de alertas, permissões, pacote de serviço, kits de aceite F5/F6/rastreio
+  (executados pelo humano), conformidade RemoteWriter e painel de prontidão.
+- Pendências humanas inalteradas: F5/F6 reais, V-01–V-06, executor Graph (T-55), cartão e
+  spend_cap, host persistente. O motor não está pronto para dinheiro real.
