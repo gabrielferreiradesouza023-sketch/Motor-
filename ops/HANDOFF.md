@@ -157,3 +157,7 @@ Snapshots pré-exposição retidos em 20; drill descartável falha em backup cor
 ### T-48 — Codex, BATCH-03
 Matriz de 15 ingestões versus referência; corrigida regressão concorrente de cursor 3 para 1
 513 passed in 164.22s (0:02:44); cobertura 88.03%; gates locais verdes.
+
+### T-49 — Codex, BATCH-03
+Consumo new_offer assinado e idempotente; envelope preservado e hash conferido no assinador
+523 passed in 190.02s (0:03:10); cobertura 88.04%; gates locais verdes.

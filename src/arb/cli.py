@@ -586,11 +586,10 @@ def approve_keygen(output: str = typer.Option(..., help="Arquivo da chave privad
 def approve_verify(file: str):
     from pathlib import Path
 
-    from arb.launcher.approval import verify
-    from arb.models import Approval
+    from arb.launcher.approval import read_document, verify
 
     try:
-        approval = Approval.model_validate_json(Path(file).read_text())
+        approval, _ = read_document(Path(file))
         verify(approval)
         if approval.status != "approved" or approval.decided_at is None:
             raise ValueError("decisão ausente")
@@ -722,3 +721,23 @@ def db_drill(backups: str = "data/backups", json_output: bool = typer.Option(Fal
     typer.echo(json.dumps(result, sort_keys=True) if json_output else f"Drill: {result['status']}")
     if result["status"] != "passed":
         raise typer.Exit(1)
+
+
+@scout_app.command("apply")
+def scout_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scout.approve import apply
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        action = apply(connection, approval_id, directory=Path(approvals))
+        typer.echo(action.model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()

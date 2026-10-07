@@ -14,6 +14,7 @@ MONEY_MODULES = (
     "reconcile",
     "quarantine",
     "db.checkpoint",
+    "scout.approve",
 )
 
 

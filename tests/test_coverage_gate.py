@@ -30,6 +30,7 @@ def synthetic_report():
                 "src/arb/reconcile.py",
                 "src/arb/quarantine.py",
                 "src/arb/db/checkpoint.py",
+                "src/arb/scout/approve.py",
             ]
         },
     }

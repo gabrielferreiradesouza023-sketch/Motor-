@@ -5,6 +5,7 @@ APPROVAL_PRIVATE_KEY_FILE). O motor e os agentes só conhecem a chave pública v
 config/settings.yaml: verificar nunca permite assinar.
 """
 
+import hashlib
 import json
 import os
 import stat
@@ -103,12 +104,28 @@ def is_interactive() -> bool:
     return sys.stdin.isatty() and sys.stdout.isatty()
 
 
+def read_document(path: Path) -> tuple[Approval, dict | None]:
+    document = json.loads(path.read_text())
+    if isinstance(document, dict) and set(document) == {"approval", "plan"}:
+        approval = Approval.model_validate(document["approval"])
+        plan = document["plan"]
+        if approval.kind not in {"new_offer", "creative_set"} or not isinstance(plan, dict):
+            raise ValueError("envelope de aprovação inválido")
+        digest = hashlib.sha256(
+            json.dumps(plan, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+        ).hexdigest()
+        if digest != approval.plan_hash or plan.get("kind") != approval.kind:
+            raise ValueError("plano do envelope diverge da aprovação")
+        return approval, plan
+    return Approval.model_validate(document), None
+
+
 def sign_file(source: Path, confirm, *, now: datetime | None = None) -> Path:
     if not is_interactive():
         raise ValueError("aprovação exige tty interativo na máquina humana")
     if source.parent.name != "pending" or source.is_symlink() or not source.is_file():
         raise ValueError("use um arquivo regular em pending/")
-    approval = Approval.model_validate_json(source.read_text())
+    approval, plan = read_document(source)
     if source.name != approval.id + ".json" or approval.status != "pending":
         raise ValueError("proposta pending com id correspondente ao arquivo é obrigatória")
     if approval.signature or approval.decided_at:
@@ -132,6 +149,17 @@ def sign_file(source: Path, confirm, *, now: datetime | None = None) -> Path:
     destination = directory / source.name
     # Publicar sem sobrescrever; remover pending só após gravação completa.
     with destination.open("x", encoding="utf-8") as file:
-        file.write(signed.model_dump_json(indent=2) + "\n")
+        file.write(
+            (
+                json.dumps(
+                    {"approval": signed.model_dump(mode="json"), "plan": plan},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                if plan is not None
+                else signed.model_dump_json(indent=2)
+            )
+            + "\n"
+        )
     source.unlink()
     return destination
