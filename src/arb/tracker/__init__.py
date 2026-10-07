@@ -20,6 +20,10 @@ def entity_map(connection: sqlite3.Connection) -> dict[str, str]:
             if key in aliases and aliases[key] != entity.id:
                 raise ValueError("id de rastreio ambíguo")
             aliases[key] = entity.id
+    for token, entity_id in connection.execute("SELECT token,entity_id FROM tracking_ids"):
+        if token in aliases and aliases[token] != entity_id:
+            raise ValueError("id de rastreio ambíguo")
+        aliases[token] = entity_id
     return aliases
 
 

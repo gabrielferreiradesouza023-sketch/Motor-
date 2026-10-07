@@ -240,7 +240,10 @@ def bridge_build(
 ):
     from pathlib import Path
 
+    import yaml
+
     from arb.bridge import build
+    from arb.config import Settings
     from arb.db import Repository, connect, migrate
     from arb.models import Offer
 
@@ -250,6 +253,7 @@ def bridge_build(
         offer = Repository(connection, Offer).get(offer_id)
         if offer is None:
             raise typer.BadParameter("Oferta desconhecida")
+        settings = Settings.model_validate(yaml.safe_load(Path("config/settings.yaml").read_text()))
         target = build(
             offer,
             Path(content_file).read_text(),
@@ -258,6 +262,9 @@ def bridge_build(
             pixel_id=pixel_id,
             tracking_key=tracking_key,
             output=Path(output),
+            connection=connection,
+            tracking_id_max_length=settings.tracking_id_max_length,
+            tracking_id_alphabet=settings.tracking_id_alphabet,
         )
     finally:
         connection.close()

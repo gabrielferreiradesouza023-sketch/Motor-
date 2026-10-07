@@ -319,3 +319,11 @@ e depois executa o último slot vencido. Slots nunca iniciados desde o primeiro 
 persistido tornam-se skipped com motivo e Action de alerta; nunca executam regras retroativas.
 Sem histórico, bootstrap registra somente desde ontem (não presume data de instalação).
 Migração 007 amplia estado, conservando todas as linhas. Replay não repete efeitos.
+
+## ADR-030 — Id curto opt-in, sem presumir V-02 (T-61)
+Null conserva os parâmetros e bytes das páginas existentes. Limite/alfabeto configuráveis
+só após validação humana. SHA-256 da identidade local codificado no alfabeto, truncado
+por módulo de sua capacidade; colisão com token ou id completo de outra entidade recusa.
+Migração 009 conserva aliases históricos, mesmo após mudança de configuração. A ponte
+mantém ad_id completo nos eventos e usa token apenas no link de afiliado. Com fallback
+ativo, ad desconhecido não produz rastreio; não atribuir venda à entidade errada.

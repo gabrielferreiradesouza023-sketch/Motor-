@@ -114,6 +114,17 @@ class Settings(ConfigModel):
     # ADR-022: chave pública Ed25519 do humano (hex). Alterar só por PR aprovado pelo humano.
     approval_public_key: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
 
+    tracking_id_max_length: Annotated[int, Field(strict=True, ge=1, le=128)] | None = None
+    tracking_id_alphabet: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+    @field_validator("tracking_id_alphabet")
+    @classmethod
+    def tracking_alphabet(cls, value):
+        from arb.tracker.ids import validate
+
+        validate(1, value)
+        return value
+
     @field_validator("timezone")
     @classmethod
     def valid_timezone(cls, value):

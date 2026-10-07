@@ -37,6 +37,7 @@ def synthetic_report():
                 "src/arb/remote/journal.py",
                 "src/arb/remote/launch.py",
                 "src/arb/drill.py",
+                "src/arb/tracker/ids.py",
             ]
         },
     }
