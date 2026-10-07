@@ -151,3 +151,7 @@ Kit F5 GET-only no host humano, matriz de 14 testes, evidência redigida com SHA
 ### T-68 — Codex, BATCH-04
 Aceite de uma pausa com flag explícita, TTY e ledger durável; 26 testes novos e accept_pause 100%; migração 010 aplicada localmente; drill seed 42 idêntico.
 781 passed in 221.61s (0:03:41); cobertura 90.11%; gates locais verdes.
+
+### T-69 — Codex, BATCH-04
+Suíte de conformidade com 12 casos: FakeMeta apenas, 3 writers defeituosos detectados, timeout recuperável por leitura e orçamento limitado ao pedido autorizado; drill 42 idêntico.
+793 passed in 377.95s (0:06:17); cobertura 90.11%; gates locais verdes.
