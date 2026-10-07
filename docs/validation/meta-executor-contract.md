@@ -6,8 +6,8 @@ scale neste batch. A aprovação Ed25519 autoriza uma intenção; não fornece p
 
 | Operação | Informação necessária | Fonte | Estado |
 | --- | --- | --- | --- |
-| create | Uma campanha por oferta, orçamento ABO por conjunto, 1–3 ângulos e três criativos por ângulo; criação pausada | [Spec §4](../arb-engine-spec-v1.md), `arb.launcher.plan` | Definido no motor; mapeamento Graph bloqueado |
-| create | Otimização InitiateCheckout, fallback LandingPageView após 72 h sem volume; público amplo | Spec §4 | Intenção de produto definida; disponibilidade e mapeamento por versão bloqueados |
+| create | Uma campanha por oferta, orçamento ABO por conjunto, 1–3 ângulos e três criativos por ângulo; criação pausada | [Spec §3](../arb-engine-spec-v1.md), `arb.launcher.plan` | Definido no motor; mapeamento Graph bloqueado |
+| create | Otimização InitiateCheckout, fallback LandingPageView após 72 h sem volume; público amplo | Spec §3 | Intenção de produto definida; disponibilidade e mapeamento por versão bloqueados |
 | create / locate | Localizar criação depois de resposta perdida sem duplicar objetos | ADR-026/027, V-06 | Bloqueado: chave e lookup do FakeMeta são hipóteses, não garantias da Meta |
 | activate | Aprovação própria vinculada a entidade, geo e orçamento; criação não ativa | ADR-022, `arb.launcher.actions` | Barreira interna definida; executor Graph bloqueado |
 | set_budget | Aprovação scale, máximo +20% e intervalo mínimo de 24 h; snapshot pré-escrita | T-51, `arb.launcher.scale`, `arb.rules.scale_allowed` | Barreira interna definida; executor Graph bloqueado |

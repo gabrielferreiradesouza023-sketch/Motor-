@@ -117,3 +117,46 @@ def test_token_rotation_recreates_readonly_client_without_logging_secrets():
             assert reader.account()["currency"] == "BRL"
     assert seen[0] != seen[1]
     assert len(seen) == 2
+
+
+def test_incident_runbook_commands_really_exist():
+    import re
+    import shlex
+
+    text = (ROOT / "docs/runbooks/incidentes.md").read_text()
+    commands = set()
+    for line in re.findall(r"^uv run arb (.+)$", text, flags=re.MULTILINE):
+        words = shlex.split(line)
+        length = 2 if words[0] in {"db", "ops", "scheduler", "drill"} else 1
+        commands.add(tuple(words[:length]))
+    assert commands == {
+        ("ops", "pending"),
+        ("ops", "reconcile"),
+        ("preflight",),
+        ("scheduler", "once"),
+        ("db", "drill"),
+        ("db", "restore"),
+        ("doctor",),
+        ("panic",),
+        ("db", "release"),
+        ("db", "backup"),
+        ("drill", "run"),
+    }
+    for command in commands:
+        result = CliRunner().invoke(app, [*command, "--help"])
+        assert result.exit_code == 0, (command, result.output)
+    assert not any(c[0] in {"launch", "activate", "scale"} for c in commands)
+
+
+def test_incident_scenarios_match_exercised_drill_reference():
+    import json
+    import re
+
+    from arb.drill import run
+
+    text = (ROOT / "docs/runbooks/incidentes.md").read_text()
+    names = set(re.findall(r"<!-- drill: ([a-z_0-9]+) -->", text))
+    reference = json.loads((ROOT / "docs/validation/drill-seed-42.json").read_text())["scenarios"]
+    assert names == set(reference) and len(names) == 7
+    assert run(42)["scenarios"] == reference
+    assert all(reference.values())
