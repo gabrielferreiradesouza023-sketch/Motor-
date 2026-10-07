@@ -660,6 +660,46 @@ ops_app = typer.Typer(help="Intenções e reconciliação operacional")
 app.add_typer(ops_app, name="ops")
 
 
+@ops_app.command("alerts")
+def ops_alerts(database: str = "data/engine.db", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler.alerts import uncertain
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = uncertain(connection)
+        typer.echo(
+            json.dumps(rows, sort_keys=True)
+            if json_output
+            else "\n".join(row["id"] + " " + ",".join(row["codes"]) for row in rows)
+        )
+    finally:
+        connection.close()
+
+
+@ops_app.command("ack")
+def ops_ack(alert_id: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler.alerts import acknowledge
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        action = acknowledge(connection, alert_id)
+        typer.echo("Alerta reconhecido: " + action.id)
+    except ValueError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
+
+
 @ops_app.command("pending")
 def ops_pending(
     database: str = "data/engine.db", json_output: bool = typer.Option(False, "--json")

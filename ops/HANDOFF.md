@@ -131,3 +131,7 @@ CSV declarativo, decimal exato e fuso explicito sem perfil de provedor; 18 teste
 ### T-63 — Codex, BATCH-04
 Fila por exposicao e idade, comando de assinatura, contagens de banco e arquivos preservadas; 12 testes novos; redacao e drill 42 identico
 702 passed in 203.85s (0:03:23); cobertura 89.67%; gates locais verdes.
+
+### T-64 — Codex, BATCH-04
+Ack humano append-only idempotente sem reenvio, preflight de alertas criticos e painel; 8 testes novos; drill 42 identico
+710 passed in 217.05s (0:03:37); cobertura 89.83%; gates locais verdes.

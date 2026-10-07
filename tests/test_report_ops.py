@@ -51,6 +51,7 @@ def test_ops_panel_reference_and_no_sensitive_payloads(tmp_path):
     assert drill(tmp_path / "backups", now=NOW - timedelta(seconds=120))["status"] == "passed"
     state = operational_status(conn, now=NOW)
     assert state == {
+        "unacked_alerts": [],
         "pending": 1,
         "uncertain": 1,
         "orphans": 0,

@@ -39,6 +39,9 @@ border-bottom:1px solid #ddd;padding:8px 0}
 <section><h2>Estado operacional</h2><ul>
 <li>Ledger: {{ ops.pending }} pendências; {{ ops.uncertain }} incertas;
 {{ ops.orphans }} órfãs. Consultar arb ops pending para detalhes.</li>
+<li>Alertas incertos sem ack: {{ ops.unacked_alerts|length }}. Consultar arb ops alerts.</li>
+{% for row in ops.unacked_alerts %}<li>{{ row.id }} · {{ row.codes|join(', ') }}
+· {{ 'freio/stale requer ack' if row.critical else 'revisar' }}</li>{% endfor %}
 <li>Resultados incertos no histórico: {{ ops.uncertain_results }}</li>
 <li>Quarentena: {{ 'aberta' if ops.quarantine else 'nenhuma' }}</li>
 <li>Idade do último backup (s): {{ ops.backup_age_seconds if
@@ -105,6 +108,8 @@ def _drill_status(directory, now):
 
 def operational_status(connection, *, now=None):
     now = now or datetime.now(UTC)
+    from arb.scheduler.alerts import uncertain
+
     rows = ledger_pending(connection, now=now)
     reconciled = [
         datetime.fromisoformat(row[0])
@@ -130,6 +135,7 @@ def operational_status(connection, *, now=None):
         except OSError:
             pass
     return {
+        "unacked_alerts": uncertain(connection),
         "pending": len(rows),
         "uncertain": sum(row["state"] == "uncertain" for row in rows),
         "orphans": sum(row["state"] == "orphan" for row in rows),

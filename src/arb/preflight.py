@@ -191,6 +191,18 @@ def inspect(
         record(
             name, ok, message if ok else message + ": condição não satisfeita ou indisponível", fix
         )
+    record(
+        "alert_ack",
+        operational is not None
+        and not any(row["critical"] for row in operational["unacked_alerts"]),
+        (
+            f"Alertas incertos sem ack: {len(operational['unacked_alerts'])}; "
+            f"críticos: {sum(row['critical'] for row in operational['unacked_alerts'])}"
+            if operational is not None
+            else "Estado de alertas indisponível"
+        ),
+        "Humano: arb ops alerts; ler relatório e arb ops ack <id> no tty",
+    )
     lock_ok = False
     try:
         # Não criar nem editar a trava do scheduler; testar o mesmo arquivo existente.
