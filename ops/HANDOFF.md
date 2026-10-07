@@ -118,3 +118,14 @@ Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTranspor
   ativar ou escalar exposição real continua ausente; chave pública não o implementa
   nem autoriza execução real. Histórico acima de BATCH-02/T-40 descreve aqueles momentos;
   a pendência de enviar a chave pública foi resolvida por esta tarefa, sujeito ao merge.
+
+## BATCH-03 (planejado por Claude, a executar pelo Codex)
+- #30 (T-41) revisado e mergeado: chave pública Ed25519 do humano em settings.yaml.
+  Aprovações reais agora verificáveis; isto não habilita operação real.
+- T-31–T-41 movidos para `board/done` (mergeados em #28, #29, #30).
+- Próximo: `ops/batches/BATCH-03.md`, T-42–T-57 — ledger de intenções, reconciliação,
+  pausa remota no scheduler, matriz de queda, restore em quarentena, backup antes de escrita,
+  matriz de ingestão, aprovação new_offer/creative_set, escala assinada, porta remota +
+  FakeMeta, idempotência ponta a ponta, drill completo, contrato Graph (bloqueio
+  documental), painel/preflight e runbook de incidentes.
+- Continuam pendentes do humano: F5/F6 reais, V-01–V-06, limites externos, host persistente.
