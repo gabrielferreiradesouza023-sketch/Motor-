@@ -1115,3 +1115,23 @@ def accept_tracking(
     finally:
         if connection is not None:
             connection.close()
+
+
+@app.command("readiness")
+def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.readiness import inspect
+
+    result = inspect(root=Path(root))
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    else:
+        typer.echo(result["status"])
+        for item in result["items"]:
+            typer.echo(f"{'✔' if item['ok'] else '✘'} {item['name']}: {item['reason']}")
+            if not item["ok"]:
+                typer.echo("  Próximo passo: " + item["next_step"])
+    if not result["ready"]:
+        raise typer.Exit(1)

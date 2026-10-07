@@ -1,0 +1,140 @@
+{
+  "checked_at": "2026-10-07T13:51:19.929765+00:00",
+  "items": [
+    {
+      "name": "preflight",
+      "next_step": "Humano: corrigir arb preflight no host; aceite F5 fornece evidência da leitura remota",
+      "ok": false,
+      "reason": "Preflight pendente: credentials, graph_version, meta_spend_cap, card_limit, backup_drill, scheduler_lock"
+    },
+    {
+      "name": "drill_recent",
+      "next_step": "Executar arb db backup e arb db drill no host, sem sobrescrever produção",
+      "ok": false,
+      "reason": "Drill de backup ausente/falho ou mais antigo que 48h"
+    },
+    {
+      "name": "permissions",
+      "next_step": "",
+      "ok": true,
+      "reason": "verificado"
+    },
+    {
+      "name": "approval_public_key",
+      "next_step": "",
+      "ok": true,
+      "reason": "verificado"
+    },
+    {
+      "name": "f5",
+      "next_step": "Humano: executar kit f5; revisar ops/validation/f5.json no próprio host",
+      "ok": false,
+      "reason": "Aceite humano ausente, inválido, falho ou antigo (>7 dias)"
+    },
+    {
+      "name": "f6_pause",
+      "next_step": "Humano: executar kit f6_pause; revisar ops/validation/f6_pause.json no próprio host",
+      "ok": false,
+      "reason": "Aceite humano ausente, inválido, falho ou antigo (>7 dias)"
+    },
+    {
+      "name": "tracking",
+      "next_step": "Humano: executar kit tracking; revisar ops/validation/tracking.json no próprio host",
+      "ok": false,
+      "reason": "Aceite humano ausente, inválido, falho ou antigo (>7 dias)"
+    },
+    {
+      "name": "V-01",
+      "next_step": "Humano: resolver V-01; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-02",
+      "next_step": "Humano: resolver V-02; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-03",
+      "next_step": "Humano: resolver V-03; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-04",
+      "next_step": "Humano: resolver V-04; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-05",
+      "next_step": "Humano: resolver V-05; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-06",
+      "next_step": "Humano: resolver V-06; versionar data/referência em ops/validation-status.json",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "graph_executor",
+      "next_step": "Humano: resolver V-06 e aprovar contrato; executor exige implementação/revisão separada",
+      "ok": false,
+      "reason": "T-55: executor de exposição Graph ausente; somente FakeMeta"
+    },
+    {
+      "name": "card_limit",
+      "next_step": "Humano: confirmar teto no emissor e declarar CARD_LIMIT_CENTS <= total_cap_cents",
+      "ok": false,
+      "reason": "Limite do cartão não confirmado ou preflight/teto pendente"
+    },
+    {
+      "name": "spend_cap",
+      "next_step": "Humano: configurar limite Meta e revisar prova F5; registrar confirmação sem credenciais",
+      "ok": false,
+      "reason": "spend_cap real não confirmado dentro do teto"
+    },
+    {
+      "name": "persistent_host",
+      "next_step": "Humano: selecionar e validar disponibilidade, disco privado, relógio e backups do host",
+      "ok": false,
+      "reason": "Host persistente ainda não confirmado"
+    },
+    {
+      "name": "service_package",
+      "next_step": "Renderizar arb service render e verificar arb service check no host correto",
+      "ok": false,
+      "reason": "Pacote de serviço ausente/inválido; nenhuma instalação executada"
+    },
+    {
+      "name": "service_installed",
+      "next_step": "Humano: revisar pacote, instalar no próprio host e registrar evidência de disponibilidade",
+      "ok": false,
+      "reason": "Instalação/disponibilidade do serviço ainda não confirmada pelo humano"
+    }
+  ],
+  "pending": [
+    "preflight",
+    "drill_recent",
+    "f5",
+    "f6_pause",
+    "tracking",
+    "V-01",
+    "V-02",
+    "V-03",
+    "V-04",
+    "V-05",
+    "V-06",
+    "graph_executor",
+    "card_limit",
+    "spend_cap",
+    "persistent_host",
+    "service_package",
+    "service_installed"
+  ],
+  "ready": false,
+  "status": "não pronto"
+}

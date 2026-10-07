@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "items": {
+    "V-01": {
+      "status": "pending"
+    },
+    "V-02": {
+      "status": "pending"
+    },
+    "V-03": {
+      "status": "pending"
+    },
+    "V-04": {
+      "status": "pending"
+    },
+    "V-05": {
+      "status": "pending"
+    },
+    "V-06": {
+      "status": "pending"
+    },
+    "card_limit": {
+      "status": "pending"
+    },
+    "spend_cap": {
+      "status": "pending"
+    },
+    "persistent_host": {
+      "status": "pending"
+    },
+    "service_installed": {
+      "status": "pending"
+    }
+  }
+}

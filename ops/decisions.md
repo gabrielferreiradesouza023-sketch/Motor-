@@ -374,3 +374,16 @@ falharam antes das correções; nenhum alvo privado real foi lido nem serviço e
   CSV usa contrato interno existente em banco descartável; produção não recebe venda sintética.
 - Intenção durável e resultado redigido; falha mantém uncertain. Sem reenviar automaticamente:
   humano verifica ledger/export. Não implementa reconciliação automática de exposição Graph.
+
+## ADR-036 — Prontidão por evidência local, nunca autorização de exposição
+- arb readiness é read-only, sem chamadas de rede, .env ou chave privada. Graph sempre
+  bloqueado neste batch; presença de arquivos não implementa nem aprova executor.
+- Kits: schema/kind/checks exatos, hash canônico, data consciente de fuso, não futura e
+  idade máxima de 7 dias. Drill de backup precisa passed e idade <=48h.
+- ops/validation-status.json é registro versionado próprio, inicialmente tudo pending;
+  confirmações exigem by=human, checked_at recente e referência evidence. Não inventa V-01–06.
+- Preflight fica sem rede. Somente seu check meta_spend_cap pode ser satisfecho por
+  prova F5 válida dentro do teto + confirmação humana; outros erros locais permanecem.
+- Hash prova integridade, não autenticidade. Revisão humana das evidências é obrigatória.
+  Cartão, spend_cap, host e instalação real requerem confirmações separadas; pacote
+  verificado não equivale a serviço instalado, nem readiness libera uma assinatura/gate.

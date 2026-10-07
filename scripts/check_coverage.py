@@ -23,8 +23,10 @@ MONEY_MODULES = (
     "drill",
     "tracker.ids",
     "permissions",
+    "accept",
     "accept_pause",
     "accept_tracking",
+    "readiness",
 )
 
 

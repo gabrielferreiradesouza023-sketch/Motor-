@@ -39,8 +39,10 @@ def synthetic_report():
                 "src/arb/drill.py",
                 "src/arb/tracker/ids.py",
                 "src/arb/permissions.py",
+                "src/arb/accept.py",
                 "src/arb/accept_pause.py",
                 "src/arb/accept_tracking.py",
+                "src/arb/readiness.py",
             ]
         },
     }
