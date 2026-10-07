@@ -14,7 +14,7 @@ from jinja2 import Environment, select_autoescape
 from arb.analyst import pnl
 from arb.db import Repository
 from arb.ledger import pending as ledger_pending
-from arb.models import Action, Approval
+from arb.models import Approval
 from arb.quarantine import current
 
 TEMPLATE = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -94,8 +94,15 @@ def _drill_status(directory, now):
 def operational_status(connection, *, now=None):
     now = now or datetime.now(UTC)
     rows = ledger_pending(connection, now=now)
-    actions = Repository(connection, Action).list()
-    reconciled = [a.ts for a in actions if a.result.startswith("reconciled_")]
+    reconciled = [
+        datetime.fromisoformat(row[0])
+        for row in connection.execute(
+            "SELECT action_ts FROM actions WHERE action_result GLOB 'reconciled_*'"
+        )
+    ]
+    uncertain_count = connection.execute(
+        "SELECT count(*) FROM actions WHERE action_result='uncertain'"
+    ).fetchone()[0]
     approvals = Counter(
         a.kind for a in Repository(connection, Approval).list() if a.status == "pending"
     )
@@ -114,7 +121,7 @@ def operational_status(connection, *, now=None):
         "pending": len(rows),
         "uncertain": sum(row["state"] == "uncertain" for row in rows),
         "orphans": sum(row["state"] == "orphan" for row in rows),
-        "uncertain_results": sum(a.result == "uncertain" for a in actions),
+        "uncertain_results": uncertain_count,
         "quarantine": current(connection) is not None,
         "backup_age_seconds": age,
         "drill": _drill_status(directory, now),

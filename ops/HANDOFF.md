@@ -115,3 +115,7 @@ Release alinha remotos pausados com Action e revalida leitura na transacao; 2 te
 ### T-59 — Codex, BATCH-04
 Catch-up cronologico, skipped auditavel e status; 9 testes novos, migracao 007 e ADR-029; drill 42 identico
 658 passed in 240.40s (0:04:00); cobertura 89.35%; gates locais verdes.
+
+### T-60 — Codex, BATCH-04
+Consultas indexadas com equivalencia em 100000 Actions: pending 2.68 ms e last_increase 1.66 ms; 2 testes novos; drill 42 identico
+660 passed in 206.38s (0:03:26); cobertura 89.31%; gates locais verdes.
