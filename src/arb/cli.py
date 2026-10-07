@@ -466,22 +466,43 @@ def scheduler_simulate(
 
 @scheduler_app.command("once")
 def scheduler_once(database: str = typer.Option(...), output: str = "reports", root: str = "."):
-    """Último slot vencido: fonte offline ausente congela simulação; não acessa APIs."""
+    """Retoma ciclos incompletos e executa o último slot vencido, sem APIs."""
     import json
-    from datetime import UTC, datetime, timedelta
     from pathlib import Path
 
     from arb.db import connect, migrate
-    from arb.scheduler import ZONE, run_cycle, schedule
+    from arb.scheduler import once
 
-    now = datetime.now(UTC)
-    today = now.astimezone(ZONE).date()
-    slot = max(s for s in schedule(today - timedelta(days=1), today) if s <= now)
     connection = connect(Path(database))
     try:
         migrate(connection)
-        result = run_cycle(connection, slot, now=now, root=Path(root), output=Path(output))
+        result = once(connection, root=Path(root), output=Path(output))
         typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()
+
+
+@scheduler_app.command("status")
+def scheduler_status(
+    database: str = "data/engine.db",
+    limit: int = 30,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler import status
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = status(connection, limit=limit)
+        typer.echo(
+            json.dumps(rows, ensure_ascii=False, sort_keys=True)
+            if json_output
+            else "\n".join(row["id"] + " " + row["status"] for row in rows)
+        )
     finally:
         connection.close()
 

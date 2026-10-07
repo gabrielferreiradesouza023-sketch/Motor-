@@ -126,7 +126,7 @@ def _run(
     previous = connection.execute(
         "SELECT status,payload FROM scheduler_runs WHERE id=?", (key,)
     ).fetchone()
-    if previous and previous[0] == "complete":
+    if previous and previous[0] in {"complete", "skipped"}:
         return json.loads(previous[1])
     result = (
         json.loads(previous[1])
@@ -364,3 +364,81 @@ def _run(
 
 def database_backups(connection):
     return Path(connection.execute("PRAGMA database_list").fetchone()[2]).parent / "backups"
+
+
+def status(connection, *, limit: int = 30) -> list[dict]:
+    if type(limit) is not int or not 1 <= limit <= 1000:
+        raise ValueError("limite deve ser 1–1000")
+    return [
+        {"id": row[0], "status": row[1], "payload": json.loads(row[2])}
+        for row in connection.execute(
+            "SELECT id,status,payload FROM scheduler_runs ORDER BY id DESC LIMIT ?", (limit,)
+        )
+    ]
+
+
+def once(connection, *, now=None, root=Path("."), **kwargs) -> dict:
+    """Retoma tentativas duráveis; nunca avalia slots que o host perdeu."""
+    from arb.quarantine import require_released
+
+    require_released(connection)
+    now = now or datetime.now(UTC)
+    if now.utcoffset() is None or connection.in_transaction:
+        raise ValueError("once exige fuso e commit anterior")
+    settings = Settings.model_validate(yaml.safe_load((root / "config/settings.yaml").read_text()))
+    today = now.astimezone(ZONE).date()
+    latest = max(
+        s
+        for s in schedule(today - timedelta(days=1), today, cycles=tuple(settings.cycles))
+        if s <= now
+    )
+    latest_key = latest.astimezone(UTC).isoformat()
+    old = connection.execute(
+        "SELECT id FROM scheduler_runs WHERE status IN ('running','failed') ORDER BY id"
+    ).fetchall()
+    resumed = []
+    for (key,) in old:
+        slot = datetime.fromisoformat(key)
+        if slot <= now:
+            resumed.append(run_cycle(connection, slot, now=now, root=root, **kwargs))
+    first = connection.execute("SELECT min(id) FROM scheduler_runs").fetchone()[0]
+    # Bootstrap explicitly covers yesterday; later invocations use persisted history.
+    start = (
+        datetime.fromisoformat(first).astimezone(ZONE).date()
+        if first
+        else today - timedelta(days=1)
+    )
+    skipped = []
+    while start <= today:
+        end = min(start + timedelta(days=366), today)
+        for slot in schedule(start, end, cycles=tuple(settings.cycles)):
+            key = slot.astimezone(UTC).isoformat()
+            if key >= latest_key or (first and key < first):
+                continue
+            payload = {
+                "id": key,
+                "stages": [],
+                "alerts": ["missed_cycle: host indisponível; slot não executado"],
+                "reason": "missed_cycle",
+            }
+            with connection:
+                inserted = connection.execute(
+                    "INSERT OR IGNORE INTO scheduler_runs VALUES(?,?,?,?)",
+                    (key, now.isoformat(), "skipped", json.dumps(payload, sort_keys=True)),
+                )
+                if inserted.rowcount:
+                    skipped.append(key)
+                    Repository(connection, Action).add(
+                        Action(
+                            id="missed-cycle-" + key,
+                            ts=now,
+                            actor="engine",
+                            kind="scheduler_skip",
+                            payload_json=payload,
+                            live=False,
+                            result="skipped",
+                        )
+                    )
+        start = end + timedelta(days=1)
+    result = run_cycle(connection, latest, now=now, root=root, **kwargs)
+    return {"resumed": resumed, "skipped": skipped, "latest": result}

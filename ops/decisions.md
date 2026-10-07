@@ -312,3 +312,10 @@ exercita as guardas tty com callbacks sintéticos; não remove guardas de aprova
 Banco/configuração reais não são alterados. JSON normaliza UUIDs, caminhos e timestamps de
 restore; preserva contagens, dinheiro, cenários e invariantes verificados. Dedupe do fake
 não comprova dedupe Graph. O ensaio não aceita LIVE_MODE=true nem writer externo.
+
+## ADR-029 — Catch-up conservador (T-59)
+Once retoma running/failed cronologicamente com o relógio atual (guarda stale preservada),
+e depois executa o último slot vencido. Slots nunca iniciados desde o primeiro registro
+persistido tornam-se skipped com motivo e Action de alerta; nunca executam regras retroativas.
+Sem histórico, bootstrap registra somente desde ontem (não presume data de instalação).
+Migração 007 amplia estado, conservando todas as linhas. Replay não repete efeitos.

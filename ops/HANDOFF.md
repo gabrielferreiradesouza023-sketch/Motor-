@@ -111,3 +111,7 @@ Runbook comprovado por 11 comandos e 7 cenarios, HANDOFF consolidado e evidencia
 ### T-58 — Codex, BATCH-04
 Release alinha remotos pausados com Action e revalida leitura na transacao; 2 testes novos reproduziram falhas anteriores
 649 passed in 193.84s (0:03:13); cobertura 89.39%; gates locais verdes.
+
+### T-59 — Codex, BATCH-04
+Catch-up cronologico, skipped auditavel e status; 9 testes novos, migracao 007 e ADR-029; drill 42 identico
+658 passed in 240.40s (0:04:00); cobertura 89.35%; gates locais verdes.
