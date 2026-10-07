@@ -273,3 +273,10 @@ hook, sem retry se já existir, preserva ADR-014; queda antes da entrega pode pe
 portanto o relatório local continua obrigatório. Hook é extensão local injetável, não
 configura Telegram nem dispensa sua aprovação. BaseException também marca ciclo failed,
 rollback e liberação do flock; tentativa/resultado permanecem append-only.
+
+## ADR-024 — Restore em quarentena (T-46)
+Migração 006 adiciona marcador com origem, SHA-256 e data do restore. Scheduler e
+exposição recusam enquanto aberto; pause/panic permanecem disponíveis. Release exige
+tty + confirmação, ledger vazio, locais pausados e leitura PAUSED de todos os remotos.
+A exigência de pausa é conservadora: ACTIVE ou desconhecido não autoriza liberar restore.
+Verificações são revalidadas sob BEGIN IMMEDIATE antes da Action de liberação; não há --yes.

@@ -93,6 +93,9 @@ def activate(
     approval_dir: Path = Path("ops/approvals/approved"),
     now: datetime | None = None,
 ) -> Action:
+    from arb.quarantine import require_released
+
+    require_released(connection)
     require_simulation()
     if connection.in_transaction:
         raise ValueError("ativação requer conexão sem transação pendente")

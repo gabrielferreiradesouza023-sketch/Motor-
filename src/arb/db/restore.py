@@ -1,10 +1,13 @@
 """Restauração validada em caminho novo. Nunca sobrescreve o banco de trabalho."""
 
+import hashlib
 import os
 import sqlite3
 from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from uuid import uuid4
 
 from arb.db import TABLES, Repository, migrate
 
@@ -36,6 +39,16 @@ def restore_new(backup: Path, destination: Path) -> Path:
                     raise ValueError("backup com integridade/referências inválidas")
                 for model in TABLES:
                     Repository(restored, model).list()
+                with restored:
+                    restored.execute(
+                        "INSERT INTO restore_quarantine VALUES(?,?,?,?,NULL)",
+                        (
+                            str(uuid4()),
+                            str(backup),
+                            hashlib.sha256(backup.read_bytes()).hexdigest(),
+                            datetime.now(UTC).isoformat(),
+                        ),
+                    )
         # Publicação atômica que recusa concorrência, sem substituir caminho existente.
         os.link(temporary, destination)
         return destination

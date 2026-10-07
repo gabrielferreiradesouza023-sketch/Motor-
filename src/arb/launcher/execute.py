@@ -74,6 +74,9 @@ def execute(
     output: Path = Path("ops/dry_runs"),
     now: datetime | None = None,
 ) -> Action:
+    from arb.quarantine import require_released
+
+    require_released(connection)
     require_simulation()
     validate_plan(value)
     now = now or datetime.now(UTC)

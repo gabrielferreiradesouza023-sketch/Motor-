@@ -680,3 +680,32 @@ def ops_reconcile(
     finally:
         connection.close()
         reader.close()
+
+
+@db_app.command("release")
+def db_release(database: str = "data/engine.db", read_meta: bool = False):
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.meta.read import Reader
+    from arb.quarantine import release
+
+    connection = connect(Path(database))
+    reader = None
+    try:
+        migrate(connection)
+        if read_meta:
+            reader = Reader(
+                os.environ.get("META_ACCESS_TOKEN", ""),
+                os.environ.get("META_AD_ACCOUNT_ID", ""),
+                os.environ.get("META_API_VERSION", ""),
+            )
+        action = release(connection, reader=reader)
+        typer.echo("Banco liberado" if action else "Banco sem quarentena")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+        if reader:
+            reader.close()

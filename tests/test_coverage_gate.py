@@ -28,6 +28,7 @@ def synthetic_report():
                 "src/arb/meta/pause.py",
                 "src/arb/ledger.py",
                 "src/arb/reconcile.py",
+                "src/arb/quarantine.py",
             ]
         },
     }

@@ -71,6 +71,9 @@ def run_cycle(
     Nunca solicita integração ou envio externos por padrão. Não modifica status
     observado de entidades Meta. Falhas de alerta não interrompem proteção de verba.
     """
+    from arb.quarantine import require_released
+
+    require_released(connection)
     safety.live_mode()  # valide o modo; escrita só passa pelo caminho auditado de pausa
     now = now or datetime.now(UTC)
     settings = Settings.model_validate(yaml.safe_load((root / "config/settings.yaml").read_text()))

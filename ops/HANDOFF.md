@@ -145,3 +145,7 @@ Scheduler usa pausa auditada injetável; prioridade de pai, pendência bloqueada
 ### T-45 — Codex, BATCH-03
 Matriz de 18 quedas; corrigido reenvio do hook após entrega ou checkpoint; ADR-023
 485 passed in 169.12s (0:02:49); cobertura 88.03%; gates locais verdes.
+
+### T-46 — Codex, BATCH-03
+Restore em quarentena; release humano após pausa e leitura; migração 006 e ADR-024
+492 passed in 161.71s (0:02:41); cobertura 87.8%; gates locais verdes.
