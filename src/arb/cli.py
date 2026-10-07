@@ -586,11 +586,10 @@ def approve_keygen(output: str = typer.Option(..., help="Arquivo da chave privad
 def approve_verify(file: str):
     from pathlib import Path
 
-    from arb.launcher.approval import verify
-    from arb.models import Approval
+    from arb.launcher.approval import read_document, verify
 
     try:
-        approval = Approval.model_validate_json(Path(file).read_text())
+        approval, _ = read_document(Path(file))
         verify(approval)
         if approval.status != "approved" or approval.decided_at is None:
             raise ValueError("decisão ausente")
@@ -624,3 +623,225 @@ def preflight_command(
                 typer.echo("  Correção: " + check["fix"])
     if not result["ok"]:
         raise typer.Exit(1)
+
+
+ops_app = typer.Typer(help="Intenções e reconciliação operacional")
+app.add_typer(ops_app, name="ops")
+
+
+@ops_app.command("pending")
+def ops_pending(
+    database: str = "data/engine.db", json_output: bool = typer.Option(False, "--json")
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.ledger import pending
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = pending(connection)
+        typer.echo(json.dumps(rows, sort_keys=True) if json_output else f"Pendências: {len(rows)}")
+    finally:
+        connection.close()
+
+
+@ops_app.command("reconcile")
+def ops_reconcile(
+    database: str = "data/engine.db",
+    read_meta: bool = False,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    import json
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.meta.read import Reader
+    from arb.reconcile import reconcile
+
+    if not read_meta:
+        raise typer.BadParameter("leitura remota exige --read-meta no host humano autorizado")
+    reader = Reader(
+        os.environ.get("META_ACCESS_TOKEN", ""),
+        os.environ.get("META_AD_ACCOUNT_ID", ""),
+        os.environ.get("META_API_VERSION", ""),
+    )
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        result = reconcile(connection, reader)
+        typer.echo(json.dumps(result, sort_keys=True) if json_output else str(result))
+        if result["alerts"]:
+            raise typer.Exit(1)
+    finally:
+        connection.close()
+        reader.close()
+
+
+@db_app.command("release")
+def db_release(database: str = "data/engine.db", read_meta: bool = False):
+    import os
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.meta.read import Reader
+    from arb.quarantine import release
+
+    connection = connect(Path(database))
+    reader = None
+    try:
+        migrate(connection)
+        if read_meta:
+            reader = Reader(
+                os.environ.get("META_ACCESS_TOKEN", ""),
+                os.environ.get("META_AD_ACCOUNT_ID", ""),
+                os.environ.get("META_API_VERSION", ""),
+            )
+        action = release(connection, reader=reader)
+        typer.echo("Banco liberado" if action else "Banco sem quarentena")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+        if reader:
+            reader.close()
+
+
+@db_app.command("drill")
+def db_drill(backups: str = "data/backups", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.db.checkpoint import drill
+
+    result = drill(Path(backups))
+    typer.echo(json.dumps(result, sort_keys=True) if json_output else f"Drill: {result['status']}")
+    if result["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@scout_app.command("apply")
+def scout_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scout.approve import apply
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        action = apply(connection, approval_id, directory=Path(approvals))
+        typer.echo(action.model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+@creative_app.command("propose")
+def creative_propose(
+    offer_id: str, database: str = "data/engine.db", output: str = "ops/approvals/pending"
+):
+    from pathlib import Path
+
+    from arb.creative.approve import propose
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(str(propose(connection, offer_id, directory=Path(output))))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+@creative_app.command("apply")
+def creative_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.creative.approve import apply
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(apply(connection, approval_id, directory=Path(approvals)).model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+scale_app = typer.Typer(help="Escala assinada em simulação")
+app.add_typer(scale_app, name="scale")
+
+
+@scale_app.command("propose")
+def scale_propose(
+    entity_id: str,
+    budget: int,
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.scale import propose
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(str(propose(connection, entity_id, budget, directory=Path(output))))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+@scale_app.command("apply")
+def scale_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.launcher.scale import apply
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(apply(connection, approval_id, directory=Path(approvals)).model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+drill_app = typer.Typer(help="Ensaio descartável com dados e chave sintéticos; sem rede real")
+app.add_typer(drill_app, name="drill")
+
+
+@drill_app.command("run")
+def drill_run(seed: int = 42, json_output: bool = typer.Option(False, "--json")):
+    import json
+
+    from arb.drill import run
+
+    try:
+        result = run(seed)
+        typer.echo(
+            json.dumps(result, sort_keys=True, indent=2)
+            if json_output
+            else f"Drill seed {seed}: invariantes verdes; apenas simulação e FakeMeta"
+        )
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc

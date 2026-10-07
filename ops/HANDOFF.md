@@ -1,131 +1,97 @@
-# Handoff — BATCH-02, T-31–T-39 para revisão
+# HANDOFF — BATCH-03
 
-## Estado e bastão
-- Base: main sincronizada, commit a0b01be (F0–F8/T-30 e CI anteriores já mergeados).
-- Entrega: uma branch codex/batch-02, PR #28 para main:
-  https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/28
-- PR criado draft após T-31. Tornar ready somente após CI final verde; Claude revisa
-  antes de qualquer merge pelo humano. Codex não faz merge/push direto em main.
-- T-31–T-39: implementação/documentação em review; revisão humana/Claude não presumida.
-  LOCK publicado antes de cada tarefa e liberado ao mover doing→review.
-- CI de cada predecessor verde antes da tarefa seguinte. Evidências:
-  docs/validation/batch02-ci.json e checks públicos do HEAD do PR.
-- Regras operacionais config/rules.yaml preservadas byte a byte em relação à main.
-- Nenhuma API Meta/Telegram/Cloudflare real, conta, credencial real, deploy, mensagem,
-  gasto ou execução operacional LIVE_MODE=true neste batch. Não ler .env.
-- Histórico anterior preservado em docs/handoffs/pre-batch02.md; aquele documento
-  descreve a sessão antiga e não o estado atual das branches/merges.
+## Estado atual e ordem de revisão
+Repositório gabrielferreiradesouza023-sketch/Motor-. Uma branch codex/batch-03, PR #32:
+https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/32
+Base usada: origin/claude/inspiring-davinci-o0loro, 6cb06b2 (planejamento PR #31).
+main verificada na abertura: a913317; #28, #29 e #30 mergeados. Calibração ADR-018,
+Ed25519 T-40 e chave pública T-41 resolvidos; não solicitar outra chave privada/pública.
+PR #31 ainda aberto na última verificação desta sessão: revisar/mergear #31 primeiro,
+depois #32. Codex não faz merge. Ready for review somente após CI final gates+worker verde.
+Histórico anterior preservado em docs/handoffs/historico-ate-t56.md, sem usá-lo como backlog atual.
 
 ## Feito
-- T-31: perfis planted (regressão histórica), realistic e pessimistic; distribuição por
-  papel, vencedor/borderline em posições por seed, mortes/custos e diagnóstico 200 seeds
-  por perfil. ADR-017 e docs/validation/sim-profiles.json. Planted preserva 50/50 e 0,9305%.
-- T-32: grid 81 variantes × 2 perfis × 100 seeds, validação em memória, sem editar regras;
-  duas execuções byte a byte idênticas, cada uma observada abaixo de 10 minutos nesta
-  sessão (aproximadamente 4 minutos, quatro workers; não é promessa para qualquer host).
-  JSON rastreável e HTML regenerável/ordenável/Pareto: arb sim calibrate --workers 4.
-- T-33: até três opções com acerto/waste/custo/risco, matemática de G3 e ADR-018 Proposto
-  com diff exato. Equilibrada recomendada para novo experimento após decisão, não aplicada.
-- T-34: Approval.signature, HMAC canônico de todos os campos, consumo fail-closed,
-  comparação constante, CLI approve sign/verify, tty/confirmar, doctor só presença.
-  ADR-019 e contratos regenerados. Aprovações antigas sem assinatura recusadas.
-- T-35: guarda central de escrita, pausa como única exceção autônoma, demais efeitos
-  assinados; notificações ligadas a conteúdo/destinatário. AST recusa verbos de escrita,
-  aliases e request dinâmico fora da allowlist. ADR-020; default sem envio preservado.
-- T-36: escritor Meta exclusivamente status=PAUSED, transporte lazy/nenhum real em false,
-  erros sanitizados, idempotência, panic misto auditado (intent antes do HTTP, resultado
-  append-only). Em simulação mantém remote_pause_pending. Somente MockTransport; ADR-021.
-- T-37: propriedades determinísticas (~1400 exemplos) em 2,42s; amostra, stale, tetos,
-  monotonicidade, dinheiro, controles e escala. Encontrou e corrigiu TypeError de EPC None
-  em G3/T com vendas/cliques mas zero bridge_views; ausência não permite pass, hard cap vale.
-- T-38: CI exige linhas+branches combinados >=95% nos cinco grupos de dinheiro e >=80%
-  no pacote. Medição final de T-38: 100% dinheiro / 87,57% pacote; 400 testes, sem skips,
-  render incluído. Sem exclusões/pragma no cover. docs/validation/coverage.json atualizado
-  pelos gates finais. Teste negativo confirma falha abaixo do limite e por módulo ausente.
-- T-39: arb preflight [--json], checklist português, nomes sem ler chave HMAC, cap Meta via
-  GET opt-in --read-meta, cartão, restore descartável do dia UTC, flock disponível, alerta
-  opcional e panic disponível. Matriz sintética/MockTransport com 37 testes focados verdes.
-  Offline real desta sessão retorna erro esperado por falta de preparação, sem rede:
-  docs/validation/preflight-offline.json. docs/validation/f5-f6-checklist.md.
+- Ledger órfão/incerto, bloqueio de retry e reconciliação por leitura; pausa remota no scheduler.
+- Matrizes de queda/retomada e ingestão com correções apenas das falhas demonstradas.
+- Migração nova 006 de quarentena, release interativo, snapshots pré-exposição e restore drill.
+- Consumo assinado new_offer, creative_set e scale; envelopes vinculados por hash Ed25519.
+- Porta RemoteWriter/FakeMeta e journal de create/activate/scale/pause exclusivamente sintético.
+- Contrato documental Graph com lacunas explícitas; nenhum executor real de exposição.
+- Drill completo isolado, três seeds e sete incidentes; painel operacional e preflight ampliado.
+- Runbook de incidentes: comandos existentes e vínculo a cenários exercitados. Referências
+  de campanha no contrato Graph corrigidas para spec §3; sem mudança de mapeamento.
 
-## Evidências e limites dos gates
-- Gates locais por tarefa: Ruff check/format, pytest e arb doctor. T-38/T-39 adicionam
-  cobertura de branch ao pytest e o verificador scripts/check_coverage.py, igual à CI.
-- CI gates inclui render sem skips, doctor, drift de contratos e scanner de segredos.
-  Worker (typecheck + dois testes Node) verde em todos os predecessores; nenhum arquivo
-  do Worker alterado. Entrega final para revisão depende de ambos os jobs verdes no HEAD.
-- Doctor é verde com avisos de nomes ausentes; não transforma ausência de integração real
-  em aceite. Preflight offline falha fechado e não significa falha da implementação.
+| Tarefa | Quadro | Commit de implementação |
+| --- | --- | --- |
+| T-42 | review | 5146407 |
+| T-43 | review | bbbde95 |
+| T-44 | review | 0d8f459 |
+| T-45 | review | 8425166 |
+| T-46 | review | 1d59e26 |
+| T-47 | review | 5702199 |
+| T-48 | review | ce454e2 |
+| T-49 | review | fc6746f |
+| T-50 | review | 43b1a0b |
+| T-51 | review | d0918f1 |
+| T-52 | review | aab98bf |
+| T-53 | review | 537cebd |
+| T-55 | review | 01828e7 |
+| T-54 | review | f6cf867 |
+| T-56 | review | 5abc6c5 |
+| T-57 | review nesta entrega | commit final do PR |
+
+Cada card em ops/board/review contém comandos e contagens reais; houve commit/push de LOCK
+antes de cada tarefa e liberação ao mover para review. Migrações aplicadas não foram editadas.
+
+## Evidências
+647 passed in 180.38s (0:03:00); 0 skips. Cobertura total combinada linhas+branches: 89.36%; todos os 16 grupos de dinheiro/efeito >=95%.
+Números completos por módulo em docs/validation/batch03-coverage.json. Ruff check,
+ruff format --check, check_coverage.py e arb doctor verdes.
+CI de cada implementação T-42–T-56: gates+worker success, SHA e links em
+ docs/validation/batch03-ci.json. CI do commit final: aba Checks do PR #32; entrega ready
+somente após ambos verdes. Worker não foi alterado; seus testes rodam em cada CI.
+Contratos exportados sem drift, detect-secrets verde e rules.yaml intacto em todos os gates.
+
+Drill: seeds 7/42/101 com JSON byte a byte idêntico em duas execuções. Planos de 9/5/13
+entidades e 14/10/18 efeitos remotos, sem duplicação. Seis invariantes: autorização,
+auditoria, unicidade, pausa após kill, quarentena e totais; todas verdes. Sete incidentes:
+pausa incerta, intenção órfã, ciclo interrompido, backup corrompido, restore ativo,
+token 190 e quarentena. Referências em docs/validation/drill-seed-*.json. CI executa seed 42
+com timeout 120 s. Nada disto valida Meta/Hotmart/Cloudflare reais.
+
+## Bugs reais demonstrados pelas matrizes
+- T-45: hook de notificação podia entregar novamente após queda entre entrega e checkpoint.
+  Três violações antes da correção; intenção durável notify_hook antes do callback e replay
+  sem novo envio. Queda antes da entrega pode perder alerta: relatório local é obrigatório.
+- T-48: página atrasada do Worker podia regredir cursor já avançado por outro coletor.
+  Uma violação antes da correção; upsert usa MAX nos dois cursores. Replay continua idempotente.
+- T-49 resolveu incompatibilidade do envelope {approval, plan} com assinatura de arquivo,
+  preservando hash/conteúdo/tipo e assinatura. Não é evidência de API real.
 
 ## Bloqueios e decisões pendentes do humano
-1. ADR-018: escolher/rejeitar a calibração e tolerância de risco. Proposta documental T-33
-   concluída, aplicação bloqueada; manter regras atuais até decisão. Nenhum diff aplicado.
-2. Claude revisar PR #28, humano realizar merge. Só então mudanças chegam à main.
-3. Aceites reais F5/F6 e V-01/V-02 Hotmart/rastreio/V-06 Graph permanecem pendentes.
-   Provedores, formatos reais, mapping, BRL/fuso, cap da conta/cartão e host persistente
-   precisam de confirmação humana. Não criar contas nem provisionar segredos por agentes.
-4. APPROVAL_SIGNING_KEY exclusivamente na máquina/runtime do humano; ausente neste cloud.
-   Humano provisiona e assina/verify via tty. Presença por nome não prova valor/validade.
-5. Autorizar separadamente qualquer deploy, envio, live ou exposição real em sessão futura.
-   Executor Meta de launch/activate/scale reais continua fora do escopo; apenas pausa existe.
+| Falta | Quem decide | Impacto |
+| --- | --- | --- |
+| Versão Graph, conta/permissões, lookup/dedupe de criação e limites/erros de taxa documentados | Humano + revisão Claude (V-06) | Executor Graph create/activate/scale bloqueado; T-55 é entrega documental |
+| Aceites F5/F6 e V-01 a V-06 com provedores reais | Humano | Não há aceite para dinheiro real |
+| Cartão e spend_cap positivos dentro de 240000 centavos, confirmados externamente | Humano | Variáveis e mocks não comprovam limites físicos |
+| Host persistente Linux/WSL, supervisor, segredos e observabilidade | Humano | Nenhum deploy/provisionamento foi realizado |
+| Revisão e merge #31, depois #32 | Claude/humano | main não recebeu push direto deste batch |
+| Retomar ciclo cujo slot já deixou de ser o último vencido | Humano define tarefa futura revisada | CLI once não seleciona slot antigo; não marcar complete manualmente |
 
-## Riscos
-- Distribuições são hipóteses, não dados de mercado. Acerto realista/pessimista com regras
-  atuais (100 seeds) é 26%/5%; não há garantia de lucro ou custo por vencedor. Média até
-  validar é condicionada ao sucesso; waste é excedente de teto, não perda econômica total.
-- Lab pausa G3 no teto nominal: variantes do hard cap indistinguíveis. Não recalibrar esse
-  parâmetro com esta evidência. Receita esperada não é saldo reciclável.
-- HMAC depende do isolamento/proteção da chave; assinatura não substitui limites externos.
-  Alteração de conteúdo/destinatário exige nova aprovação. Arquivos antigos não autorizam.
-- ACK/uncertain exigem reconciliação. Falha remota preserva estado ativo; backup antigo
-  pode conter ativos. Restore só em banco novo com processos parados/revisão antes de uso.
-- Escritor e preflight testados com mocks; não houve validação de integração de conta real.
-  preflight não configura limites nem valida validade de credenciais declaradas por nome.
-- Scheduler depende de flock/host Linux ou WSL persistente; este cloud não garante cron.
-  Telegram segue opcional/desabilitado; não é barreira exclusiva de proteção financeira.
+Detalhes de Graph em docs/validation/meta-executor-contract.md; checklist real em
+ docs/validation/f5-f6-checklist.md. T-54/T-56/T-57 não dependem do executor real bloqueado.
 
-## Falta / próximo passo
-Revisão de Claude do PR único e decisão humana do ADR-018. Seguir o checklist português
-no host humano antes dos aceites reais; nenhum passo real/cadastro/gasto autorizado por
-esta entrega. Cards T-31–T-39 com evidência em review; LOCK vazio ao encerrar.
+## Riscos remanescentes e próximo bastão
+FakeMeta assume dedupe/lookup e estados independentes; não comprova comportamento Graph,
+hierarquia, eventos ou desempenho real. Notificação at-most-once pode ser perdida; nunca
+usar alerta como única proteção. Restore permanece em quarentena até verificação/confirmar;
+backup antigo pode preservar active. Preflight verde é preparação, não aprovação de gasto.
 
-### BATCH-02 T-39
-Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTransport nos testes. 37 casos de presença/cap/cartão/backup/trava/alerta/panic, valores sensíveis omitidos, HMAC nunca lido mesmo presente. Checklist português e HANDOFF reescrito; offline retorna erros esperados sem rede. Gate final com coverage e render; rules.yaml intacto.
+LOCK vazio ao publicar a implementação final. Próximo bastão: Claude revisar PR #32 após
+#31, conferir evidências/CI, depois humano decide merges e os aceites acima. LIVE_MODE=false;
+sem APIs reais de produto, contas, gastos, deploy, mensagens reais ou chave privada real.
+O motor não está pronto para dinheiro real.
 
-## T-40 (Claude) — Ed25519 e ADR-018 aplicado
-- BATCH-02 (#28) mergeado. ADR-018 aceito pelo humano: G3 com 2 vendas e teto 3× aplicado.
-- Aprovação agora Ed25519 (ADR-022): privada só na máquina humana, pública em settings.yaml.
-- **Pendente do humano:** `arb approve keygen --output ~/.arb/approval_ed25519` na própria
-  máquina e PR com `approval_public_key`. Até lá launch/activate são recusados (fail-closed).
-- Pendentes reais F5/F6 seguem em docs/validation/f5-f6-checklist.md.
-
-## T-41 (Codex) — chave pública fornecida pelo humano
-- Base main fa0ec62 (PRs #28/#29 mergeados). Branch codex/t-41-public-key; PR para
-  main sujeito à revisão do Claude, sem merge pelo Codex.
-- Configurada approval_public_key exatamente como enviada pelo humano. Esta é pública;
-  comentário inline limita a exceção detect-secrets a essa linha. Nenhuma chave privada
-  real gerada, lida ou recebida; nenhuma API de produto, live, deploy, mensagem ou gasto.
-- Fixture de preflight corrigida para definir chave sintética no YAML temporário,
-  independente do valor versionado; teste de chave ausente continua obrigatório.
-- Evidência local: 443 testes passaram, zero skips/render incluído; cobertura 87,97%;
-  gate de dinheiro >=95% verde; Ruff check/format, doctor e detect-secrets verdes;
-  contratos e config/rules.yaml intactos. T-41 em review; LOCK liberado.
-- Próximo passo: Claude revisar PR e humano/Claude realizar merge; depois atualizar
-  main na máquina Windows/WSL do humano. Para assinar, o humano aponta
-  APPROVAL_PRIVATE_KEY_FILE para sua chave local, sem compartilhar o arquivo.
-- Pendentes: aceites reais F5/F6, limites externos, Graph API, rastreio/Hotmart e host
-  persistente conforme docs/validation/f5-f6-checklist.md. Executor Meta para criar,
-  ativar ou escalar exposição real continua ausente; chave pública não o implementa
-  nem autoriza execução real. Histórico acima de BATCH-02/T-40 descreve aqueles momentos;
-  a pendência de enviar a chave pública foi resolvida por esta tarefa, sujeito ao merge.
-
-## BATCH-03 (planejado por Claude, a executar pelo Codex)
-- #30 (T-41) revisado e mergeado: chave pública Ed25519 do humano em settings.yaml.
-  Aprovações reais agora verificáveis; isto não habilita operação real.
-- T-31–T-41 movidos para `board/done` (mergeados em #28, #29, #30).
-- Próximo: `ops/batches/BATCH-03.md`, T-42–T-57 — ledger de intenções, reconciliação,
-  pausa remota no scheduler, matriz de queda, restore em quarentena, backup antes de escrita,
-  matriz de ingestão, aprovação new_offer/creative_set, escala assinada, porta remota +
-  FakeMeta, idempotência ponta a ponta, drill completo, contrato Graph (bloqueio
-  documental), painel/preflight e runbook de incidentes.
-- Continuam pendentes do humano: F5/F6 reais, V-01–V-06, limites externos, host persistente.
+### T-57 — Codex, BATCH-03
+Runbook comprovado por 11 comandos e 7 cenarios, HANDOFF consolidado e evidencias finais; 2 testes novos.
+647 passed in 180.38s (0:03:00); cobertura 89.36%; gates locais verdes.

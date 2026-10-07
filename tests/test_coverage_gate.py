@@ -26,6 +26,17 @@ def synthetic_report():
                 "src/arb/launcher/execute.py",
                 "src/arb/safety.py",
                 "src/arb/meta/pause.py",
+                "src/arb/ledger.py",
+                "src/arb/reconcile.py",
+                "src/arb/quarantine.py",
+                "src/arb/db/checkpoint.py",
+                "src/arb/scout/approve.py",
+                "src/arb/creative/approve.py",
+                "src/arb/launcher/scale.py",
+                "src/arb/remote/__init__.py",
+                "src/arb/remote/journal.py",
+                "src/arb/remote/launch.py",
+                "src/arb/drill.py",
             ]
         },
     }

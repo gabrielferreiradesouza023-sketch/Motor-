@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 
 from arb.db import Repository
 from arb.launcher import plan_hash, serialize, validate_plan
-from arb.launcher.approval import verify
+from arb.launcher.approval import read_document, verify
 from arb.models import Action, Angle, Approval, Creative, Entity, LaunchPlan, Offer
 
 
@@ -26,7 +26,7 @@ def approved_file(
     path = directory / f"{approval_id}.json"
     if path.is_symlink() or not path.is_file():
         raise ValueError("arquivo de aprovação humana ausente")
-    approval = Approval.model_validate_json(path.read_text())
+    approval, _ = read_document(path)
     if (
         approval.id != approval_id
         or approval.kind != kind
@@ -73,7 +73,11 @@ def execute(
     approval_dir: Path = Path("ops/approvals/approved"),
     output: Path = Path("ops/dry_runs"),
     now: datetime | None = None,
+    writer=None,
 ) -> Action:
+    from arb.quarantine import require_released
+
+    require_released(connection)
     require_simulation()
     validate_plan(value)
     now = now or datetime.now(UTC)
@@ -90,6 +94,13 @@ def execute(
     )
     if connection.in_transaction:
         raise ValueError("execute requer conexão sem transação pendente")
+    if writer is not None:
+        from arb.remote.launch import execute as execute_fake
+
+        return execute_fake(connection, value, approval, writer, now=now)
+    from arb.db.checkpoint import snapshot_before
+
+    snapshot_before(connection, "launch", fingerprint)
     connection.execute("BEGIN IMMEDIATE")
     try:
         for model, records in (

@@ -1,0 +1,216 @@
+{
+  "prior_task_checks": [
+    {
+      "task": "T-42",
+      "commit": "5146407",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37559302574/job/112592709751"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37559302574/job/112592709508"
+        }
+      }
+    },
+    {
+      "task": "T-43",
+      "commit": "bbbde95",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37559991280/job/112594845523"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37559991280/job/112594845301"
+        }
+      }
+    },
+    {
+      "task": "T-44",
+      "commit": "0d8f459",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37560648187/job/112596934121"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37560648187/job/112596933993"
+        }
+      }
+    },
+    {
+      "task": "T-45",
+      "commit": "8425166",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37561433575/job/112599357983"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37561433575/job/112599357735"
+        }
+      }
+    },
+    {
+      "task": "T-46",
+      "commit": "1d59e26",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37562123029/job/112601592940"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37562123029/job/112601592709"
+        }
+      }
+    },
+    {
+      "task": "T-47",
+      "commit": "5702199",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37562878518/job/112604009521"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37562878518/job/112604008990"
+        }
+      }
+    },
+    {
+      "task": "T-48",
+      "commit": "ce454e2",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37563617920/job/112606321985"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37563617920/job/112606321775"
+        }
+      }
+    },
+    {
+      "task": "T-49",
+      "commit": "fc6746f",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37564321587/job/112608463334"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37564321587/job/112608463014"
+        }
+      }
+    },
+    {
+      "task": "T-50",
+      "commit": "43b1a0b",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37565052361/job/112610737187"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37565052361/job/112610737134"
+        }
+      }
+    },
+    {
+      "task": "T-51",
+      "commit": "d0918f1",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37565835437/job/112613215536"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37565835437/job/112613215620"
+        }
+      }
+    },
+    {
+      "task": "T-52",
+      "commit": "aab98bf",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37566487932/job/112615275425"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37566487932/job/112615275499"
+        }
+      }
+    },
+    {
+      "task": "T-53",
+      "commit": "537cebd",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37567722076/job/112619163099"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37567722076/job/112619162935"
+        }
+      }
+    },
+    {
+      "task": "T-55",
+      "commit": "01828e7",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37568396325/job/112621335759"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37568396325/job/112621335454"
+        }
+      }
+    },
+    {
+      "task": "T-54",
+      "commit": "f6cf867",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37569275781/job/112624010170"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37569275781/job/112624009831"
+        }
+      }
+    },
+    {
+      "task": "T-56",
+      "commit": "5abc6c5",
+      "checks": {
+        "gates": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37569924953/job/112626082446"
+        },
+        "worker": {
+          "conclusion": "success",
+          "url": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/actions/runs/37569924953/job/112626082315"
+        }
+      }
+    }
+  ],
+  "final_task_checks": "https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/32/checks",
+  "delivery_policy": "Ready for review somente ap\u00f3s gates e worker do commit final verdes."
+}

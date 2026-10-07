@@ -22,6 +22,25 @@ def pause(
     now: datetime | None = None,
     writer: PauseWriter | None = None,
 ) -> Action | None:
+    from arb.remote.fake import FakeMeta
+
+    if isinstance(writer, FakeMeta):
+        from arb.remote.journal import perform
+
+        entity = Repository(connection, Entity).get(entity_id)
+        if entity is None or not reason.strip():
+            raise ValueError("entidade/motivo de pausa inválido")
+        if entity.status == "paused":
+            return None
+        return perform(
+            connection,
+            writer,
+            entity,
+            "pause",
+            "pause-" + str(uuid4()),
+            context={"reason": reason},
+            now=now or datetime.now(UTC),
+        )
     live = safety.live_mode()
     safety.require_external_write("pause", simulation=not live)
     if not reason.strip():
@@ -92,11 +111,51 @@ def activate(
     *,
     approval_dir: Path = Path("ops/approvals/approved"),
     now: datetime | None = None,
+    writer=None,
 ) -> Action:
+    from arb.db.checkpoint import snapshot_before
+    from arb.quarantine import require_released
+
+    require_released(connection)
     require_simulation()
     if connection.in_transaction:
         raise ValueError("ativação requer conexão sem transação pendente")
     now = now or datetime.now(UTC)
+    if writer is not None:
+        from arb.remote.journal import exposure, perform, require_fake
+
+        require_fake(writer)
+        entity = Repository(connection, Entity).get(entity_id)
+        if entity is None:
+            raise ValueError("entidade desconhecida")
+        existing = Repository(connection, Action).get("activate-" + approval_id)
+        intent = existing.payload_json["input"] if existing else activation_intent(entity)
+        if existing and existing.payload_json["entity_id"] != entity.id:
+            raise ValueError("aprovação já consumida para outra entidade")
+        approval = approved_file(
+            approval_id,
+            kind="activate",
+            fingerprint=intent_hash(intent),
+            exposure=exposure(connection, entity) if not existing else 0,
+            directory=approval_dir,
+            now=now,
+        )
+        if existing:
+            return existing
+        if entity.status != "paused" or entity.meta_id is None:
+            raise ValueError("ativação remota exige entidade pausada conhecida")
+        snapshot_before(connection, "activate", approval_id)
+        return perform(
+            connection,
+            writer,
+            entity,
+            "activate",
+            "activate-" + approval.id,
+            context=intent,
+            approval=approval,
+            now=now,
+        )
+    snapshot_before(connection, "activate", approval_id)
     connection.execute("BEGIN IMMEDIATE")
     try:
         entity = Repository(connection, Entity).get(entity_id)
@@ -167,6 +226,9 @@ def automatic(connection: sqlite3.Connection, kind: str, entity_id: str, *, reas
 
 
 def _pause_remote(connection, entity, reason, now, writer):
+    from arb.ledger import require_clear
+
+    require_clear(connection, entity.id)
     if entity.status == "paused":
         return None
     writer = writer or PauseWriter.from_environment()

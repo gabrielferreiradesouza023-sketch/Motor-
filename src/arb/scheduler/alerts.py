@@ -13,8 +13,9 @@ import httpx
 
 from arb.db import Repository
 from arb.launcher.actions import intent_hash
+from arb.launcher.approval import read_document
 from arb.launcher.execute import store_approval
-from arb.models import Action, Approval, SaleEvent
+from arb.models import Action, SaleEvent
 from arb.safety import require_external_write
 
 
@@ -28,7 +29,7 @@ def collect(
     pending, invalid = 0, 0
     for path in approval_dir.glob("*.json"):
         try:
-            approval = Approval.model_validate_json(path.read_text())
+            approval, _ = read_document(path)
             pending += approval.status == "pending"
         except (OSError, ValueError):
             invalid += 1

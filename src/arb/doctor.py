@@ -59,6 +59,10 @@ def diagnose(root: Path) -> tuple[list[str], list[str]]:
                 raise ValueError("migrações")
             for model in TABLES:
                 Repository(connection, model).list()  # valida payloads persistidos
+            from arb.ledger import pending
+
+            if count := len(pending(connection)):
+                warnings.append(f"{count} intenções pendentes: reconciliar antes de nova escrita.")
             triggers = {
                 row[0]
                 for row in connection.execute("SELECT name FROM sqlite_master WHERE type='trigger'")

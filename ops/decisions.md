@@ -265,3 +265,50 @@ leem — verificar nunca permite assinar.
   mergeado pelo humano. Agentes nunca geram, leem ou recebem a chave privada.
 - Doctor avisa e preflight dá erro enquanto `approval_public_key` for null.
 - Sem aprovações reais existentes: nenhuma migração de assinaturas HMAC necessária.
+
+## ADR-023 — Retomada e hook de notificação incerto (T-45)
+A matriz plantou queda após entrega do hook notify e antes/depois do checkpoint final:
+a retomada entregava duas vezes (3 casos falhavam). Registrar tentativa durável antes do
+hook, sem retry se já existir, preserva ADR-014; queda antes da entrega pode perder alerta,
+portanto o relatório local continua obrigatório. Hook é extensão local injetável, não
+configura Telegram nem dispensa sua aprovação. BaseException também marca ciclo failed,
+rollback e liberação do flock; tentativa/resultado permanecem append-only.
+
+## ADR-024 — Restore em quarentena (T-46)
+Migração 006 adiciona marcador com origem, SHA-256 e data do restore. Scheduler e
+exposição recusam enquanto aberto; pause/panic permanecem disponíveis. Release exige
+tty + confirmação, ledger vazio, locais pausados e leitura PAUSED de todos os remotos.
+A exigência de pausa é conservadora: ACTIVE ou desconhecido não autoriza liberar restore.
+Verificações são revalidadas sob BEGIN IMMEDIATE antes da Action de liberação; não há --yes.
+
+## ADR-025 — Approval creative_set (T-50)
+Novo kind creative_set, com envelope de ângulos e criativos ligado por hash à assinatura
+Ed25519. Proposta exclui lint reprovado e reexecuta o lint; consumo confere conteúdo atual,
+assinado e kind, e aplica status approved atomicamente com Action. Exposição máxima zero:
+esta aprovação não substitui launch, activate ou scale. Contrato approval.json regenerado.
+
+## ADR-026 — Porta remota e FakeMeta (T-52)
+RemoteWriter opera sobre Entity e chaves de intenção do motor, nunca payloads Graph.
+FakeMeta cria pausado e oferece activate/budget/pause/read/locate, sem delete ou rede.
+Chaves e lookup determinísticos são uma hipótese do fake: a forma de localizar/deduplicar
+criação na Meta real é DESCONHECIDA, bloqueada até V-06/T-55. Não transferir essa garantia
+para o provedor. Timeout antes/depois, server_error, rate_limit e resposta inválida são
+falhas sintéticas; nenhuma versão, endpoint, campo ou permissão Graph é implementada aqui.
+
+## ADR-027 — Journal de exposição exclusivamente sintético (T-53)
+Launch, activate, scale e pause sobre FakeMeta registram intenção durável antes da chamada,
+validam aprovação Ed25519 quando aumentam exposição e só alteram estado local após prova
+compatível. Resposta perdida mantém ledger aberto; leitura resolve aplicado ou não aplicado
+antes de retry. Criação usa chave por plano/item; aggregate launch só fecha após todos os
+itens. Scheduler admite FakeMeta em LIVE_MODE=false, sem habilitar executor Graph. Sem
+writer, o caminho simulado existente permanece. Nenhuma garantia de dedupe é atribuída à
+Meta real: segue o bloqueio documental da ADR-026.
+
+## ADR-028 — Ensaio isolado e determinístico (T-54)
+Drill usa exclusivamente diretório temporário, configuração pública copiada, chave sintética
+conhecida do conftest e FakeMeta. O ponteiro da chave é substituído apenas no escopo isolado
+por arquivo temporário 0600 e restaurado sem ler a chave original. Um pseudo-terminal local
+exercita as guardas tty com callbacks sintéticos; não remove guardas de aprovação/release.
+Banco/configuração reais não são alterados. JSON normaliza UUIDs, caminhos e timestamps de
+restore; preserva contagens, dinheiro, cenários e invariantes verificados. Dedupe do fake
+não comprova dedupe Graph. O ensaio não aceita LIVE_MODE=true nem writer externo.

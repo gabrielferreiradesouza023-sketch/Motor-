@@ -1,0 +1,78 @@
+{
+  "basis": "(covered_lines + covered_branches) / (statements + branches)",
+  "modules": {
+    "arb": {
+      "percent": 89.358372456964,
+      "minimum": 80
+    },
+    "arb.rules": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.metrics": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.launcher": {
+      "percent": 97.93205317577548,
+      "minimum": 95
+    },
+    "arb.safety": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.meta.pause": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.ledger": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.reconcile": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.quarantine": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.db.checkpoint": {
+      "percent": 97.61904761904762,
+      "minimum": 95
+    },
+    "arb.scout.approve": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.creative.approve": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.launcher.scale": {
+      "percent": 97.1830985915493,
+      "minimum": 95
+    },
+    "arb.remote": {
+      "percent": 99.43342776203966,
+      "minimum": 95
+    },
+    "arb.remote.journal": {
+      "percent": 100.0,
+      "minimum": 95
+    },
+    "arb.remote.launch": {
+      "percent": 95.83333333333333,
+      "minimum": 95
+    },
+    "arb.drill": {
+      "percent": 100.0,
+      "minimum": 95
+    }
+  },
+  "failures": [],
+  "tests": {
+    "passed": 647,
+    "skipped": 0
+  }
+}
