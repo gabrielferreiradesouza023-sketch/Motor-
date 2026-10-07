@@ -98,3 +98,23 @@ Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTranspor
 - **Pendente do humano:** `arb approve keygen --output ~/.arb/approval_ed25519` na própria
   máquina e PR com `approval_public_key`. Até lá launch/activate são recusados (fail-closed).
 - Pendentes reais F5/F6 seguem em docs/validation/f5-f6-checklist.md.
+
+## T-41 (Codex) — chave pública fornecida pelo humano
+- Base main fa0ec62 (PRs #28/#29 mergeados). Branch codex/t-41-public-key; PR para
+  main sujeito à revisão do Claude, sem merge pelo Codex.
+- Configurada approval_public_key exatamente como enviada pelo humano. Esta é pública;
+  comentário inline limita a exceção detect-secrets a essa linha. Nenhuma chave privada
+  real gerada, lida ou recebida; nenhuma API de produto, live, deploy, mensagem ou gasto.
+- Fixture de preflight corrigida para definir chave sintética no YAML temporário,
+  independente do valor versionado; teste de chave ausente continua obrigatório.
+- Evidência local: 443 testes passaram, zero skips/render incluído; cobertura 87,97%;
+  gate de dinheiro >=95% verde; Ruff check/format, doctor e detect-secrets verdes;
+  contratos e config/rules.yaml intactos. T-41 em review; LOCK liberado.
+- Próximo passo: Claude revisar PR e humano/Claude realizar merge; depois atualizar
+  main na máquina Windows/WSL do humano. Para assinar, o humano aponta
+  APPROVAL_PRIVATE_KEY_FILE para sua chave local, sem compartilhar o arquivo.
+- Pendentes: aceites reais F5/F6, limites externos, Graph API, rastreio/Hotmart e host
+  persistente conforme docs/validation/f5-f6-checklist.md. Executor Meta para criar,
+  ativar ou escalar exposição real continua ausente; chave pública não o implementa
+  nem autoriza execução real. Histórico acima de BATCH-02/T-40 descreve aqueles momentos;
+  a pendência de enviar a chave pública foi resolvida por esta tarefa, sujeito ao merge.
