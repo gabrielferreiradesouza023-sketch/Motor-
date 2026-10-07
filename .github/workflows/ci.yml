@@ -41,6 +41,8 @@ jobs:
         run: uv run python scripts/check_coverage.py data/coverage.json
       - name: Garantir que testes de render rodaram
         run: uv run pytest -q tests/test_render.py -rs | tee render.log && ! grep -q SKIPPED render.log
+      - name: Ensaio completo sintético (limite 2 min)
+        run: timeout 120s uv run arb drill run --seed 42 --json
       - name: Doctor
         run: uv run arb doctor
       - name: Contratos sincronizados com os modelos

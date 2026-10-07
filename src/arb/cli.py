@@ -824,3 +824,24 @@ def scale_apply(
         raise typer.BadParameter(str(exc)) from exc
     finally:
         connection.close()
+
+
+drill_app = typer.Typer(help="Ensaio descartável com dados e chave sintéticos; sem rede real")
+app.add_typer(drill_app, name="drill")
+
+
+@drill_app.command("run")
+def drill_run(seed: int = 42, json_output: bool = typer.Option(False, "--json")):
+    import json
+
+    from arb.drill import run
+
+    try:
+        result = run(seed)
+        typer.echo(
+            json.dumps(result, sort_keys=True, indent=2)
+            if json_output
+            else f"Drill seed {seed}: invariantes verdes; apenas simulação e FakeMeta"
+        )
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc

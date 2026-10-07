@@ -20,6 +20,7 @@ MONEY_MODULES = (
     "remote",
     "remote.journal",
     "remote.launch",
+    "drill",
 )
 
 

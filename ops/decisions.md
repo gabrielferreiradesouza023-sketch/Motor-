@@ -303,3 +303,12 @@ antes de retry. Criação usa chave por plano/item; aggregate launch só fecha a
 itens. Scheduler admite FakeMeta em LIVE_MODE=false, sem habilitar executor Graph. Sem
 writer, o caminho simulado existente permanece. Nenhuma garantia de dedupe é atribuída à
 Meta real: segue o bloqueio documental da ADR-026.
+
+## ADR-028 — Ensaio isolado e determinístico (T-54)
+Drill usa exclusivamente diretório temporário, configuração pública copiada, chave sintética
+conhecida do conftest e FakeMeta. O ponteiro da chave é substituído apenas no escopo isolado
+por arquivo temporário 0600 e restaurado sem ler a chave original. Um pseudo-terminal local
+exercita as guardas tty com callbacks sintéticos; não remove guardas de aprovação/release.
+Banco/configuração reais não são alterados. JSON normaliza UUIDs, caminhos e timestamps de
+restore; preserva contagens, dinheiro, cenários e invariantes verificados. Dedupe do fake
+não comprova dedupe Graph. O ensaio não aceita LIVE_MODE=true nem writer externo.

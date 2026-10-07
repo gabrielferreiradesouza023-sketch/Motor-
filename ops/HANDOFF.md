@@ -189,3 +189,7 @@ Calibração ADR-018 e chave pública T-41 já foram mergeadas; não aguardam de
 ### T-55 — Codex, BATCH-03
 Contrato documental Graph e bloqueios de versao permissoes dedupe e limites; sem mapeamento ou APIs reais.
 616 passed in 191.70s (0:03:11); cobertura 88.7%; gates locais verdes.
+
+### T-54 — Codex, BATCH-03
+Drill isolado com 3 seeds 7 42 101 byte-identicas em 2 runs, seis invariantes e sete incidentes; 16 testes novos.
+632 passed in 193.37s (0:03:13); cobertura 89.31%; gates locais verdes.

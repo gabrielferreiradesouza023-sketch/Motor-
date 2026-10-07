@@ -1,0 +1,48 @@
+{
+  "backup_drill": {
+    "counts": {
+      "Action": 59,
+      "Angle": 3,
+      "AngleLearning": 0,
+      "Approval": 6,
+      "Creative": 9,
+      "Decision": 4,
+      "Entity": 13,
+      "MetricAdjustment": 0,
+      "MetricSnapshot": 4,
+      "Offer": 3,
+      "SaleEvent": 0
+    },
+    "quarantined": true,
+    "status": "passed"
+  },
+  "cycles": 2,
+  "entities": 13,
+  "invariants": {
+    "audit": true,
+    "authority": true,
+    "paused": true,
+    "quarantine": true,
+    "totals": true,
+    "unique": true
+  },
+  "mode": "synthetic-only",
+  "pending": 0,
+  "remote_calls": 18,
+  "remote_effects": 18,
+  "scenarios": {
+    "corrupt_backup": true,
+    "interrupted_cycle": true,
+    "orphan_intent": true,
+    "pause_uncertain": true,
+    "quarantine": true,
+    "restore_active": true,
+    "token_190": true
+  },
+  "seed": 101,
+  "totals": {
+    "gross_cents": 1132,
+    "platform_cents": 1002,
+    "profit_cents": -1132
+  }
+}
