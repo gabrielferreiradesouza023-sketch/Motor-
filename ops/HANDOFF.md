@@ -135,3 +135,7 @@ Fila por exposicao e idade, comando de assinatura, contagens de banco e arquivos
 ### T-64 — Codex, BATCH-04
 Ack humano append-only idempotente sem reenvio, preflight de alertas criticos e painel; 8 testes novos; drill 42 identico
 710 passed in 217.05s (0:03:37); cobertura 89.83%; gates locais verdes.
+
+### T-65 — Codex, BATCH-04
+Artefatos financeiros 0600 e diretorios 0700, symlinks recusados e ACL aviso fora de POSIX; 15 testes novos; permissions 100%; drill 42 identico
+725 passed in 210.51s (0:03:30); cobertura 90.0%; gates locais verdes.

@@ -336,3 +336,11 @@ explícita, mantendo todas as colunas requeridas e recusando duplicação. Datas
 não são inferidas: formato/fuso declarados ou erro, inclusive ambiguidades de DST.
 Decimal converte dígitos diretamente em centavos; não aceita agrupamento, expoente ou
 arredondamento. O parser nativo do timestamp e centavos inteiros permanecem no padrão.
+
+## ADR-032 — Privacidade dos artefatos financeiros (T-65)
+POSIX: arquivos 0600, diretórios privados 0700; writers fecham modos de seus destinos.
+Inspeção usa somente stat, nunca conteúdo de segredos; marcadores .gitkeep vazios não são
+dados financeiros. Symlinks em qualquer componente recusados antes de leitura/escrita,
+com O_NOFOLLOW na publicação. Doctor avisa por modo aberto e erra por symlink; preflight
+bloqueia ambos. Windows/non-POSIX: aviso sobre ACLs, sem inferir segurança por bits Unix.
+Nada lê .env nem chave privada para diagnosticar permissões.

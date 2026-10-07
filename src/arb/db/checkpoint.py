@@ -12,6 +12,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 from arb.db import TABLES, Repository
 from arb.db.restore import restore_new
+from arb.permissions import private_directory, reject_links
 
 SNAPSHOT_RETENTION = 20
 
@@ -31,8 +32,9 @@ def snapshot_before(connection, kind: str, identifier: str) -> Path:
     ):
         raise ValueError("intenção de snapshot inválida")
     directory = backup_directory(connection)
-    directory.mkdir(parents=True, exist_ok=True)
+    private_directory(directory)
     target = directory / f"pre-{kind}-{identifier}.db"
+    reject_links(target)
     if not target.exists():
         with NamedTemporaryFile(dir=directory, suffix=".tmp", delete=False) as file:
             temporary = Path(file.name)
@@ -57,12 +59,13 @@ def snapshot_before(connection, kind: str, identifier: str) -> Path:
 def drill(directory: Path, *, now=None) -> dict:
     now = now or datetime.now(UTC)
     result = {"status": "failed", "checked_at": now.isoformat(), "counts": {}}
-    directory.mkdir(parents=True, exist_ok=True)
+    private_directory(directory)
     backups = sorted(directory.glob("*.db"), key=lambda p: (p.stat().st_mtime_ns, p.name))
     try:
         if not backups:
             raise ValueError("backup ausente")
         backup = backups[-1]
+        reject_links(backup)
         result["backup"] = backup.name
         result["sha256"] = hashlib.sha256(backup.read_bytes()).hexdigest()
         with TemporaryDirectory(prefix="arb-db-drill-") as temporary:

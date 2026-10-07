@@ -144,6 +144,25 @@ def inspect(
         "Declarar CARD_LIMIT_CENTS positivo <= total_cap_cents; confirmar limite no emissor",
     )
     database = database if database.is_absolute() else root / database
+    from arb.permissions import inspect_paths
+
+    privacy = inspect_paths(root, database=database)
+    record(
+        "permissions",
+        privacy["ok"],
+        "Permissões financeiras fechadas"
+        if privacy["ok"]
+        else "Permissões abertas ou symlink em caminhos financeiros",
+        "Humano: fechar modos/ACLs e remover symlinks no host",
+    )
+    if privacy["warnings"]:
+        record(
+            "permissions_platform",
+            False,
+            privacy["warnings"][0],
+            "Humano: validar ACLs no Windows ou usar host Linux/WSL",
+            warning=True,
+        )
     backup = database.parent / "backups" / f"engine-{now.astimezone(UTC).date().isoformat()}.db"
     backup_ok = False
     try:

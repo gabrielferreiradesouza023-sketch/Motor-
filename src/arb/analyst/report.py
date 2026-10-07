@@ -17,6 +17,7 @@ from arb.analyst.decisions import queue
 from arb.db import Repository
 from arb.ledger import pending as ledger_pending
 from arb.models import Approval
+from arb.permissions import private_directory, private_open
 from arb.quarantine import current
 
 TEMPLATE = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -182,10 +183,12 @@ def generate_report(
         human_queue=human_queue,
         queue_counts=Counter(row["kind"] for row in human_queue["items"]),
     )
-    output.mkdir(parents=True, exist_ok=True)
+    private_directory(output)
     dated = output / f"{stamp.strftime('%Y-%m-%d_%H%M%S')}.html"
-    dated.write_text(rendered)
+    with private_open(dated) as file:
+        file.write(rendered)
     temporary = output / ".latest.tmp"
-    temporary.write_text(rendered)
+    with private_open(temporary) as file:
+        file.write(rendered)
     temporary.replace(output / "latest.html")
     return output / "latest.html"

@@ -27,6 +27,7 @@ from arb.models import (
     Offer,
     SaleEvent,
 )
+from arb.permissions import private_open
 from arb.remote.fake import FakeMeta
 from arb.rules import controls, evaluate, load_rules
 
@@ -89,7 +90,9 @@ def run_cycle(
     database = Path(connection.execute("PRAGMA database_list").fetchone()[2])
     if not str(database) or str(database) == ".":
         raise ValueError("scheduler exige banco em arquivo")
-    with database.with_suffix(database.suffix + ".scheduler.lock").open("a") as lock:
+    with private_open(
+        database.with_suffix(database.suffix + ".scheduler.lock"), append=True
+    ) as lock:
         try:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:

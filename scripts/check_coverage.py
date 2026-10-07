@@ -22,6 +22,7 @@ MONEY_MODULES = (
     "remote.launch",
     "drill",
     "tracker.ids",
+    "permissions",
 )
 
 

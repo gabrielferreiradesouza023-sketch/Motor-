@@ -10,16 +10,19 @@ from tempfile import NamedTemporaryFile
 from uuid import uuid4
 
 from arb.db import TABLES, Repository, migrate
+from arb.permissions import private_directory, reject_links
 
 
 def restore_new(backup: Path, destination: Path) -> Path:
+    reject_links(backup)
+    reject_links(destination)
     backup = backup.resolve()
     destination = destination.resolve()
     if not backup.is_file():
         raise ValueError("backup não encontrado")
     if destination.exists():
         raise ValueError("destino existe; restaure em banco novo")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    private_directory(destination.parent)
     with NamedTemporaryFile(
         dir=destination.parent, prefix="arb-restore-", suffix=".db", delete=False
     ) as file:

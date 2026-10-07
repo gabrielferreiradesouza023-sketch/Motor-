@@ -40,6 +40,20 @@ def diagnose(root: Path) -> tuple[list[str], list[str]]:
                 errors.append(f"Contrato divergente: {path.name}.")
         except OSError:
             errors.append(f"Contrato ausente/ilegível: {path.name}.")
+    from arb.permissions import inspect_paths
+
+    privacy = inspect_paths(root)
+    errors.extend(
+        "Caminho financeiro com symlink/indisponível"
+        for row in privacy["findings"]
+        if row["kind"] != "mode"
+    )
+    warnings.extend(
+        "Permissão financeira aberta: " + row["path"]
+        for row in privacy["findings"]
+        if row["kind"] == "mode"
+    )
+    warnings.extend(privacy["warnings"])
     if not errors:
         path = root / "data" / "engine.db"
         connection = None

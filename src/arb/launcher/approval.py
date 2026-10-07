@@ -19,6 +19,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 from arb.models import Approval
+from arb.permissions import private_directory, private_open, reject_links
 
 SETTINGS = Path("config/settings.yaml")
 
@@ -88,10 +89,11 @@ def verify(approval: Approval, *, settings: Path = SETTINGS) -> None:
 
 def keygen(destination: Path, repository: Path) -> str:
     """Gera a chave humana fora do repositório (0600) e devolve a chave pública em hex."""
+    reject_links(destination.expanduser())
     destination = destination.expanduser().resolve()
     if destination.is_relative_to(repository.resolve()):
         raise ValueError("chave privada nunca pode ficar dentro do repositório")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    private_directory(destination.parent)
     private = Ed25519PrivateKey.generate()
     raw = private.private_bytes_raw().hex()
     descriptor = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -147,10 +149,10 @@ def sign_file(source: Path, confirm, *, now: datetime | None = None) -> Path:
     directory = source.parent.parent / "approved"
     if directory.is_symlink():
         raise ValueError("diretório approved não pode ser symlink")
-    directory.mkdir(parents=True, exist_ok=True)
+    private_directory(directory)
     destination = directory / source.name
     # Publicar sem sobrescrever; remover pending só após gravação completa.
-    with destination.open("x", encoding="utf-8") as file:
+    with private_open(destination, exclusive=True) as file:
         file.write(
             (
                 json.dumps(
