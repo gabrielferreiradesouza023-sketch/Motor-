@@ -137,3 +137,7 @@ Ledger órfão/incerto e bloqueio antes do segundo POST; CLI pending e aviso do 
 ### T-43 — Codex, BATCH-03
 Reconciliação append-only por GET; status desconhecido ou erro preserva pendência
 460 passed in 171.42s (0:02:51); cobertura 87.77%; gates locais verdes.
+
+### T-44 — Codex, BATCH-03
+Scheduler usa pausa auditada injetável; prioridade de pai, pendência bloqueada e falha parcial isolada
+467 passed in 153.69s (0:02:33); cobertura 87.96%; gates locais verdes.

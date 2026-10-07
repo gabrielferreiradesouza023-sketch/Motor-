@@ -11,12 +11,12 @@ from zoneinfo import ZoneInfo
 
 import yaml
 
+from arb import safety
 from arb.analyst import pnl
 from arb.analyst.report import generate_report
 from arb.config import Settings
 from arb.db import Repository, backup_daily
 from arb.launcher.actions import pause
-from arb.launcher.execute import require_simulation
 from arb.models import (
     Creative,
     Decision,
@@ -63,13 +63,14 @@ def run_cycle(
     root: Path = Path("."),
     output: Path = Path("reports"),
     now: datetime | None = None,
+    writer=None,
 ) -> dict:
     """Sync injetável somente leitura/local; falta/falha congela entidades simuladas.
 
     Nunca solicita integração ou envio externos por padrão. Não modifica status
     observado de entidades Meta. Falhas de alerta não interrompem proteção de verba.
     """
-    require_simulation()
+    safety.live_mode()  # valide o modo; escrita só passa pelo caminho auditado de pausa
     now = now or datetime.now(UTC)
     settings = Settings.model_validate(yaml.safe_load((root / "config/settings.yaml").read_text()))
     rules = load_rules(root / "config/rules.yaml")
@@ -99,11 +100,22 @@ def run_cycle(
             output,
             settings,
             rules,
+            writer,
         )
 
 
 def _run(
-    connection, scheduled_at, now, sync_source, report_fn, notify, root, output, settings, rules
+    connection,
+    scheduled_at,
+    now,
+    sync_source,
+    report_fn,
+    notify,
+    root,
+    output,
+    settings,
+    rules,
+    writer,
 ):
     key = scheduled_at.astimezone(UTC).isoformat()
     previous = connection.execute(
@@ -242,21 +254,41 @@ def _run(
                 ):
                     entity = next(e for e in entities if e.id == d.entity_id)
                     targets |= family_ids(entity, entities)
-            for entity_id in sorted(targets):
+            covered = set()
+            priority = {"campaign": 0, "adset": 1, "ad": 2}
+            ordered = sorted(
+                targets,
+                key=lambda eid: (priority[next(e.kind for e in entities if e.id == eid)], eid),
+            )
+            for entity_id in ordered:
+                if entity_id in covered:
+                    continue
                 entity = Repository(connection, Entity).get(entity_id)
-                if entity.meta_id:
+                if entity.meta_id and not safety.live_mode():
                     result["alerts"].append(
                         "remote_pause_pending: intervenção humana na Meta necessária"
                     )
                     continue
-                action = pause(
-                    connection,
-                    entity_id,
-                    reason="scheduler: regra/teto/dados atrasados/freio",
-                    now=now,
-                )
+                try:
+                    action = pause(
+                        connection,
+                        entity_id,
+                        reason="scheduler: regra/teto/dados atrasados/freio",
+                        now=now,
+                        writer=writer,
+                    )
+                except ValueError:
+                    result["alerts"].append(
+                        f"pause_failed: {entity_id}; reconciliar antes de repetir"
+                    )
+                    continue
                 if action:
                     result["pauses"].append(action.id)
+                if (
+                    entity.meta_id
+                    and Repository(connection, Entity).get(entity_id).status == "paused"
+                ):
+                    covered |= family_ids(entity, entities) - {entity_id}
             result["stages"].append("actions")
             checkpoint()
         if "report" not in result["stages"]:
