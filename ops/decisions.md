@@ -280,3 +280,9 @@ exposição recusam enquanto aberto; pause/panic permanecem disponíveis. Releas
 tty + confirmação, ledger vazio, locais pausados e leitura PAUSED de todos os remotos.
 A exigência de pausa é conservadora: ACTIVE ou desconhecido não autoriza liberar restore.
 Verificações são revalidadas sob BEGIN IMMEDIATE antes da Action de liberação; não há --yes.
+
+## ADR-025 — Approval creative_set (T-50)
+Novo kind creative_set, com envelope de ângulos e criativos ligado por hash à assinatura
+Ed25519. Proposta exclui lint reprovado e reexecuta o lint; consumo confere conteúdo atual,
+assinado e kind, e aplica status approved atomicamente com Action. Exposição máxima zero:
+esta aprovação não substitui launch, activate ou scale. Contrato approval.json regenerado.

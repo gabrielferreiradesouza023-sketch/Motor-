@@ -25,7 +25,8 @@
         "activate",
         "scale",
         "new_offer",
-        "notification"
+        "notification",
+        "creative_set"
       ],
       "title": "Kind",
       "type": "string"

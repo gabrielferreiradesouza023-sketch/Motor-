@@ -741,3 +741,41 @@ def scout_apply(
         raise typer.BadParameter(str(exc)) from exc
     finally:
         connection.close()
+
+
+@creative_app.command("propose")
+def creative_propose(
+    offer_id: str, database: str = "data/engine.db", output: str = "ops/approvals/pending"
+):
+    from pathlib import Path
+
+    from arb.creative.approve import propose
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(str(propose(connection, offer_id, directory=Path(output))))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()
+
+
+@creative_app.command("apply")
+def creative_apply(
+    approval_id: str, database: str = "data/engine.db", approvals: str = "ops/approvals/approved"
+):
+    from pathlib import Path
+
+    from arb.creative.approve import apply
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        typer.echo(apply(connection, approval_id, directory=Path(approvals)).model_dump_json())
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        connection.close()

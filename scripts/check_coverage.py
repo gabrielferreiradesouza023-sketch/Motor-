@@ -15,6 +15,7 @@ MONEY_MODULES = (
     "quarantine",
     "db.checkpoint",
     "scout.approve",
+    "creative.approve",
 )
 
 

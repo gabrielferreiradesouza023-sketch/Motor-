@@ -161,3 +161,7 @@ Matriz de 15 ingestões versus referência; corrigida regressão concorrente de 
 ### T-49 — Codex, BATCH-03
 Consumo new_offer assinado e idempotente; envelope preservado e hash conferido no assinador
 523 passed in 190.02s (0:03:10); cobertura 88.04%; gates locais verdes.
+
+### T-50 — Codex, BATCH-03
+Creative_set assinado com lint fresco e hash do conteúdo atual; ADR-025 e contratos
+537 passed in 163.01s (0:02:43); cobertura 87.96%; gates locais verdes.

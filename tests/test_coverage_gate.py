@@ -31,6 +31,7 @@ def synthetic_report():
                 "src/arb/quarantine.py",
                 "src/arb/db/checkpoint.py",
                 "src/arb/scout/approve.py",
+                "src/arb/creative/approve.py",
             ]
         },
     }
