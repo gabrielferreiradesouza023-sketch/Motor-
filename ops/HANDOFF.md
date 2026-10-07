@@ -153,3 +153,7 @@ Restore em quarentena; release humano após pausa e leitura; migração 006 e AD
 ### T-47 — Codex, BATCH-03
 Snapshots pré-exposição retidos em 20; drill descartável falha em backup corrompido; integração de escala na T-51
 498 passed in 156.42s (0:02:36); cobertura 88.03%; gates locais verdes.
+
+### T-48 — Codex, BATCH-03
+Matriz de 15 ingestões versus referência; corrigida regressão concorrente de cursor 3 para 1
+513 passed in 164.22s (0:02:44); cobertura 88.03%; gates locais verdes.

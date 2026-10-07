@@ -120,7 +120,8 @@ def sync(
                     totals["sales"] += ingest(connection, sale)
                 connection.execute(
                     "INSERT INTO tracker_cursors VALUES (?,?,?) ON CONFLICT(source) DO UPDATE SET "
-                    "event_cursor=excluded.event_cursor,sale_cursor=excluded.sale_cursor",
+                    "event_cursor=MAX(tracker_cursors.event_cursor,excluded.event_cursor),"
+                    "sale_cursor=MAX(tracker_cursors.sale_cursor,excluded.sale_cursor)",
                     (source, *cursors),
                 )
             if not document["more"]:
