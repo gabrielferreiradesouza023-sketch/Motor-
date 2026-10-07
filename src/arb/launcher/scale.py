@@ -17,19 +17,17 @@ from arb.rules import load_rules, scale_allowed
 
 
 def last_increase(connection, entity_id):
-    times = [datetime(1970, 1, 1, tzinfo=UTC)]
-    for action in Repository(connection, Action).list():
-        if (
-            action.kind == "scale"
-            and action.payload_json.get("entity_id") == entity_id
-            and action.result != "intent"
-        ):
-            times.append(action.ts)
-        if action.kind == "launch" and any(
-            e["id"] == entity_id for e in action.payload_json.get("input", {}).get("entities", [])
-        ):
-            times.append(action.ts)
-    return max(times)
+    rows = connection.execute(
+        "SELECT payload FROM actions WHERE action_kind='scale' AND action_entity_id=? "
+        "AND action_result!='intent' UNION ALL "
+        "SELECT payload FROM actions a WHERE action_kind='launch' AND EXISTS "
+        "(SELECT 1 FROM json_each(json_extract(a.payload,'$.payload_json.input.entities')) e "
+        "WHERE json_extract(e.value,'$.id')=?)",
+        (entity_id, entity_id),
+    )
+    return max(
+        [datetime(1970, 1, 1, tzinfo=UTC)] + [Action.model_validate_json(row[0]).ts for row in rows]
+    )
 
 
 def intent(connection, entity, proposed_cents):

@@ -37,6 +37,12 @@ def synthetic_report():
                 "src/arb/remote/journal.py",
                 "src/arb/remote/launch.py",
                 "src/arb/drill.py",
+                "src/arb/tracker/ids.py",
+                "src/arb/permissions.py",
+                "src/arb/accept.py",
+                "src/arb/accept_pause.py",
+                "src/arb/accept_tracking.py",
+                "src/arb/readiness.py",
             ]
         },
     }

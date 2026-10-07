@@ -1,0 +1,15 @@
+[Unit]
+Description=arb daily backup (simulation)
+[Service]
+Type=oneshot
+User={{ user }}
+WorkingDirectory={{ root }}
+Environment=LIVE_MODE=false
+EnvironmentFile=-/etc/arb/runtime.env
+ExecStart=/usr/bin/env LIVE_MODE=false "{{ root }}/.venv/bin/arb" db backup --database "{{ root }}/data/engine.db" --output "{{ root }}/data/backups"
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths="{{ root }}/data"

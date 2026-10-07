@@ -74,6 +74,7 @@ def unsafe_writes(root):
     allowed = {
         ("scheduler/alerts.py", "Telegram.__call__", "post"),
         ("meta/pause.py", "PauseWriter.pause", "post"),
+        ("accept_tracking.py", "tracking", "post"),
     }
     violations = []
     for path in root.rglob("*.py"):

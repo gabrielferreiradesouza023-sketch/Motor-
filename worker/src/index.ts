@@ -15,7 +15,8 @@ export function validateEvent(value: unknown): Record<string, unknown> {
   const v = value as Record<string, unknown>;
   if (!identifier(v.id) || !identifier(v.ad_id) || !["view", "checkout_click"].includes(String(v.kind)) ||
     typeof v.geo !== "string" || !/^[A-Z]{2}$/.test(v.geo) || !timestamp(v.ts) ||
-    Object.keys(v).sort().join() !== "ad_id,geo,id,kind,ts") throw new Error("invalid event");
+    (!(Object.keys(v).sort().join() === "ad_id,geo,id,kind,ts" ||
+      (Object.keys(v).sort().join() === "ad_id,geo,id,kind,test,ts" && v.test === true)))) throw new Error("invalid event");
   return v;
 }
 

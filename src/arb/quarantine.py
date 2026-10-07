@@ -58,6 +58,32 @@ def release(connection, *, reader=None, confirm=None, now=None) -> Action | None
             raise ValueError("estado alterado durante liberação; revisar novamente")
         if Repository(connection, Entity).list() != entities:
             raise ValueError("entidades alteradas durante liberação")
+        if remote:
+            statuses = observed_statuses(reader)
+            if any(statuses.get(e.meta_id) != "PAUSED" for e in remote):
+                raise ValueError("estado remoto não confirmado PAUSED; preservar quarentena")
+            for entity in remote:
+                if entity.status == "paused":
+                    continue
+                Repository(connection, Action).add(
+                    Action(
+                        id="restore-reconcile-" + marker["id"] + "-" + entity.id,
+                        ts=now,
+                        actor="human",
+                        kind="reconcile_restore",
+                        payload_json={
+                            "entity_id": entity.id,
+                            "before": entity.status,
+                            "after": "paused",
+                            "observed": "PAUSED",
+                        },
+                        live=False,
+                        result="reconciled_paused",
+                    )
+                )
+                Repository(connection, Entity).update(
+                    entity.model_copy(update={"status": "paused"})
+                )
         action = Action(
             id="restore-release-" + marker["id"],
             ts=now,

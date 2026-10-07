@@ -51,6 +51,9 @@ def build(
     pixel_id: str,
     tracking_key: str,
     output: Path = Path("bridges_out"),
+    connection=None,
+    tracking_id_max_length=None,
+    tracking_id_alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 ) -> Path:
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
         raise ValueError("slug inválido")
@@ -71,7 +74,35 @@ def build(
             "Forneça conteúdo educativo em espanhol, pelo menos 40 palavras/2 parágrafos"
         )
     env = Environment(autoescape=select_autoescape(default_for_string=True))
-    rendered = env.from_string(TEMPLATE).render(
+    template = TEMPLATE
+    tracking = {}
+    if tracking_id_max_length is not None:
+        if connection is None:
+            raise ValueError("id curto exige banco para mapeamento")
+        from arb.db import Repository
+        from arb.models import Entity
+        from arb.tracker import entity_map
+        from arb.tracker.ids import tracking_id
+
+        with connection:
+            entity_map(connection)
+            for entity in Repository(connection, Entity).list():
+                if entity.kind != "ad" or entity.offer_id != offer.id:
+                    continue
+                token = tracking_id(
+                    connection,
+                    entity.id,
+                    max_length=tracking_id_max_length,
+                    alphabet=tracking_id_alphabet,
+                )
+                for source in (entity.id, entity.meta_id):
+                    if source:
+                        tracking[source] = token
+        template = template.replace(".test(ad);", ".test(ad)&&Boolean(config.trackingAliases[ad]);")
+        template = template.replace(
+            "set(config.tracking,ad)", "set(config.tracking,config.trackingAliases[ad])"
+        )
+    rendered = env.from_string(template).render(
         offer=offer,
         paragraphs=paragraphs,
         config={
@@ -79,6 +110,7 @@ def build(
             "worker": worker_url.rstrip("/"),
             "affiliate": str(offer.affiliate_link),
             "tracking": tracking_key,
+            **({"trackingAliases": tracking} if tracking_id_max_length is not None else {}),
         },
     )
     if len(rendered.encode()) >= 100000:

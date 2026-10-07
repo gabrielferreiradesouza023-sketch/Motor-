@@ -178,3 +178,107 @@ def dispatch(
             )
         )
     return {"status": result, "count": len(messages)}
+
+
+CRITICAL = frozenset({"daily_cap", "emergency", "checkpoint", "project_cap", "stale", "unknown"})
+
+
+def uncertain(connection) -> list[dict]:
+    """Só códigos; não reproduzir mensagens/payloads potencialmente sensíveis."""
+    rows = []
+    for (payload,) in connection.execute(
+        "SELECT payload FROM actions WHERE action_kind IN ('notification','notify_hook') "
+        "AND action_result='uncertain' ORDER BY id"
+    ):
+        attempt = Action.model_validate_json(payload)
+        results = connection.execute(
+            "SELECT action_result FROM actions WHERE action_attempt_id=?", (attempt.id,)
+        ).fetchall()
+        if any(row[0] in {"sent", "completed"} for row in results):
+            continue
+        ack = Repository(connection, Action).get("alert-ack-" + attempt.id)
+        if (
+            ack is not None
+            and ack.actor == "human"
+            and ack.kind == "alert_ack"
+            and ack.payload_json == {"alert_id": attempt.id}
+            and ack.result == "acknowledged"
+        ):
+            continue
+        messages = attempt.payload_json.get("messages")
+        if attempt.kind == "notify_hook":
+            cycle = connection.execute(
+                "SELECT payload FROM scheduler_runs WHERE id=?",
+                (attempt.payload_json.get("cycle_id"),),
+            ).fetchone()
+            messages = json.loads(cycle[0]).get("alerts") if cycle else None
+        if not isinstance(messages, list) or not messages:
+            codes = ["unknown"]
+        else:
+            allowed = CRITICAL | {
+                "approval_pending",
+                "approval_invalid",
+                "unmatched_sales",
+                "notification_failed",
+                "remote_pause_pending",
+                "pause_failed",
+                "sync_failed",
+                "missed_cycle",
+            }
+            codes = sorted(
+                {
+                    m.split(":", 1)[0]
+                    if isinstance(m, str) and m.split(":", 1)[0] in allowed
+                    else "unknown"
+                    for m in messages
+                }
+            )
+        rows.append(
+            {
+                "id": attempt.id,
+                "kind": attempt.kind,
+                "codes": codes,
+                "critical": bool(CRITICAL & set(codes)),
+            }
+        )
+    return rows
+
+
+def acknowledge(connection, alert_id, *, now=None):
+    from arb.launcher.approval import is_interactive
+
+    if not is_interactive():
+        raise ValueError("ack exige tty humano")
+    if connection.in_transaction:
+        raise ValueError("ack exige commit anterior")
+    connection.execute("BEGIN IMMEDIATE")
+    try:
+        identity = "alert-ack-" + alert_id
+        existing = Repository(connection, Action).get(identity)
+        if existing:
+            if (
+                existing.actor != "human"
+                or existing.kind != "alert_ack"
+                or existing.payload_json != {"alert_id": alert_id}
+                or existing.result != "acknowledged"
+            ):
+                raise ValueError("id de ack em conflito")
+            connection.rollback()
+            return existing
+        if not any(row["id"] == alert_id for row in uncertain(connection)):
+            raise ValueError("alerta incerto não encontrado")
+        action = Action(
+            id=identity,
+            ts=now or datetime.now(UTC),
+            actor="human",
+            kind="alert_ack",
+            payload_json={"alert_id": alert_id},
+            live=False,
+            result="acknowledged",
+        )
+        Repository(connection, Action).add(action)
+        connection.commit()
+        return action
+    except BaseException:
+        connection.rollback()
+        raise

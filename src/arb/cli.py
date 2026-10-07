@@ -63,7 +63,7 @@ def db_backup(database: str = "data/engine.db", output: str = "data/backups"):
     connection = connect(Path(database))
     try:
         migrate(connection)
-        target = backup_daily(connection, Path(output).resolve())
+        target = backup_daily(connection, Path(output))
     finally:
         connection.close()
     typer.echo(f"Backup OK: {target}")
@@ -240,7 +240,10 @@ def bridge_build(
 ):
     from pathlib import Path
 
+    import yaml
+
     from arb.bridge import build
+    from arb.config import Settings
     from arb.db import Repository, connect, migrate
     from arb.models import Offer
 
@@ -250,6 +253,7 @@ def bridge_build(
         offer = Repository(connection, Offer).get(offer_id)
         if offer is None:
             raise typer.BadParameter("Oferta desconhecida")
+        settings = Settings.model_validate(yaml.safe_load(Path("config/settings.yaml").read_text()))
         target = build(
             offer,
             Path(content_file).read_text(),
@@ -258,6 +262,9 @@ def bridge_build(
             pixel_id=pixel_id,
             tracking_key=tracking_key,
             output=Path(output),
+            connection=connection,
+            tracking_id_max_length=settings.tracking_id_max_length,
+            tracking_id_alphabet=settings.tracking_id_alphabet,
         )
     finally:
         connection.close()
@@ -271,16 +278,19 @@ app.add_typer(sync_app, name="sync")
 
 
 @sales_app.command("import")
-def sales_import(csv_file: str, database: str = "data/engine.db"):
+def sales_import(
+    csv_file: str, database: str = "data/engine.db", mapping: str = "config/sales_csv.yaml"
+):
     from pathlib import Path
 
+    from arb.config import load_sales_csv
     from arb.db import connect, migrate
     from arb.tracker import import_sales
 
     connection = connect(Path(database))
     try:
         migrate(connection)
-        count = import_sales(connection, Path(csv_file))
+        count = import_sales(connection, Path(csv_file), mapping=load_sales_csv(Path(mapping)))
     finally:
         connection.close()
     typer.echo(f"{count} vendas novas/atualizadas")
@@ -466,22 +476,43 @@ def scheduler_simulate(
 
 @scheduler_app.command("once")
 def scheduler_once(database: str = typer.Option(...), output: str = "reports", root: str = "."):
-    """Último slot vencido: fonte offline ausente congela simulação; não acessa APIs."""
+    """Retoma ciclos incompletos e executa o último slot vencido, sem APIs."""
     import json
-    from datetime import UTC, datetime, timedelta
     from pathlib import Path
 
     from arb.db import connect, migrate
-    from arb.scheduler import ZONE, run_cycle, schedule
+    from arb.scheduler import once
 
-    now = datetime.now(UTC)
-    today = now.astimezone(ZONE).date()
-    slot = max(s for s in schedule(today - timedelta(days=1), today) if s <= now)
     connection = connect(Path(database))
     try:
         migrate(connection)
-        result = run_cycle(connection, slot, now=now, root=Path(root), output=Path(output))
+        result = once(connection, root=Path(root), output=Path(output))
         typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    finally:
+        connection.close()
+
+
+@scheduler_app.command("status")
+def scheduler_status(
+    database: str = "data/engine.db",
+    limit: int = 30,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler import status
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = status(connection, limit=limit)
+        typer.echo(
+            json.dumps(rows, ensure_ascii=False, sort_keys=True)
+            if json_output
+            else "\n".join(row["id"] + " " + row["status"] for row in rows)
+        )
     finally:
         connection.close()
 
@@ -627,6 +658,46 @@ def preflight_command(
 
 ops_app = typer.Typer(help="Intenções e reconciliação operacional")
 app.add_typer(ops_app, name="ops")
+
+
+@ops_app.command("alerts")
+def ops_alerts(database: str = "data/engine.db", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler.alerts import uncertain
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = uncertain(connection)
+        typer.echo(
+            json.dumps(rows, sort_keys=True)
+            if json_output
+            else "\n".join(row["id"] + " " + ",".join(row["codes"]) for row in rows)
+        )
+    finally:
+        connection.close()
+
+
+@ops_app.command("ack")
+def ops_ack(alert_id: str, database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.scheduler.alerts import acknowledge
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        action = acknowledge(connection, alert_id)
+        typer.echo("Alerta reconhecido: " + action.id)
+    except ValueError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
 
 
 @ops_app.command("pending")
@@ -845,3 +916,222 @@ def drill_run(seed: int = 42, json_output: bool = typer.Option(False, "--json"))
         )
     except (ValueError, OSError) as exc:
         raise typer.BadParameter(str(exc)) from exc
+
+
+service_app = typer.Typer(help="Renderizar/verificar pacote; nunca instalar")
+app.add_typer(service_app, name="service")
+
+
+@service_app.command("render")
+def service_render(
+    root: str = typer.Option(...), user: str = typer.Option(...), output: str = "data/service"
+):
+    import json
+    from pathlib import Path
+
+    from arb.service import render
+
+    try:
+        result = render(Path(root), user, output=Path(output))
+        typer.echo(json.dumps(result, sort_keys=True))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from None
+
+
+@service_app.command("check")
+def service_check(output: str = "data/service", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.service import check
+
+    result = check(output=Path(output))
+    typer.echo(
+        json.dumps(result, sort_keys=True)
+        if json_output
+        else "Serviço verificado"
+        if result["ok"]
+        else "\n".join(result["errors"])
+    )
+    if not result["ok"]:
+        raise typer.Exit(1)
+
+
+accept_app = typer.Typer(help="Kits executados pelo humano no próprio host; cloud só mocks")
+app.add_typer(accept_app, name="accept")
+
+
+@accept_app.command("f5")
+def accept_f5(out: str = typer.Option(...), root: str = "."):
+    import os
+    from pathlib import Path
+
+    from arb.accept import f5, require_host, save
+    from arb.preflight import make_reader
+
+    reader = None
+    try:
+        require_host()
+        reader = make_reader(os.environ.get("META_API_VERSION", ""))
+        result = f5(reader, root=Path(root))
+        save(result, Path(out))
+        typer.echo("Aceite F5: " + result["status"])
+        if result["status"] != "passed":
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo("Kit F5 recusado; verificar modo, configuração e destino no host humano")
+        raise typer.Exit(1) from None
+    finally:
+        if reader is not None:
+            reader.close()
+
+
+@accept_app.command("register-test")
+def accept_register_test(meta_id: str = typer.Option(...), database: str = "data/engine.db"):
+    from pathlib import Path
+
+    from arb.accept_pause import register_test
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        register_test(connection, meta_id)
+        typer.echo("Entidade registrada como teste pelo humano")
+    except (ValueError, OSError):
+        typer.echo("Cadastro recusado; verificar entidade local, tty, quarentena e pendências")
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
+
+
+@accept_app.command("pause")
+def accept_pause(
+    meta_id: str = typer.Option(...), out: str = typer.Option(...), database: str = "data/engine.db"
+):
+    import os
+    from pathlib import Path
+
+    from arb.accept import require_host, save
+    from arb.accept_pause import is_interactive, pause
+    from arb.db import connect, migrate
+    from arb.meta.pause import PauseWriter
+    from arb.preflight import make_reader
+
+    connection = reader = None
+    try:
+        require_host()
+        if not is_interactive():
+            raise ValueError("tty obrigatório")
+        connection = connect(Path(database))
+        migrate(connection)
+        reader = make_reader(os.environ.get("META_API_VERSION", ""))
+        result = pause(connection, meta_id, reader, PauseWriter.from_environment())
+        save(result, Path(out))
+        typer.echo("Aceite pausa: " + result["status"])
+        if result["status"] != "passed":
+            typer.echo(result["next_step"])
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo(
+            "Kit recusado; verificar entidade de teste e reconciliar pendências no host humano"
+        )
+        raise typer.Exit(1) from None
+    finally:
+        if reader is not None:
+            reader.close()
+        if connection is not None:
+            connection.close()
+
+
+@accept_app.command("tracking-propose")
+def accept_tracking_propose(
+    url: str = typer.Option(...),
+    origin: str = typer.Option(...),
+    entity_id: str = typer.Option(...),
+    tracking_id: str = "",
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    from pathlib import Path
+
+    from arb.accept_tracking import propose
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        path = propose(
+            connection,
+            entity_id,
+            url,
+            origin,
+            tracking_id=tracking_id or None,
+            directory=Path(output),
+        )
+        typer.echo(f"Proposta: {path}; revisar e assinar no próprio host com arb approve sign")
+    except (ValueError, OSError):
+        typer.echo("Proposta recusada; verificar modo, entidade, rastreio e URL/origem")
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
+
+
+@accept_app.command("tracking")
+def accept_tracking(
+    url: str = typer.Option(...),
+    out: str = typer.Option(...),
+    approval_id: str = typer.Option(...),
+    database: str = "data/engine.db",
+    approvals: str = "ops/approvals/approved",
+):
+    import os
+    from pathlib import Path
+
+    from arb.accept import require_host, save
+    from arb.accept_tracking import tracking
+    from arb.db import connect, migrate
+
+    connection = None
+    try:
+        require_host()
+        connection = connect(Path(database))
+        migrate(connection)
+        result = tracking(
+            connection,
+            url,
+            os.environ.get("TRACKER_SYNC_TOKEN", ""),
+            approval_id,
+            approval_dir=Path(approvals),
+        )
+        save(result, Path(out))
+        typer.echo("Aceite rastreio: " + result["status"])
+        if result["status"] != "passed":
+            typer.echo("Consultar ledger/export no host; não reenviar automaticamente")
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo("Kit recusado; verificar modo, aprovação exata e configuração no host humano")
+        raise typer.Exit(1) from None
+    finally:
+        if connection is not None:
+            connection.close()
+
+
+@app.command("readiness")
+def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.readiness import inspect
+
+    result = inspect(root=Path(root))
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    else:
+        typer.echo(result["status"])
+        for item in result["items"]:
+            typer.echo(f"{'✔' if item['ok'] else '✘'} {item['name']}: {item['reason']}")
+            if not item["ok"]:
+                typer.echo("  Próximo passo: " + item["next_step"])
+    if not result["ready"]:
+        raise typer.Exit(1)

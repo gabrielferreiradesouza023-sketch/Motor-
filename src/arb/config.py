@@ -114,6 +114,17 @@ class Settings(ConfigModel):
     # ADR-022: chave pública Ed25519 do humano (hex). Alterar só por PR aprovado pelo humano.
     approval_public_key: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
 
+    tracking_id_max_length: Annotated[int, Field(strict=True, ge=1, le=128)] | None = None
+    tracking_id_alphabet: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+    @field_validator("tracking_id_alphabet")
+    @classmethod
+    def tracking_alphabet(cls, value):
+        from arb.tracker.ids import validate
+
+        validate(1, value)
+        return value
+
     @field_validator("timezone")
     @classmethod
     def valid_timezone(cls, value):
@@ -139,6 +150,7 @@ class Policy(ConfigModel):
 
 def validate_config(root: Path) -> None:
     load_sim_profiles(root / "config/sim_profiles.yaml")
+    load_sales_csv(root / "config/sales_csv.yaml")
     for name, model in [("rules", Rules), ("settings", Settings), ("policy", Policy)]:
         model.model_validate(yaml.safe_load((root / "config" / f"{name}.yaml").read_text()))
 
@@ -176,3 +188,37 @@ def load_sim_profiles(path: Path = Path("config/sim_profiles.yaml")) -> SimProfi
     return SimProfiles.model_validate(
         yaml.load(path.read_text(), Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader))
     )
+
+
+SALES_FIELDS = ("hotmart_tx_id", "ts", "commission_cents", "status", "tracking_param")
+
+
+class SalesCSV(ConfigModel):
+    columns: dict[str, str] = Field(default_factory=lambda: {key: key for key in SALES_FIELDS})
+    statuses: dict[str, Literal["approved", "refunded", "chargeback"]] = Field(
+        default_factory=lambda: {key: key for key in ("approved", "refunded", "chargeback")}
+    )
+    date_format: str | None = None
+    timezone: str | None = None
+    money_format: Literal["cents", "decimal"] = "cents"
+    decimal_separator: Literal[".", ","] = "."
+    strict_headers: bool = True
+
+    @model_validator(mode="after")
+    def mapping_valid(self):
+        if (
+            set(self.columns) != set(SALES_FIELDS)
+            or len(set(self.columns.values())) != 5
+            or any(not value.strip() for value in self.columns.values())
+            or not self.statuses
+            or any(not key for key in self.statuses)
+            or self.date_format == ""
+        ):
+            raise ValueError("mapeamento de vendas incompleto, duplicado ou vazio")
+        if self.timezone is not None:
+            Settings.valid_timezone(self.timezone)
+        return self
+
+
+def load_sales_csv(path: Path = Path("config/sales_csv.yaml")) -> SalesCSV:
+    return SalesCSV.model_validate(yaml.safe_load(path.read_text()))

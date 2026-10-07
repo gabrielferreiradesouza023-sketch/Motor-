@@ -1,0 +1,33 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Excel</title>
+<style>body{font:18px/1.6 system-ui;color:#192532;background:#f7f8fa;margin:0}
+main{max-width:680px;margin:auto;padding:24px}h1{line-height:1.2}
+button{font:inherit;background:#14543e;color:white;border:0;border-radius:8px;padding:16px;
+width:100%;cursor:pointer}footer{font-size:14px;color:#4a5360;margin-top:24px}</style></head>
+<body><main><h1>Excel</h1>
+<p>Antes de crear una fórmula en Excel, organiza los datos en columnas con encabezados claros. Evita combinar celdas dentro de una tabla: dificulta ordenar y filtrar información. Guarda una copia antes de modificar un archivo importante.</p>
+<p>Para practicar, crea una lista de compras con precio y cantidad. Multiplica ambas columnas y usa SUMA para comprobar el total. Cambia una cantidad y revisa cómo se actualiza el resultado. Esta práctica permite entender referencias de celdas sin usar datos personales.</p>
+<button id="checkout" type="button">Conocer el curso</button>
+<footer>Enlace de afiliado: podemos recibir una comisión sin costo adicional para ti.
+Esta página mide visitas y clics para mejorar su contenido. No promete resultados.</footer>
+</main><script>
+const config={"affiliate": "https://example.com/affiliate", "pixel": "123", "tracking": "sck", "worker": "https://worker.example"};
+const params=new URLSearchParams(location.search);
+const ad=params.get('ad')||''; const geo=params.get('geo')||'CO';
+const validAd=/^[A-Za-z0-9_-]{1,128}$/.test(ad);
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init',config.pixel);fbq('track','PageView');fbq('track','ViewContent');
+function event(kind){if(!validAd)return;
+const body={id:crypto.randomUUID(),kind,ad_id:ad,geo,ts:new Date().toISOString()};
+fetch(config.worker+'/event',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify(body),keepalive:true}).catch(()=>{});}
+event('view');
+document.getElementById('checkout').addEventListener('click',()=>{
+fbq('track','InitiateCheckout');event('checkout_click');
+const target=new URL(config.affiliate);if(validAd)target.searchParams.set(config.tracking,ad);
+location.assign(target.toString());});
+</script></body></html>

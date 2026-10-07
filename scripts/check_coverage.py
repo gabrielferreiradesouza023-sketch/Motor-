@@ -21,6 +21,12 @@ MONEY_MODULES = (
     "remote.journal",
     "remote.launch",
     "drill",
+    "tracker.ids",
+    "permissions",
+    "accept",
+    "accept_pause",
+    "accept_tracking",
+    "readiness",
 )
 
 

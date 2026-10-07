@@ -2,20 +2,20 @@
 
 from datetime import UTC, datetime
 
-from arb.db import Repository
 from arb.models import Action
 
 
 def pending(connection, *, now: datetime | None = None) -> list[dict]:
     now = now or datetime.now(UTC)
-    actions = Repository(connection, Action).list()
+    rows = connection.execute(
+        "SELECT a.payload,EXISTS(SELECT 1 FROM actions r WHERE r.action_attempt_id=a.id) "
+        "FROM actions a WHERE a.action_result='intent' AND NOT EXISTS "
+        "(SELECT 1 FROM actions r WHERE r.action_attempt_id=a.id AND r.action_result!='uncertain') "
+        "ORDER BY a.id"
+    )
     result = []
-    for action in actions:
-        if action.result != "intent":
-            continue
-        outcomes = [a for a in actions if a.payload_json.get("attempt_id") == action.id]
-        if any(a.result != "uncertain" for a in outcomes):
-            continue
+    for payload, has_outcome in rows:
+        action = Action.model_validate_json(payload)
         result.append(
             {
                 "attempt_id": action.id,
@@ -23,7 +23,7 @@ def pending(connection, *, now: datetime | None = None) -> list[dict]:
                 "meta_id": action.payload_json.get("meta_id"),
                 "kind": action.kind,
                 "age_seconds": max(0, int((now - action.ts).total_seconds())),
-                "state": "uncertain" if outcomes else "orphan",
+                "state": "uncertain" if has_outcome else "orphan",
             }
         )
     return sorted(result, key=lambda item: item["attempt_id"])

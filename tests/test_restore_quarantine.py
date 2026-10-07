@@ -160,3 +160,42 @@ def test_old_schema_upgrades_with_checksum(tmp_path):
     assert dict(conn.execute("SELECT * FROM schema_migrations"))[6] == catalog[6][1]
     assert current(conn) is None
     conn.close()
+
+
+@pytest.mark.parametrize("changes", [False, True])
+def test_release_aligns_remote_or_rolls_back(tmp_path, monkeypatch, changes):
+    import arb.quarantine as module
+
+    conn, plan, _, _ = restored_launch(tmp_path)
+    monkeypatch.setattr(module, "is_interactive", lambda: True)
+    with conn:
+        entity = Repository(conn, Entity).get(plan.entities[1].id)
+        entity.meta_id = "123"
+        Repository(conn, Entity).update(entity)
+
+    class Source:
+        calls = 0
+
+        def ads(self):
+            self.calls += 1
+            return [{"id": "123", "status": "ACTIVE" if changes and self.calls > 1 else "PAUSED"}]
+
+    before = Repository(conn, Action).list()
+    if changes:
+        with pytest.raises(ValueError, match="PAUSED"):
+            release(conn, reader=Source(), confirm=lambda: True)
+        assert current(conn)
+        assert Repository(conn, Entity).get(entity.id).status == "active"
+        assert Repository(conn, Action).list() == before
+    else:
+        release(conn, reader=Source(), confirm=lambda: True)
+        assert Repository(conn, Entity).get(entity.id).status == "paused"
+        actions = [a for a in Repository(conn, Action).list() if a.kind == "reconcile_restore"]
+        assert len(actions) == 1
+        assert actions[0].payload_json == {
+            "entity_id": entity.id,
+            "before": "active",
+            "after": "paused",
+            "observed": "PAUSED",
+        }
+    conn.close()

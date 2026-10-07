@@ -40,3 +40,21 @@ Responsável: humano, com revisão do Claude. Impacto: bloqueia implementação/
 executor Graph e exposição real. Não bloqueia T-54, T-56 ou T-57, que usam apenas dados
 sintéticos e arquivos locais. Merges #29/#30 já resolveram calibração e chave pública;
 esses itens não são pendências deste contrato. F5/F6 reais e V-01 a V-06 seguem separados.
+
+## Conformidade
+
+`uv run pytest tests/conformance/test_remote_writer.py` executa o contrato da porta
+somente com `FakeMeta`. Compara leitura após efeito com o pedido autorizado: criação
+pausada, chave repetida sem duplicação, pausa idempotente, orçamento exato e não acima
+do limite entregue pelo chamador, nenhum delete, timeout após efeito recuperável por GET.
+Writers defeituosos que duplicam, criam ativos ou oferecem delete falham nos mesmos probes.
+
+A porta recebe **somente** orçamento já autorizado; não conhece a assinatura humana.
+A camada `remote.journal.authorize` continua validando Ed25519, hash, tipo, limite e tempo
+antes de chamar o writer. A suíte de conformidade não substitui esses gates de autorização.
+
+Para registrar o executor Graph futuro, primeiro resolver V-06 e T-55 com contrato aprovado
+pelo humano. Só então adicionar um parâmetro à fixture `writer`, com transporte de respostas
+**gravadas e aprovadas pelo humano**, e adaptar a injeção `after_timeout` ao transporte gravado.
+Nunca preencher respostas inventadas nem usar rede real nesta suíte. O parâmetro atual é
+único e não contém executor de exposição Graph.

@@ -312,3 +312,78 @@ exercita as guardas tty com callbacks sintéticos; não remove guardas de aprova
 Banco/configuração reais não são alterados. JSON normaliza UUIDs, caminhos e timestamps de
 restore; preserva contagens, dinheiro, cenários e invariantes verificados. Dedupe do fake
 não comprova dedupe Graph. O ensaio não aceita LIVE_MODE=true nem writer externo.
+
+## ADR-029 — Catch-up conservador (T-59)
+Once retoma running/failed cronologicamente com o relógio atual (guarda stale preservada),
+e depois executa o último slot vencido. Slots nunca iniciados desde o primeiro registro
+persistido tornam-se skipped com motivo e Action de alerta; nunca executam regras retroativas.
+Sem histórico, bootstrap registra somente desde ontem (não presume data de instalação).
+Migração 007 amplia estado, conservando todas as linhas. Replay não repete efeitos.
+
+## ADR-030 — Id curto opt-in, sem presumir V-02 (T-61)
+Null conserva os parâmetros e bytes das páginas existentes. Limite/alfabeto configuráveis
+só após validação humana. SHA-256 da identidade local codificado no alfabeto, truncado
+por módulo de sua capacidade; colisão com token ou id completo de outra entidade recusa.
+Migração 009 conserva aliases históricos, mesmo após mudança de configuração. A ponte
+mantém ad_id completo nos eventos e usa token apenas no link de afiliado. Com fallback
+ativo, ad desconhecido não produz rastreio; não atribuir venda à entidade errada.
+
+## ADR-031 — CSV declarativo com padrão interno preservado (T-62)
+config/sales_csv.yaml declara somente o esquema interno já existente. A CLI o carrega;
+a API Python sem mapping mantém os defaults anteriores, sem depender do cwd. Não há
+perfil Hotmart nem V-01 presumida. Cabeçalhos estritos por padrão; permissivo só por opção
+explícita, mantendo todas as colunas requeridas e recusando duplicação. Datas sem timezone
+não são inferidas: formato/fuso declarados ou erro, inclusive ambiguidades de DST.
+Decimal converte dígitos diretamente em centavos; não aceita agrupamento, expoente ou
+arredondamento. O parser nativo do timestamp e centavos inteiros permanecem no padrão.
+
+## ADR-032 — Privacidade dos artefatos financeiros (T-65)
+POSIX: arquivos 0600, diretórios privados 0700; writers fecham modos de seus destinos.
+Inspeção usa somente stat, nunca conteúdo de segredos; marcadores .gitkeep vazios não são
+dados financeiros. Symlinks em qualquer componente recusados antes de leitura/escrita,
+com O_NOFOLLOW na publicação. Doctor avisa por modo aberto e erra por symlink; preflight
+bloqueia ambos. Windows/non-POSIX: aviso sobre ACLs, sem inferir segurança por bits Unix.
+Nada lê .env nem chave privada para diagnosticar permissões.
+
+## ADR-033 — Serviço renderizado exclusivamente em simulação (T-66)
+Seis templates revisáveis e manifest determinístico, sem instalar/ativar processos. Scheduler
+usa ciclos IANA São Paulo (não fixa offset futuro); backup/drill diários UTC em 00:10/00:20.
+ExecStart aplica LIVE_MODE=false via env depois de EnvironmentFile; arquivo só referenciado,
+nunca lido. Check compara todos os bytes/hash com templates/configuração, modos, executable
+local e flock. Instalação, disponibilidade e eventual live permanecem decisões humanas.
+
+Integração do pacote plantou dois bypasses de caminho: CLI backup fazia resolve antes da
+recusa de symlink, e preflight ainda abria o destino depois de detectar caminho financeiro
+inválido. Remover resolve prematuro e recusar abertura preserva modos e diagnóstico. Testes
+falharam antes das correções; nenhum alvo privado real foi lido nem serviço executado.
+
+## ADR-034 — Cadastro explícito da entidade de teste do aceite de pausa
+- Migração 010 adiciona flag separada vinculada a entity_id/meta_id, sem mudar arb.models.
+- Apenas anúncio único conhecido, cadastro humano em TTY, sem quarentena/pendências.
+- Intenção persistida antes do PauseWriter; GET posterior fecha como reconciled_paused.
+  Timeout ou estado diferente permanece uncertain, reconciliável por leitura existente.
+- Não cria entidades nem autoriza exposição; execução real pertence ao host humano.
+
+## ADR-035 — Aceite de rastreio sintético assinado e isolado do P&L
+- Approval ganha kind tracking_test; envelope liga URL/origem, entidade e evento exatos.
+  Guarda central exige assinatura Ed25519, sem exceção para POST de teste. Exportar contratos.
+- Proposta é local em modo false; assinatura e execução real pertencem ao humano no host.
+- Protocolo **próprio** do Worker permite somente a extensão opcional test:true em /event.
+  Payload normal continua byte a byte igual; não é formato Hotmart nem Graph inventado.
+- Recibos de teste preservam a flag mas nunca geram MetricSnapshot, nem contam eventos reais.
+  CSV usa contrato interno existente em banco descartável; produção não recebe venda sintética.
+- Intenção durável e resultado redigido; falha mantém uncertain. Sem reenviar automaticamente:
+  humano verifica ledger/export. Não implementa reconciliação automática de exposição Graph.
+
+## ADR-036 — Prontidão por evidência local, nunca autorização de exposição
+- arb readiness é read-only, sem chamadas de rede, .env ou chave privada. Graph sempre
+  bloqueado neste batch; presença de arquivos não implementa nem aprova executor.
+- Kits: schema/kind/checks exatos, hash canônico, data consciente de fuso, não futura e
+  idade máxima de 7 dias. Drill de backup precisa passed e idade <=48h.
+- ops/validation-status.json é registro versionado próprio, inicialmente tudo pending;
+  confirmações exigem by=human, checked_at recente e referência evidence. Não inventa V-01–06.
+- Preflight fica sem rede. Somente seu check meta_spend_cap pode ser satisfecho por
+  prova F5 válida dentro do teto + confirmação humana; outros erros locais permanecem.
+- Hash prova integridade, não autenticidade. Revisão humana das evidências é obrigatória.
+  Cartão, spend_cap, host e instalação real requerem confirmações separadas; pacote
+  verificado não equivale a serviço instalado, nem readiness libera uma assinatura/gate.

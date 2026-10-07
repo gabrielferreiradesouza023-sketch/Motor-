@@ -12,9 +12,12 @@ from zoneinfo import ZoneInfo
 from jinja2 import Environment, select_autoescape
 
 from arb.analyst import pnl
+from arb.analyst.decisions import question as decision_question
+from arb.analyst.decisions import queue
 from arb.db import Repository
 from arb.ledger import pending as ledger_pending
-from arb.models import Action, Approval
+from arb.models import Approval
+from arb.permissions import private_directory, private_open
 from arb.quarantine import current
 
 TEMPLATE = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -37,6 +40,9 @@ border-bottom:1px solid #ddd;padding:8px 0}
 <section><h2>Estado operacional</h2><ul>
 <li>Ledger: {{ ops.pending }} pendências; {{ ops.uncertain }} incertas;
 {{ ops.orphans }} órfãs. Consultar arb ops pending para detalhes.</li>
+<li>Alertas incertos sem ack: {{ ops.unacked_alerts|length }}. Consultar arb ops alerts.</li>
+{% for row in ops.unacked_alerts %}<li>{{ row.id }} · {{ row.codes|join(', ') }}
+· {{ 'freio/stale requer ack' if row.critical else 'revisar' }}</li>{% endfor %}
 <li>Resultados incertos no histórico: {{ ops.uncertain_results }}</li>
 <li>Quarentena: {{ 'aberta' if ops.quarantine else 'nenhuma' }}</li>
 <li>Idade do último backup (s): {{ ops.backup_age_seconds if
@@ -44,7 +50,8 @@ ops.backup_age_seconds is not none else 'ausente' }}</li>
 <li>Último drill: {{ 'verde' if ops.drill.status == 'passed' else 'falho ou ausente' }};
 idade (s): {{ ops.drill.age_seconds if ops.drill.age_seconds is not none else 'desconhecida' }}</li>
 <li>Última reconciliação: {{ ops.last_reconciliation or 'ausente' }}</li></ul>
-<p>Aprovações pendentes por tipo:</p><ul>{% for kind, count in ops.pending_approvals.items() %}
+<p>Aprovações pendentes por tipo (banco):</p><ul>
+{% for kind, count in ops.pending_approvals.items() %}
 <li>{{ kind }}: {{ count }}</li>{% else %}<li>Nenhuma.</li>{% endfor %}</ul></section>
 <section><h2>Aprendizado</h2><p>Desperdício: {{ t.waste_ratio|percent }} · Custo por aprendizado:
 {{ t.cost_per_learning_cents|money }}</p></section>
@@ -57,6 +64,15 @@ idade (s): {{ ops.drill.age_seconds if ops.drill.age_seconds is not none else 'd
 {% endfor %}</section>
 <section><h2>Alertas</h2><ul>{% for alert in alerts %}<li>{{ alert }}</li>{% endfor %}
 {% if unmatched %}<li>{{ unmatched }} vendas sem casamento.</li>{% endif %}</ul></section>
+<section><h2>Fila de decisões humanas</h2><p>Arquivos válidos pendentes por tipo:</p>
+<ul>{% for kind, count in queue_counts.items() %}<li>{{ kind }}: {{ count }}</li>
+{% else %}<li>Nenhuma.</li>{% endfor %}</ul><ul>{% for row in human_queue['items'] %}
+<li>{{ row.kind }} · {{ row.summary }} · Exposição {{ row.max_exposure_cents|money }}
+· Idade {{ row.age_seconds }} s · Hash {{ row.plan_hash_short }}
+<br><code>{{ row.command }}</code><br><small>{{ row.expiry_suggestion }}</small></li>
+{% else %}<li>Nenhuma proposta válida pendente.</li>{% endfor %}</ul>
+{% if human_queue.invalid %}<p>{{ human_queue.invalid }} arquivos inválidos exigem revisão.</p>
+{% endif %}<p>Idade baseada no mtime; informativa, sem validade automática.</p></section>
 <p class="decision-question">{{ question }}</p><footer>Revisar aprovações por arquivo.
 Nenhuma decisão neste relatório ativa ou aumenta exposição.</footer></main></body></html>"""
 
@@ -93,9 +109,18 @@ def _drill_status(directory, now):
 
 def operational_status(connection, *, now=None):
     now = now or datetime.now(UTC)
+    from arb.scheduler.alerts import uncertain
+
     rows = ledger_pending(connection, now=now)
-    actions = Repository(connection, Action).list()
-    reconciled = [a.ts for a in actions if a.result.startswith("reconciled_")]
+    reconciled = [
+        datetime.fromisoformat(row[0])
+        for row in connection.execute(
+            "SELECT action_ts FROM actions WHERE action_result GLOB 'reconciled_*'"
+        )
+    ]
+    uncertain_count = connection.execute(
+        "SELECT count(*) FROM actions WHERE action_result='uncertain'"
+    ).fetchone()[0]
     approvals = Counter(
         a.kind for a in Repository(connection, Approval).list() if a.status == "pending"
     )
@@ -111,10 +136,11 @@ def operational_status(connection, *, now=None):
         except OSError:
             pass
     return {
+        "unacked_alerts": uncertain(connection),
         "pending": len(rows),
         "uncertain": sum(row["state"] == "uncertain" for row in rows),
         "orphans": sum(row["state"] == "orphan" for row in rows),
-        "uncertain_results": sum(a.result == "uncertain" for a in actions),
+        "uncertain_results": uncertain_count,
         "quarantine": current(connection) is not None,
         "backup_age_seconds": age,
         "drill": _drill_status(directory, now),
@@ -138,12 +164,8 @@ def generate_report(
     environment = Environment(autoescape=select_autoescape(default_for_string=True))
     environment.filters["money"] = lambda v: "—" if v is None else f"R$ {v / 100:,.2f}"
     environment.filters["percent"] = lambda v: "—" if v is None else f"{v * 100:.1f}%"
-    pending = sorted(approval_dir.glob("*.json"))
-    question = (
-        f"Aprovar ou rejeitar o plano pendente {pending[0].name}?"
-        if pending
-        else "Manter a simulação até a próxima revisão?"
-    )
+    human_queue = queue(approval_dir, now=instant)
+    question = decision_question(human_queue)
     terminal = [
         d
         for d in sorted(data["decisions"], key=lambda d: d["ts"])
@@ -158,11 +180,15 @@ def generate_report(
         alerts=data["alerts"],
         unmatched=len(data["unmatched"]),
         question=question,
+        human_queue=human_queue,
+        queue_counts=Counter(row["kind"] for row in human_queue["items"]),
     )
-    output.mkdir(parents=True, exist_ok=True)
+    private_directory(output)
     dated = output / f"{stamp.strftime('%Y-%m-%d_%H%M%S')}.html"
-    dated.write_text(rendered)
+    with private_open(dated) as file:
+        file.write(rendered)
     temporary = output / ".latest.tmp"
-    temporary.write_text(rendered)
+    with private_open(temporary) as file:
+        file.write(rendered)
     temporary.replace(output / "latest.html")
     return output / "latest.html"

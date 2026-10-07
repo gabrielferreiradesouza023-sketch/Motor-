@@ -31,6 +31,7 @@ def configured(tmp_path, monkeypatch):
     assert drill(database.parent / "backups", now=NOW)["status"] == "passed"
     lock = database.with_suffix(".db.scheduler.lock")
     lock.write_text("preserve scheduler file")
+    lock.chmod(0o600)
     for name in (
         *preflight.REQUIRED_CREDENTIALS,
         "TELEGRAM_BOT_TOKEN",

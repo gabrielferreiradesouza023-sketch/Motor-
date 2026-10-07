@@ -21,6 +21,7 @@ from arb.models import (
     Offer,
     SaleEvent,
 )
+from arb.permissions import private_directory, private_open, reject_links
 
 MIGRATIONS = Path(__file__).parent / "migrations"
 T = TypeVar("T", bound=Model)
@@ -42,7 +43,8 @@ APPEND_ONLY = (MetricSnapshot, MetricAdjustment, Decision, Action)
 
 
 def connect(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    with private_open(path, append=True):
+        pass
     connection = sqlite3.connect(path, timeout=10)
     connection.execute("PRAGMA foreign_keys=ON")
     connection.execute("PRAGMA journal_mode=WAL")
@@ -143,16 +145,19 @@ def backup_daily(connection: sqlite3.Connection, directory: Path, day: date | No
     """Uma cópia por dia UTC, sete dias retidos; backup consistente e validado."""
     if connection.in_transaction:
         raise ValueError("commit necessário antes do backup")
+    private_directory(directory)
     directory = directory.resolve()
-    directory.mkdir(parents=True, exist_ok=True)
     day = day or datetime.now(UTC).date()
     target = directory / f"engine-{day.isoformat()}.db"
+    reject_links(target)
     if target.exists():
         with closing(sqlite3.connect(f"{target.as_uri()}?mode=ro", uri=True)) as existing:
             if existing.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise ValueError("backup diário existente inválido")
         return target
     temporary = target.with_suffix(".tmp")
+    with private_open(temporary, exclusive=True):
+        pass
     try:
         with closing(sqlite3.connect(temporary)) as destination:
             connection.backup(destination)

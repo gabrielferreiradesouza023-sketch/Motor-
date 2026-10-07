@@ -144,6 +144,25 @@ def inspect(
         "Declarar CARD_LIMIT_CENTS positivo <= total_cap_cents; confirmar limite no emissor",
     )
     database = database if database.is_absolute() else root / database
+    from arb.permissions import inspect_paths
+
+    privacy = inspect_paths(root, database=database)
+    record(
+        "permissions",
+        privacy["ok"],
+        "Permissões financeiras fechadas"
+        if privacy["ok"]
+        else "Permissões abertas ou symlink em caminhos financeiros",
+        "Humano: fechar modos/ACLs e remover symlinks no host",
+    )
+    if privacy["warnings"]:
+        record(
+            "permissions_platform",
+            False,
+            privacy["warnings"][0],
+            "Humano: validar ACLs no Windows ou usar host Linux/WSL",
+            warning=True,
+        )
     backup = database.parent / "backups" / f"engine-{now.astimezone(UTC).date().isoformat()}.db"
     backup_ok = False
     try:
@@ -164,6 +183,8 @@ def inspect(
     )
     operational = None
     try:
+        if not privacy["ok"]:
+            raise ValueError("caminho financeiro inválido; não abrir banco")
         with closing(sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro", uri=True)) as source:
             operational = operational_status(source, now=now)
     except Exception:
@@ -191,6 +212,18 @@ def inspect(
         record(
             name, ok, message if ok else message + ": condição não satisfeita ou indisponível", fix
         )
+    record(
+        "alert_ack",
+        operational is not None
+        and not any(row["critical"] for row in operational["unacked_alerts"]),
+        (
+            f"Alertas incertos sem ack: {len(operational['unacked_alerts'])}; "
+            f"críticos: {sum(row['critical'] for row in operational['unacked_alerts'])}"
+            if operational is not None
+            else "Estado de alertas indisponível"
+        ),
+        "Humano: arb ops alerts; ler relatório e arb ops ack <id> no tty",
+    )
     lock_ok = False
     try:
         # Não criar nem editar a trava do scheduler; testar o mesmo arquivo existente.
