@@ -26,6 +26,7 @@ def synthetic_report():
                 "src/arb/launcher/execute.py",
                 "src/arb/safety.py",
                 "src/arb/meta/pause.py",
+                "src/arb/ledger.py",
             ]
         },
     }

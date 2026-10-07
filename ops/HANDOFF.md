@@ -129,3 +129,7 @@ Preflight humano/JSON com exit 1 em erro, GET Meta só por opt-in e MockTranspor
   FakeMeta, idempotência ponta a ponta, drill completo, contrato Graph (bloqueio
   documental), painel/preflight e runbook de incidentes.
 - Continuam pendentes do humano: F5/F6 reais, V-01–V-06, limites externos, host persistente.
+
+### T-42 — Codex, BATCH-03
+Ledger órfão/incerto e bloqueio antes do segundo POST; CLI pending e aviso do doctor
+447 passed in 169.53s (0:02:49); cobertura 88.07%; gates locais verdes.

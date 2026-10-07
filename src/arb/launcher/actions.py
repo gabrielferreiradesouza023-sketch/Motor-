@@ -167,6 +167,9 @@ def automatic(connection: sqlite3.Connection, kind: str, entity_id: str, *, reas
 
 
 def _pause_remote(connection, entity, reason, now, writer):
+    from arb.ledger import require_clear
+
+    require_clear(connection, entity.id)
     if entity.status == "paused":
         return None
     writer = writer or PauseWriter.from_environment()

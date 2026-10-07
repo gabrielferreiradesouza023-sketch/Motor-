@@ -624,3 +624,26 @@ def preflight_command(
                 typer.echo("  Correção: " + check["fix"])
     if not result["ok"]:
         raise typer.Exit(1)
+
+
+ops_app = typer.Typer(help="Intenções e reconciliação operacional")
+app.add_typer(ops_app, name="ops")
+
+
+@ops_app.command("pending")
+def ops_pending(
+    database: str = "data/engine.db", json_output: bool = typer.Option(False, "--json")
+):
+    import json
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.ledger import pending
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        rows = pending(connection)
+        typer.echo(json.dumps(rows, sort_keys=True) if json_output else f"Pendências: {len(rows)}")
+    finally:
+        connection.close()
