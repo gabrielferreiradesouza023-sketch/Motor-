@@ -1042,3 +1042,76 @@ def accept_pause(
             reader.close()
         if connection is not None:
             connection.close()
+
+
+@accept_app.command("tracking-propose")
+def accept_tracking_propose(
+    url: str = typer.Option(...),
+    origin: str = typer.Option(...),
+    entity_id: str = typer.Option(...),
+    tracking_id: str = "",
+    database: str = "data/engine.db",
+    output: str = "ops/approvals/pending",
+):
+    from pathlib import Path
+
+    from arb.accept_tracking import propose
+    from arb.db import connect, migrate
+
+    connection = connect(Path(database))
+    try:
+        migrate(connection)
+        path = propose(
+            connection,
+            entity_id,
+            url,
+            origin,
+            tracking_id=tracking_id or None,
+            directory=Path(output),
+        )
+        typer.echo(f"Proposta: {path}; revisar e assinar no próprio host com arb approve sign")
+    except (ValueError, OSError):
+        typer.echo("Proposta recusada; verificar modo, entidade, rastreio e URL/origem")
+        raise typer.Exit(1) from None
+    finally:
+        connection.close()
+
+
+@accept_app.command("tracking")
+def accept_tracking(
+    url: str = typer.Option(...),
+    out: str = typer.Option(...),
+    approval_id: str = typer.Option(...),
+    database: str = "data/engine.db",
+    approvals: str = "ops/approvals/approved",
+):
+    import os
+    from pathlib import Path
+
+    from arb.accept import require_host, save
+    from arb.accept_tracking import tracking
+    from arb.db import connect, migrate
+
+    connection = None
+    try:
+        require_host()
+        connection = connect(Path(database))
+        migrate(connection)
+        result = tracking(
+            connection,
+            url,
+            os.environ.get("TRACKER_SYNC_TOKEN", ""),
+            approval_id,
+            approval_dir=Path(approvals),
+        )
+        save(result, Path(out))
+        typer.echo("Aceite rastreio: " + result["status"])
+        if result["status"] != "passed":
+            typer.echo("Consultar ledger/export no host; não reenviar automaticamente")
+            raise typer.Exit(1)
+    except (ValueError, OSError):
+        typer.echo("Kit recusado; verificar modo, aprovação exata e configuração no host humano")
+        raise typer.Exit(1) from None
+    finally:
+        if connection is not None:
+            connection.close()

@@ -12,6 +12,14 @@ from arb.models import BridgeEvent, MetricSnapshot, SaleEvent
 from arb.tracker import entity_map, ingest, match
 
 
+def decode_event(body):
+    raw = dict(body)
+    marked = "test" in raw
+    if marked and raw.pop("test") is not True:
+        raise ValueError("marcação de teste inválida")
+    return BridgeEvent.model_validate(raw), marked
+
+
 def apply_receipts(connection: sqlite3.Connection) -> int:
     aliases = entity_map(connection)
     count = 0
@@ -19,7 +27,13 @@ def apply_receipts(connection: sqlite3.Connection) -> int:
     for source, identifier, payload in connection.execute(
         "SELECT source,id,payload FROM tracker_receipts WHERE applied=0 ORDER BY source,id"
     ).fetchall():
-        event = BridgeEvent.model_validate_json(payload)
+        event, marked = decode_event(json.loads(payload))
+        if marked:
+            connection.execute(
+                "UPDATE tracker_receipts SET applied=1 WHERE source=? AND id=?",
+                (source, identifier),
+            )
+            continue  # Recibo auditável, nunca MetricSnapshot nem P&L.
         entity_id = aliases.get(event.ad_id)
         if entity_id is None:
             continue
@@ -96,15 +110,15 @@ def sync(
                         raise ValueError("Cursor não avança")
                     cursors[index] = cursor
                     (events if index == 0 else sales).append(
-                        BridgeEvent.model_validate(body)
-                        if index == 0
-                        else SaleEvent.model_validate(body)
+                        decode_event(body) if index == 0 else SaleEvent.model_validate(body)
                     )
             if document["more"] and cursors == list(row):
                 raise ValueError("Exportação sem avanço")
             with connection:
-                for event in events:
+                for event, marked in events:
                     payload = event.model_dump_json()
+                    if marked:
+                        payload = json.dumps(event.model_dump(mode="json") | {"test": True})
                     previous = connection.execute(
                         "SELECT payload FROM tracker_receipts WHERE source=? AND id=?",
                         (source, event.id),

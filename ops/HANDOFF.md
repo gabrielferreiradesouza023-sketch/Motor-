@@ -155,3 +155,7 @@ Aceite de uma pausa com flag explícita, TTY e ledger durável; 26 testes novos 
 ### T-69 — Codex, BATCH-04
 Suíte de conformidade com 12 casos: FakeMeta apenas, 3 writers defeituosos detectados, timeout recuperável por leitura e orçamento limitado ao pedido autorizado; drill 42 idêntico.
 793 passed in 377.95s (0:06:17); cobertura 90.11%; gates locais verdes.
+
+### T-70 — Codex, BATCH-04
+Kit de rastreio assinado, CSV descartável e recibos test:true excluídos das métricas; 50 testes novos, accept_tracking 100%, Worker typecheck e 3 testes verdes; ADR-035 e contratos exportados; drill 42 idêntico.
+851 passed in 235.48s (0:03:55); cobertura 90.05%; gates locais verdes.

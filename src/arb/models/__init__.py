@@ -113,7 +113,9 @@ class Decision(Model):
 class Approval(Model):
     id: Identifier
     plan_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-    kind: Literal["launch", "activate", "scale", "new_offer", "notification", "creative_set"]
+    kind: Literal[
+        "launch", "activate", "scale", "new_offer", "notification", "creative_set", "tracking_test"
+    ]
     summary: Identifier
     max_exposure_cents: Cents
     status: Literal["pending", "approved", "rejected"]

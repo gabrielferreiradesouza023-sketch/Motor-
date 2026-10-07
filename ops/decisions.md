@@ -363,3 +363,14 @@ falharam antes das correções; nenhum alvo privado real foi lido nem serviço e
 - Intenção persistida antes do PauseWriter; GET posterior fecha como reconciled_paused.
   Timeout ou estado diferente permanece uncertain, reconciliável por leitura existente.
 - Não cria entidades nem autoriza exposição; execução real pertence ao host humano.
+
+## ADR-035 — Aceite de rastreio sintético assinado e isolado do P&L
+- Approval ganha kind tracking_test; envelope liga URL/origem, entidade e evento exatos.
+  Guarda central exige assinatura Ed25519, sem exceção para POST de teste. Exportar contratos.
+- Proposta é local em modo false; assinatura e execução real pertencem ao humano no host.
+- Protocolo **próprio** do Worker permite somente a extensão opcional test:true em /event.
+  Payload normal continua byte a byte igual; não é formato Hotmart nem Graph inventado.
+- Recibos de teste preservam a flag mas nunca geram MetricSnapshot, nem contam eventos reais.
+  CSV usa contrato interno existente em banco descartável; produção não recebe venda sintética.
+- Intenção durável e resultado redigido; falha mantém uncertain. Sem reenviar automaticamente:
+  humano verifica ledger/export. Não implementa reconciliação automática de exposição Graph.

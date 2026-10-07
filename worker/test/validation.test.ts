@@ -21,3 +21,12 @@ test("wrong origin and absent sale secret denied before D1", async () => {
     method:"POST", headers:{Origin:"https://evil.example"} }), env)).status, 403);
   assert.equal((await worker.fetch(new Request("https://worker.example/sale", {method:"POST"}), env)).status, 503);
 });
+
+test("synthetic marker is explicit true; normal wire shape preserved", () => {
+  assert.deepEqual(validateEvent(event), event);
+  assert.deepEqual(validateEvent({ ...event, test:true }), { ...event, test:true });
+  for (const test of [false, null, 1, "true"]) {
+    assert.throws(() => validateEvent({ ...event, test }));
+  }
+  assert.throws(() => validateEvent({ ...event, test:true, extra:1 }));
+});

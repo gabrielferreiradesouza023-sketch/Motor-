@@ -111,9 +111,12 @@ def read_document(path: Path) -> tuple[Approval, dict | None]:
     if isinstance(document, dict) and set(document) == {"approval", "plan"}:
         approval = Approval.model_validate(document["approval"])
         plan = document["plan"]
-        if approval.kind not in {"new_offer", "creative_set", "scale"} or not isinstance(
-            plan, dict
-        ):
+        if approval.kind not in {
+            "new_offer",
+            "creative_set",
+            "scale",
+            "tracking_test",
+        } or not isinstance(plan, dict):
             raise ValueError("envelope de aprovação inválido")
         digest = hashlib.sha256(
             json.dumps(plan, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()

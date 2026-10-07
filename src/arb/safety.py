@@ -8,7 +8,9 @@ from pathlib import Path
 
 from arb.models import Approval
 
-KINDS = frozenset({"pause", "launch", "activate", "scale", "new_offer", "notification"})
+KINDS = frozenset(
+    {"pause", "launch", "activate", "scale", "new_offer", "notification", "tracking_test"}
+)
 LOGGER = logging.getLogger(__name__)
 
 

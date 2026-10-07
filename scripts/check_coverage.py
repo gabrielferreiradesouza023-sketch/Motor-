@@ -24,6 +24,7 @@ MONEY_MODULES = (
     "tracker.ids",
     "permissions",
     "accept_pause",
+    "accept_tracking",
 )
 
 
