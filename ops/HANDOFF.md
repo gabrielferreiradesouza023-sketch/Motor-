@@ -107,3 +107,7 @@ Runbook comprovado por 11 comandos e 7 cenarios, HANDOFF consolidado e evidencia
   (executados pelo humano), conformidade RemoteWriter e painel de prontidão.
 - Pendências humanas inalteradas: F5/F6 reais, V-01–V-06, executor Graph (T-55), cartão e
   spend_cap, host persistente. O motor não está pronto para dinheiro real.
+
+### T-58 — Codex, BATCH-04
+Release alinha remotos pausados com Action e revalida leitura na transacao; 2 testes novos reproduziram falhas anteriores
+649 passed in 193.84s (0:03:13); cobertura 89.39%; gates locais verdes.
