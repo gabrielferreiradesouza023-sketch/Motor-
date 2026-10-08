@@ -123,3 +123,6 @@ Painel read-only não pronto com 19 checks, 47 testes novos e readiness 100%; 89
 
 ### BATCH-05 T-73 — review
 28 testes novos; registro liga assinatura ao item, recusa cópia/edição/vencimento e mantém pending atual. validation >=95%. Gates locais: 940 testes, 90.47% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-05 T-74 — review
+16 testes novos; diagnóstico WSL/systemd/timezone/unidades somente por show; avisos propagados sem confirmar persistent_host. Gates locais: 956 testes, 90.60% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

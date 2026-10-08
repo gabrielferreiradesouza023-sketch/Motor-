@@ -107,4 +107,7 @@ def diagnose(root: Path) -> tuple[list[str], list[str]]:
             "approval_public_key: ausente; launch/activate recusados até o humano rodar "
             "`arb approve keygen` e versionar a chave pública (ADR-022)."
         )
+    from arb import hostinfo
+
+    warnings.extend(hostinfo.inspect()["warnings"])
     return errors, warnings

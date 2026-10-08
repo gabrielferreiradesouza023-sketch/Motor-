@@ -58,6 +58,17 @@ def inspect(
             }
         )
 
+    from arb import hostinfo
+
+    host = hostinfo.inspect()
+    record(
+        "host_diagnostic",
+        not host["warnings"],
+        "; ".join(host["warnings"]) or "Diagnóstico de host disponível; não confirma persistência",
+        "Humano: revisar arb service status e disponibilidade do host",
+        warning=True,
+    )
+
     cap = None
     try:
         cap = load_rules(root / "config/rules.yaml").controls.total_cap_cents

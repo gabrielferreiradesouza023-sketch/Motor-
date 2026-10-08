@@ -1204,3 +1204,27 @@ def validate_show(root: str = ".", json_output: bool = typer.Option(False, "--js
     else:
         for name, row in result.items():
             typer.echo(f"{'✔' if row['valid'] else '✘'} {name}: {row['status']}")
+
+
+@service_app.command("status")
+def service_status(json_output: bool = typer.Option(False, "--json")):
+    import json
+
+    from arb.hostinfo import inspect
+
+    result = inspect()
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    else:
+        typer.echo(
+            f"WSL={result['wsl']}; systemd PID1={result['systemd_pid1']}; "
+            f"timezone={result['timezone']}"
+        )
+        for warning in result["warnings"]:
+            typer.echo("AVISO: " + warning)
+        for row in result["units"]:
+            typer.echo(
+                f"{row['name']}: instalado={row['installed']}; "
+                f"estado={row['active_state']}; próximo={row['next']}"
+            )
+        typer.echo(result["scope"])

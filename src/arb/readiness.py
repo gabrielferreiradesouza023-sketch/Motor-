@@ -6,7 +6,7 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
-from arb import preflight, service
+from arb import hostinfo, preflight, service
 from arb.launcher.approval import configured_public_key, verify_document
 from arb.permissions import inspect_paths, reject_links
 from arb.rules import load_rules
@@ -229,6 +229,7 @@ def inspect(*, root=Path("."), now=None):
     )
     ready = all(item["ok"] for item in items)
     return {
+        "host": hostinfo.inspect(),
         "ready": ready,
         "status": "pronto" if ready else "não pronto",
         "checked_at": now.astimezone(UTC).isoformat(),
