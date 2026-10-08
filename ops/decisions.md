@@ -394,3 +394,11 @@ todos os campos, inclusive o hash; usa a primitiva Ed25519 de approval e a chave
 versionada. Kits não assinam; humano revisa em TTY e assina localmente. Publicação atômica
 0600 recusa symlinks e alterações concorrentes. Readiness verifica apenas com a pública,
 exige assinatura e mantém validade, checks, teto e Graph bloqueado. Não é aprovação de gasto.
+
+## ADR-038 — Confirmações humanas vinculadas a item (T-73)
+Registro signed inclui kind human_validation e item no payload canônico, impedindo copiar
+assinatura entre V-01–06 e limites. Mesma pública Ed25519; validade consciente de fuso, não
+futura e <=7 dias. pending antigo continua válido mas não confirma nada; by=human sozinho
+não prova origem. record exige TTY, confirmação e privada humana; show/readiness só verificam.
+Publicação atômica e modos privados; nenhum valor do provedor ou limite presumido. Módulo
+validation entra no gate combinado de 95%. Não muda settings, regras nem arb.models.

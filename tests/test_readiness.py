@@ -57,12 +57,16 @@ def complete(tmp_path, monkeypatch):
         {
             "schema": 1,
             "items": {
-                name: {
-                    "status": "confirmed",
-                    "by": "human",
-                    "checked_at": NOW.isoformat(),
-                    "evidence": "synthetic fixture; never a real provider acceptance",
-                }
+                name: sign_document(
+                    {
+                        "kind": "human_validation",
+                        "item": name,
+                        "status": "confirmed",
+                        "by": "human",
+                        "checked_at": NOW.isoformat(),
+                        "evidence": "synthetic fixture; never a real provider acceptance",
+                    }
+                )
                 for name in panel.HUMAN_ITEMS
             },
         },

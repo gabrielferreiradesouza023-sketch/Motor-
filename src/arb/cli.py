@@ -1167,3 +1167,40 @@ def evidence_verify(arquivo: str):
         typer.echo(str(error))
         raise typer.Exit(1) from None
     typer.echo("Assinatura válida; aceite e validade temporal são avaliados por readiness")
+
+
+validate_app = typer.Typer(help="Registrar validações assinadas na máquina humana")
+app.add_typer(validate_app, name="validate")
+
+
+@validate_app.command("record")
+def validate_record(item: str, evidence: str = typer.Option(...), root: str = "."):
+    from pathlib import Path
+
+    from arb.validation import record
+
+    try:
+        record(item, evidence, typer.confirm, root=Path(root))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo(f"{item}: registro assinado; não autoriza exposição")
+
+
+@validate_app.command("show")
+def validate_show(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.validation import show
+
+    try:
+        result = show(root=Path(root))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2))
+    else:
+        for name, row in result.items():
+            typer.echo(f"{'✔' if row['valid'] else '✘'} {name}: {row['status']}")

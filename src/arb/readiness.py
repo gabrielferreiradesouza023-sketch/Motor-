@@ -3,20 +3,15 @@
 import hashlib
 import json
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
 from arb import preflight, service
 from arb.launcher.approval import configured_public_key, verify_document
 from arb.permissions import inspect_paths, reject_links
 from arb.rules import load_rules
+from arb.validation import HUMAN_ITEMS, fresh, load_registry, valid_record
 
-HUMAN_ITEMS = tuple(f"V-{n:02d}" for n in range(1, 7)) + (
-    "card_limit",
-    "spend_cap",
-    "persistent_host",
-    "service_installed",
-)
 PROOF_CHECKS = {
     "f5": {
         "graph_version",
@@ -34,16 +29,6 @@ PROOF_CHECKS = {
 def read_json(path):
     reject_links(path)
     return json.loads(path.read_text())
-
-
-def fresh(stamp, now, *, days=7):
-    if not isinstance(stamp, str):
-        return False
-    try:
-        value = datetime.fromisoformat(stamp)
-        return value.utcoffset() is not None and timedelta(0) <= now - value <= timedelta(days=days)
-    except ValueError:
-        return False
 
 
 def proof(path, kind, now, *, cap=None, settings=Path("config/settings.yaml")):
@@ -85,20 +70,9 @@ def proof(path, kind, now, *, cap=None, settings=Path("config/settings.yaml")):
 
 def confirmations(root, now):
     try:
-        document = read_json(root / "ops/validation-status.json")
-        if (
-            type(document["schema"]) is not int
-            or document["schema"] != 1
-            or set(document["items"]) != set(HUMAN_ITEMS)
-        ):
-            raise ValueError("registro humano inválido")
+        document = load_registry(root / "ops/validation-status.json")
         return {
-            name: isinstance(row, dict)
-            and row.get("status") == "confirmed"
-            and row.get("by") == "human"
-            and fresh(row.get("checked_at"), now)
-            and isinstance(row.get("evidence"), str)
-            and bool(row["evidence"].strip())
+            name: valid_record(name, row, now, settings=root / "config/settings.yaml")
             for name, row in document["items"].items()
         }
     except (OSError, ValueError, KeyError, TypeError):
@@ -209,7 +183,7 @@ def inspect(*, root=Path("."), now=None):
             name,
             human[name],
             "Validação do provedor ainda não registrada pelo humano",
-            f"Humano: resolver {name}; versionar data/referência em ops/validation-status.json",
+            f"Humano: resolver {name}; usar arb validate record {name} na máquina assinadora",
         )
     record(
         "graph_executor",
