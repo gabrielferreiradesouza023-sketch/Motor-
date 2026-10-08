@@ -106,3 +106,14 @@ instalação, chave privada real ou leitura de .env. config/rules.yaml intacto.
 ### T-71 — Codex, BATCH-04
 Painel read-only não pronto com 19 checks, 47 testes novos e readiness 100%; 898 testes sem skips, 22 grupos de dinheiro verdes; drill 42 repetido byte-idêntico; HANDOFF e evidências finais atualizados.
 898 passed in 229.93s (0:03:49); cobertura 90.26%; gates locais verdes.
+
+## BATCH-05 (planejado por Claude, a executar pelo Codex)
+- #33 e #34 (BATCH-04, T-58–T-71) revisados e mergeados (e42a46f). Revisão do #34: 898
+  testes, drill 42 idêntico, readiness "não pronto". Achado: evidências/confirmações do
+  readiness sem prova de origem → T-72/T-73.
+- T-58–T-71 movidos para `board/done`.
+- Próximo: `ops/batches/BATCH-05.md`, T-72–T-76 (curto): evidência assinada, registro
+  assinado de V-01–V-06/limites, diagnóstico WSL/systemd, plano de instalação do serviço,
+  guia do operador.
+- Humano (decidido em 2026-10-08): instalar host/serviço em simulação agora; Hotmart, Meta e
+  limites no fim de semana; aceites reais bloqueados até lá.
