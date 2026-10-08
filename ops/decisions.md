@@ -452,3 +452,19 @@ Para arquivo observado, calibrate classifica vencedores pelo ROI verdadeiro do m
 (hipóteses de custo/receita existentes), não pelo rótulo nominal winner do perfil.
 Borderline é null: nenhuma classe de vencedor limítrofe foi observada/identificada.
 Isso não altera a calibração padrão; teste planta rótulo winner numa verdade perdedora.
+
+
+## ADR-041 — CAPI opt-in de medição com nonce compartilhado (T-80)
+Status: **Proposto — aguarda aceite humano**.
+
+bridge build --capi-enabled gera nonce único no clique, enviado ao pixel e ao Worker.
+Sem a opção, o HTML versionado permanece byte-idêntico. Worker desliga por padrão,
+exige token/pixel/GRAPH_VERSION explícitos (V-06); nenhum valor/versionamento real
+é presumido. Corpos antigos são aceitos sem enviar CAPI: falta nonce compartilhado.
+Eventos test:true nunca saem. INSERT OR IGNORE no D1 precede envio e impede reenvio
+em replay; entrega é best effort, sem retry automático que possa duplicar eventos.
+Falha/timeout não perde recibo nem muda o 202 existente. waitUntil quando disponível.
+Somente IP e user agent exigidos; source URL remove query/fragmento, sem persistir
+IP/UA/token no D1. Token em header, nunca URL. Não é executor de exposição Graph,
+não confirma F5/F6, não ativa LIVE_MODE e depende de aceite/configuração humana.
+Novo módulo de efeito externo capi.ts entra em gate de 95% linhas e branches no npm test.

@@ -7,7 +7,7 @@
     "dev": "wrangler dev --local --ip 127.0.0.1 --port 8787",
     "db:local": "wrangler d1 migrations apply DB --local",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/*.test.ts"
+    "test": "node --experimental-strip-types --experimental-test-coverage --test-coverage-include=src/capi.ts --test-coverage-lines=95 --test-coverage-branches=95 --test test/*.test.ts"
   },
   "devDependencies": {
     "wrangler": "4.147.0",

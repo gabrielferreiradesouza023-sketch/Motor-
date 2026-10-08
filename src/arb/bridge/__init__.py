@@ -52,6 +52,7 @@ def build(
     tracking_key: str,
     output: Path = Path("bridges_out"),
     connection=None,
+    capi_enabled: bool = False,
     tracking_id_max_length=None,
     tracking_id_alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 ) -> Path:
@@ -75,6 +76,19 @@ def build(
         )
     env = Environment(autoescape=select_autoescape(default_for_string=True))
     template = TEMPLATE
+    if capi_enabled:
+        template = template.replace("function event(kind)", "function event(kind,eventID)")
+        template = template.replace(
+            "id:crypto.randomUUID(),kind", "id:eventID||crypto.randomUUID(),kind"
+        )
+        template = template.replace(
+            "fetch(config.worker", "if(eventID)body.event_id=eventID;\nfetch(config.worker"
+        )
+        template = template.replace(
+            "fbq('track','InitiateCheckout');event('checkout_click');",
+            "const eventID=crypto.randomUUID();fbq('track','InitiateCheckout',{}, {eventID});"
+            "event('checkout_click',eventID);",
+        )
     tracking = {}
     if tracking_id_max_length is not None:
         if connection is None:

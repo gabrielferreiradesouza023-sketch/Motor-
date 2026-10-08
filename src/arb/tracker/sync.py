@@ -17,6 +17,10 @@ def decode_event(body):
     marked = "test" in raw
     if marked and raw.pop("test") is not True:
         raise ValueError("marcação de teste inválida")
+    if "event_id" in raw:
+        nonce = raw.pop("event_id")
+        if nonce != raw.get("id") or raw.get("kind") != "checkout_click":
+            raise ValueError("event_id de checkout inválido")
     return BridgeEvent.model_validate(raw), marked
 
 

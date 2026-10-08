@@ -33,3 +33,6 @@
 
 ### BATCH-06 T-79 — review
 28 testes novos; CPM/CTR/hook/funil contra referências, Wilson Decimal, data de conta, replay/test excluídos, janela/amostra insuficiente sem parâmetros, leitura sem alteração SQLite e calibração do YAML. Módulo observed 100%; compatibilidade 9 summaries/8 células preservada. Gates locais: 1047 testes, 91.37% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-06 T-80 — review
+4 testes Python novos; 8 testes Node novos (Worker: 11/11, zero skips, capi.ts 100% linhas/branches/funções, npm typecheck verde). Pixel e POST compartilham nonce medido no Chromium; replay envia uma vez, falhas HTTP/timeout preservam D1 e 202. Ruff, pytest com cobertura, gate de dinheiro, doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. ADR-041 proposto, padrão HTML/Worker preservado. Gates locais: 1051 testes, 91.39% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

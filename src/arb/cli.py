@@ -237,6 +237,7 @@ def bridge_build(
     slug: str = typer.Option(...),
     database: str = "data/engine.db",
     output: str = "bridges_out",
+    capi_enabled: bool = False,
 ):
     from pathlib import Path
 
@@ -263,6 +264,7 @@ def bridge_build(
             tracking_key=tracking_key,
             output=Path(output),
             connection=connection,
+            capi_enabled=capi_enabled,
             tracking_id_max_length=settings.tracking_id_max_length,
             tracking_id_alphabet=settings.tracking_id_alphabet,
         )
