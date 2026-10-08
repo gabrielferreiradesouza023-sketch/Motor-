@@ -200,10 +200,12 @@ def scout_rank(
 
     from arb.db import connect, migrate
     from arb.scout import import_adlibrary, import_offers
-    from arb.scout.ranking import propose, rank
+    from arb.scout.ranking import producer_report, propose, rank
 
     try:
-        ranked, rejected = rank(import_offers(Path(offers)), import_adlibrary(Path(adlibrary)))
+        intake = import_offers(Path(offers))
+        ranked, rejected = rank(intake, import_adlibrary(Path(adlibrary)))
+        producer = producer_report(intake)
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
     connection = connect(Path(database))
@@ -218,6 +220,7 @@ def scout_rank(
                 "ranking": [{"id": o.id, "score": o.score} for o in ranked],
                 "rejected": rejected,
                 "approval": str(path),
+                **({"producer": producer} if producer else {}),
             },
             ensure_ascii=False,
             indent=2,

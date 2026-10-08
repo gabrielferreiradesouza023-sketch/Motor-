@@ -6,8 +6,14 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 from arb.db import Repository
-from arb.metrics import cost_per_learning, spend_gross, summarize, waste_ratio
-from arb.models import Decision, Entity, MetricAdjustment, MetricSnapshot, SaleEvent
+from arb.metrics import (
+    cost_per_learning,
+    effective_refund_rates,
+    spend_gross,
+    summarize,
+    waste_ratio,
+)
+from arb.models import Decision, Entity, MetricAdjustment, MetricSnapshot, Offer, SaleEvent
 
 
 def pnl(
@@ -20,6 +26,15 @@ def pnl(
     entities = {e.id: e for e in Repository(connection, Entity).list()}
     snapshots = Repository(connection, MetricSnapshot).list()
     sales = Repository(connection, SaleEvent).list()
+    rates = effective_refund_rates(
+        Repository(connection, Offer).list(),
+        entities.values(),
+        sales,
+        refund_rate,
+        exclude_ids={
+            r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
+        },
+    )
     adjustments = Repository(connection, MetricAdjustment).list()
     decisions = Repository(connection, Decision).list()
     fields = (
@@ -73,7 +88,11 @@ def pnl(
                 },
             )
             stats = summarize(
-                aggregate, matched, media_tax_rate=media_tax_rate, refund_rate=refund_rate
+                aggregate,
+                matched,
+                media_tax_rate=media_tax_rate,
+                refund_rate=refund_rate,
+                refund_rates=rates,
             )
             latest_kill = [d for d in decisions if d.entity_id in ids and d.verdict == "kill"]
             stats.update(
@@ -91,7 +110,9 @@ def pnl(
         },
     )
     matched = [s for s in sales if s.matched_entity_id in entities]
-    totals = summarize(total, matched, media_tax_rate=media_tax_rate, refund_rate=refund_rate)
+    totals = summarize(
+        total, matched, media_tax_rate=media_tax_rate, refund_rate=refund_rate, refund_rates=rates
+    )
     sampled = sum(
         d.verdict in ("kill", "pass") and d.metrics_json.get("sample_sufficient", False)
         for d in decisions

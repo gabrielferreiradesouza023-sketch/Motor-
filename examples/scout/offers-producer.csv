@@ -1,0 +1,2 @@
+id,hotmart_product_id,name,niche,language,commission_brl_cents,price_local,currency,allows_paid_traffic,sales_page_url,affiliate_link,native_spanish,sales_page_quality,popularity,policy_risk,producer_paid_traffic_ok,producer_refund_rate,producer_conversion_rate,advertisers_30d,evidence_ref
+synthetic-producer,synthetic-only,SINTÉTICO: exemplo do produtor,excel_produtividade,es,6000,15000,BRL,true,https://example.com/excel,https://example.com/affiliate-excel,true,5,80,0.1,true,0.2,0.02,5,SINTÉTICO: fixture; não é autorização nem dado de mercado

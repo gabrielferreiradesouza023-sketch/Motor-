@@ -4,7 +4,7 @@ import math
 from collections.abc import Iterable
 from decimal import ROUND_HALF_UP, Decimal
 
-from arb.models import MetricSnapshot, SaleEvent
+from arb.models import Entity, MetricSnapshot, Offer, SaleEvent
 
 
 def divide(numerator: int | float, denominator: int | float) -> float | None:
@@ -35,12 +35,59 @@ def bridge_rate(checkout_clicks: int, bridge_views: int) -> float | None:
     return divide(checkout_clicks, bridge_views)
 
 
-def rev_expected(sales: Iterable[SaleEvent], refund_rate: float = 0.15) -> int:
-    commission = sum(s.commission_cents for s in sales if s.status == "approved")
-    return int(
-        (Decimal(commission) * (1 - Decimal(str(refund_rate)))).quantize(
-            Decimal(1), rounding=ROUND_HALF_UP
+def effective_refund_rate(
+    offer: Offer, own_sales: Iterable[SaleEvent], default: float = 0.15
+) -> float:
+    if offer.producer_refund_rate is None:
+        return default
+    unique = {}
+    for sale in sorted(own_sales, key=lambda s: (s.ts, s.status != "approved", s.id)):
+        unique[sale.hotmart_tx_id] = sale
+    if len(unique) < 20:
+        return offer.producer_refund_rate
+    return sum(s.status != "approved" for s in unique.values()) / len(unique)
+
+
+def effective_refund_rates(
+    offers: Iterable[Offer],
+    entities: Iterable[Entity],
+    sales: Iterable[SaleEvent],
+    default: float = 0.15,
+    *,
+    exclude_ids: set[str] | None = None,
+) -> dict[str, float]:
+    entities = list(entities)
+    sales = list(sales)
+    result = {}
+    for offer in offers:
+        if offer.producer_refund_rate is None:
+            continue
+        own = {e.id for e in entities if e.offer_id == offer.id} - (exclude_ids or set())
+        rate = effective_refund_rate(
+            offer, [s for s in sales if s.matched_entity_id in own], default
         )
+        result.update({e.id: rate for e in entities if e.offer_id == offer.id})
+    return result
+
+
+def rev_expected(
+    sales: Iterable[SaleEvent],
+    refund_rate: float = 0.15,
+    *,
+    refund_rates: dict[str, float] | None = None,
+) -> int:
+    commissions = {}
+    for sale in sales:
+        if sale.status == "approved":
+            rate = (refund_rates or {}).get(sale.matched_entity_id, refund_rate)
+            commissions[rate] = commissions.get(rate, 0) + sale.commission_cents
+    return sum(
+        int(
+            (Decimal(commission) * (1 - Decimal(str(rate)))).quantize(
+                Decimal(1), rounding=ROUND_HALF_UP
+            )
+        )
+        for rate, commission in commissions.items()
     )
 
 
@@ -75,10 +122,11 @@ def summarize(
     video: bool = True,
     media_tax_rate: float = 0.13,
     refund_rate: float = 0.15,
+    refund_rates: dict[str, float] | None = None,
 ) -> dict:
     sales = list(sales)
     gross = spend_gross(snapshot.spend_platform_cents, media_tax_rate)
-    revenue = rev_expected(sales, refund_rate)
+    revenue = rev_expected(sales, refund_rate, refund_rates=refund_rates)
     earnings = epc(revenue, snapshot.bridge_views)
     return {
         **snapshot.model_dump(mode="json"),

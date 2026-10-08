@@ -17,6 +17,7 @@ from arb.analyst.report import generate_report
 from arb.config import Settings
 from arb.db import Repository, backup_daily
 from arb.launcher.actions import pause
+from arb.metrics import effective_refund_rates
 from arb.models import (
     Action,
     Creative,
@@ -180,6 +181,15 @@ def _run(
         adjustments = Repository(connection, MetricAdjustment).list()
         sales = Repository(connection, SaleEvent).list()
         offers = {o.id: o for o in Repository(connection, Offer).list()}
+        rates = effective_refund_rates(
+            offers.values(),
+            entities,
+            sales,
+            settings.refund_rate,
+            exclude_ids={
+                r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
+            },
+        )
         creatives = {c.id: c for c in Repository(connection, Creative).list()}
         if "rules" not in result["stages"]:
             for entity in entities:
@@ -217,7 +227,7 @@ def _run(
                     video=entity.creative_id not in creatives
                     or creatives[entity.creative_id].format == "video",
                     media_tax_rate=settings.media_tax_rate,
-                    refund_rate=settings.refund_rate,
+                    refund_rate=rates.get(entity.id, settings.refund_rate),
                     confirmation_start_cents=baseline,
                     confirmed=confirmed,
                 )
@@ -247,7 +257,7 @@ def _run(
                 (row for row in data["groups"]["daily"] if row["key"] == day.isoformat()), {}
             )
             revenue = sum(
-                int(s.commission_cents * (1 - settings.refund_rate))
+                int(s.commission_cents * (1 - rates.get(s.matched_entity_id, settings.refund_rate)))
                 for s in sales
                 if s.status == "approved"
                 and s.matched_entity_id is not None

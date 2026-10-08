@@ -25,7 +25,32 @@ class Model(BaseModel):
         return value
 
 
-class Offer(Model):
+PRODUCER_FIELDS = (
+    "producer_paid_traffic_ok",
+    "producer_refund_rate",
+    "producer_conversion_rate",
+    "advertisers_30d",
+    "evidence_ref",
+)
+
+
+class ProducerInfo(Model):
+    """Optional declared evidence; omission preserves legacy serialization/hashes."""
+
+    producer_paid_traffic_ok: bool | None = Field(
+        default=None, strict=True, exclude_if=lambda v: v is None
+    )
+    producer_refund_rate: Annotated[float, Field(ge=0, le=1, strict=True)] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    producer_conversion_rate: Annotated[float, Field(ge=0, le=1, strict=True)] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    advertisers_30d: Count | None = Field(default=None, exclude_if=lambda v: v is None)
+    evidence_ref: Identifier | None = Field(default=None, exclude_if=lambda v: v is None)
+
+
+class Offer(ProducerInfo):
     id: Identifier
     hotmart_product_id: Identifier
     name: Identifier
@@ -151,7 +176,7 @@ class AngleLearning(Model):
     archived_at: datetime
 
 
-class OfferIntake(Model):
+class OfferIntake(ProducerInfo):
     offer: Offer
     native_spanish: bool
     sales_page_quality: Annotated[int, Field(strict=True, ge=1, le=5)]

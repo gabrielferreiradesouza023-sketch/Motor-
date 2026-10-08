@@ -3,7 +3,7 @@
 import csv
 from pathlib import Path
 
-from arb.models import AdObservation, Offer, OfferIntake
+from arb.models import PRODUCER_FIELDS, AdObservation, Offer, OfferIntake
 
 OFFER_HEADERS = (
     "id",
@@ -25,14 +25,25 @@ OFFER_HEADERS = (
 AD_HEADERS = ("offer_id", "advertiser_id", "first_seen", "observed_at", "active")
 
 
-def rows(path: Path, headers: tuple[str, ...]) -> list[dict[str, str]]:
+def rows(
+    path: Path, headers: tuple[str, ...], optional: tuple[str, ...] = ()
+) -> list[dict[str, str]]:
     with path.open(encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file)
-        if reader.fieldnames != list(headers):
+        fields = reader.fieldnames or []
+        if (
+            fields[: len(headers)] != list(headers)
+            or len(fields) != len(set(fields))
+            or any(key not in optional for key in fields[len(headers) :])
+        ):
             raise ValueError(f"Cabeçalho inválido em {path.name}; esperado: {','.join(headers)}")
         result = list(reader)
     if any(
-        None in row or any(value is None or not value.strip() for value in row.values())
+        None in row
+        or any(
+            value is None or (key not in optional and not value.strip())
+            for key, value in row.items()
+        )
         for row in result
     ):
         raise ValueError(f"Linha incompleta ou colunas excedentes em {path.name}")
@@ -48,11 +59,27 @@ def boolean(value: str) -> bool:
 def import_offers(path: Path) -> list[OfferIntake]:
     result = []
     seen = set()
-    for number, row in enumerate(rows(path, OFFER_HEADERS), 2):
+    for number, row in enumerate(rows(path, OFFER_HEADERS, PRODUCER_FIELDS), 2):
         try:
             if row["id"] in seen:
                 raise ValueError("id duplicado")
             seen.add(row["id"])
+            producer = {}
+            for key in PRODUCER_FIELDS:
+                value = row.pop(key, "").strip()
+                if not value:
+                    continue
+                producer[key] = (
+                    boolean(value)
+                    if key == "producer_paid_traffic_ok"
+                    else float(value)
+                    if key in {"producer_refund_rate", "producer_conversion_rate"}
+                    else int(value)
+                    if key == "advertisers_30d"
+                    else value
+                )
+            if producer.get("producer_paid_traffic_ok") is False:
+                row["allows_paid_traffic"] = "false"
             assessment = {
                 key: row.pop(key)
                 for key in ("native_spanish", "sales_page_quality", "popularity", "policy_risk")
@@ -62,7 +89,8 @@ def import_offers(path: Path) -> list[OfferIntake]:
             row["allows_paid_traffic"] = boolean(row["allows_paid_traffic"])
             result.append(
                 OfferIntake(
-                    offer=Offer(**row, score=0, status="candidate"),
+                    offer=Offer(**row, **producer, score=0, status="candidate"),
+                    **producer,
                     native_spanish=boolean(assessment["native_spanish"]),
                     sales_page_quality=int(assessment["sales_page_quality"]),
                     popularity=float(assessment["popularity"]),
