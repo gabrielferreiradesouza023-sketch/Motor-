@@ -45,6 +45,7 @@ def synthetic_report():
                 "src/arb/readiness.py",
                 "src/arb/validation.py",
                 "src/arb/sim/observed.py",
+                "src/arb/smoke.py",
             ]
         },
     }

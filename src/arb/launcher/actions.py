@@ -23,7 +23,9 @@ def pause(
     writer: PauseWriter | None = None,
 ) -> Action | None:
     from arb.remote.fake import FakeMeta
+    from arb.smoke import require_automatic
 
+    require_automatic(connection, entity_id)
     if isinstance(writer, FakeMeta):
         from arb.remote.journal import perform
 
@@ -115,6 +117,9 @@ def activate(
 ) -> Action:
     from arb.db.checkpoint import snapshot_before
     from arb.quarantine import require_released
+    from arb.smoke import require_automatic
+
+    require_automatic(connection, entity_id)
 
     require_released(connection)
     require_simulation()

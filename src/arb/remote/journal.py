@@ -142,6 +142,9 @@ def finish(connection, attempt, observed, *, now, reconciled=False):
 
 
 def perform(connection, writer, source, operation, key, *, context, approval=None, now):
+    from arb.smoke import require_automatic
+
+    require_automatic(connection, source.id)
     require_fake(writer)
     if connection.in_transaction:
         raise ValueError("efeito exige commit anterior")

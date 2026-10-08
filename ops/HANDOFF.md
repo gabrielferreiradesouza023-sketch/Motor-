@@ -36,3 +36,6 @@
 
 ### BATCH-06 T-80 — review
 4 testes Python novos; 8 testes Node novos (Worker: 11/11, zero skips, capi.ts 100% linhas/branches/funções, npm typecheck verde). Pixel e POST compartilham nonce medido no Chromium; replay envia uma vez, falhas HTTP/timeout preservam D1 e 202. Ruff, pytest com cobertura, gate de dinheiro, doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. ADR-041 proposto, padrão HTML/Worker preservado. Gates locais: 1051 testes, 91.39% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-06 T-81 — review
+28 testes novos; subset afetado 119 verdes antes dos 2 casos adicionais de reparenting. Registro atomicamente auditado human; FakeMeta + MockTransport: 3 dias só GET, CSV sintético, zero escritas. Proteções de pausa/ativação/escala/journal/F6, ancestral e ciclo; alerta no teto; relatório sem dupla contagem, vendas não casadas sem atribuição; saída não sobrescreve SQLite. Ruff, pytest, gate de dinheiro (25 módulos), doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. Banco local recebeu backup + migração 011 para satisfazer doctor; nenhuma migração antiga alterada. ADR-042 proposto. Gates locais: 1079 testes, 91.65% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

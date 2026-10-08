@@ -468,3 +468,27 @@ Somente IP e user agent exigidos; source URL remove query/fragmento, sem persist
 IP/UA/token no D1. Token em header, nunca URL. Não é executor de exposição Graph,
 não confirma F5/F6, não ativa LIVE_MODE e depende de aceite/configuração humana.
 Novo módulo de efeito externo capi.ts entra em gate de 95% linhas e branches no npm test.
+
+## ADR-042 — Fumaça humana isolada do motor (T-81)
+Status: **Proposto — aguarda aceite humano**.
+
+Migração 011 registra campanha/teto e todos os IDs originais numa tabela própria;
+sem alteração de arb.models. Entidades começam pausadas/gate 0, orçamento desconhecido
+zero; sync GET observa estado/orçamento reais. Não cria nada na Meta. Registro atomicamente
+auditado actor=human; IDs existentes/duplicados recusados. Registro local não autoriza gasto.
+Descendentes novos também ficam protegidos. Guardas na pausa, ativação, escala e journal
+recusam operações sobre fumaça ou ancestrais que a afetariam; scheduler não decide nem
+pausa fumaça mesmo com stale/freios. Seu gasto ainda entra no P&L/freios das outras campanhas.
+Kit de aceite F6 recusa fumaça explicitamente, inclusive registro como entidade de teste.
+
+Relatório é acumulado da campanha: snapshots/correções e vendas casadas, sem entidades
+aceite/teste; vendas não casadas são do banco inteiro, sem atribuição inventada. Gasto bruto
+usa imposto configurado, explicitamente estimado. smoke invoice guarda somente totais e
+referência textual humana (não lê fatura/arquivo); imposto implícito só aparece se o total
+plataforma da fatura cobrir exatamente o gasto acumulado atual. Caso contrário V-04 pendente.
+Observado V-02/V-04 não é confirmação assinada/readiness nem aceite F6. Alerta de teto é
+local, dirigido à operação manual; nenhuma mensagem é enviada. smoke entra no gate de 95%.
+
+Relatório atribui gasto/vendas ao root smoke atualmente observado quando um anúncio
+muda de campanha, sem dupla contagem. Se não houver root observado, preserva vínculo
+original. Proteção da operação humana sempre preserva IDs originais, inclusive ciclos.

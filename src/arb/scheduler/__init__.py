@@ -171,6 +171,10 @@ def _run(
         stale = collection is None or now - collection > timedelta(
             hours=rules.controls.stale_after_hours
         )
+        from arb.smoke import ids as smoke_ids
+        from arb.smoke import report as smoke_report
+
+        smoke = smoke_ids(connection)
         entities = Repository(connection, Entity).list()
         snapshots = Repository(connection, MetricSnapshot).list()
         adjustments = Repository(connection, MetricAdjustment).list()
@@ -179,7 +183,7 @@ def _run(
         creatives = {c.id: c for c in Repository(connection, Creative).list()}
         if "rules" not in result["stages"]:
             for entity in entities:
-                if entity.status != "active" or entity.gate == "0":
+                if entity.id in smoke or entity.status != "active" or entity.gate == "0":
                     continue
                 family = family_ids(entity, entities)
                 leaves = family - {e.parent_id for e in entities if e.id in family}
@@ -256,17 +260,30 @@ def _run(
                 day_revenue_cents=revenue,
                 total_spend_cents=data["totals"]["spend_gross"],
                 passed_gate_2=len(
-                    {d.entity_id for d in decisions if d.gate == "2" and d.verdict == "pass"}
+                    {
+                        d.entity_id
+                        for d in decisions
+                        if d.entity_id not in smoke and d.gate == "2" and d.verdict == "pass"
+                    }
                 ),
                 validated_combos=len(
                     {
                         d.entity_id
                         for d in decisions
-                        if d.gate in winner_gates(rules) and d.verdict == "pass"
+                        if d.entity_id not in smoke
+                        and d.gate in winner_gates(rules)
+                        and d.verdict == "pass"
                     }
                 ),
             )
             result["alerts"].extend(brakes)
+            result["alerts"].extend(
+                alert
+                for row in smoke_report(connection, media_tax_rate=settings.media_tax_rate)[
+                    "campaigns"
+                ]
+                for alert in row["alerts"]
+            )
             if stale:
                 result["alerts"].append("stale: dados atrasados/ausentes; simulação congelada")
             targets = {e.id for e in entities if e.status == "active"} if brakes or stale else set()
@@ -278,6 +295,7 @@ def _run(
                 ):
                     entity = next(e for e in entities if e.id == d.entity_id)
                     targets |= family_ids(entity, entities)
+            targets -= smoke
             covered = set()
             priority = {"campaign": 0, "adset": 1, "ad": 2}
             ordered = sorted(

@@ -29,6 +29,7 @@ MONEY_MODULES = (
     "readiness",
     "validation",
     "sim.observed",
+    "smoke",
 )
 
 

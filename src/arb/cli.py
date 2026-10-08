@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import typer
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
@@ -1334,3 +1336,104 @@ def observed_profile(
         f"Perfil local: {target}; suficientes: "
         + str(sum(row["status"] == "sufficient" for row in result["geos"].values()))
     )
+
+
+smoke_app = typer.Typer(help="Campanha criada e operada pelo humano; motor só lê")
+app.add_typer(smoke_app, name="smoke")
+
+
+@smoke_app.command("register")
+def smoke_register(
+    campaign: str = typer.Option(...),
+    adset: str = typer.Option(...),
+    ad: Annotated[list[str], typer.Option()] = ...,
+    offer: str = typer.Option(...),
+    geo: str = typer.Option(...),
+    cap_cents: int = typer.Option(...),
+    database: str = "data/engine.db",
+):
+    import json
+    from contextlib import closing
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.smoke import register
+
+    try:
+        with closing(connect(Path(database))) as connection:
+            migrate(connection)
+            value = register(connection, campaign, adset, ad, offer, geo, cap_cents)
+        typer.echo(json.dumps(value, sort_keys=True))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@smoke_app.command("invoice")
+def smoke_invoice(
+    campaign: str = typer.Option(...),
+    platform_cents: int = typer.Option(...),
+    total_cents: int = typer.Option(...),
+    evidence_ref: str = typer.Option(...),
+    database: str = "data/engine.db",
+):
+    from contextlib import closing
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.smoke import record_invoice
+
+    try:
+        with closing(connect(Path(database))) as connection:
+            migrate(connection)
+            record_invoice(
+                connection, "meta-" + campaign, platform_cents, total_cents, evidence_ref
+            )
+        typer.echo("Fatura registrada localmente; não é confirmação assinada V-04.")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@smoke_app.command("report")
+def smoke_report(
+    campaign: str | None = None,
+    database: str = "data/engine.db",
+    output: str = "reports/smoke.json",
+    report_file: str = "reports/smoke.md",
+):
+    import json
+    import sqlite3
+    from contextlib import closing
+    from pathlib import Path
+
+    import yaml
+
+    from arb.config import Settings
+    from arb.permissions import private_open, reject_links
+    from arb.smoke import markdown, report
+
+    try:
+        path = Path(database)
+        reject_links(path)
+        targets = [Path(output), Path(report_file)]
+        if targets[0].resolve() == targets[1].resolve():
+            raise ValueError("saídas precisam ser diferentes")
+        for target in targets:
+            reject_links(target)
+            if target.resolve() == path.resolve():
+                raise ValueError("saída não pode sobrescrever o banco")
+            if Path("config").resolve() in [target.resolve(), *target.resolve().parents]:
+                raise ValueError("saída não pode ficar em config")
+        settings = Settings.model_validate(yaml.safe_load(Path("config/settings.yaml").read_text()))
+        with closing(sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro", uri=True)) as connection:
+            value = report(
+                connection,
+                "meta-" + campaign if campaign is not None else None,
+                media_tax_rate=settings.media_tax_rate,
+            )
+        text = json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
+        for target, content in zip(targets, [text, markdown(value)], strict=True):
+            with private_open(target) as stream:
+                stream.write(content)
+        typer.echo(text, nl=False)
+    except (ValueError, sqlite3.Error) as exc:
+        raise typer.BadParameter(str(exc)) from exc

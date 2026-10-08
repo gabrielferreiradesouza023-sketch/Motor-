@@ -48,6 +48,10 @@ def digest(plan):
 
 
 def check(connection, entity, proposed_cents, now):
+    from arb.smoke import require_automatic
+
+    if entity is not None:
+        require_automatic(connection, entity.id)
     require_released(connection)
     if pending(connection):
         raise ValueError("pendência aberta: reconciliar antes de escala")
