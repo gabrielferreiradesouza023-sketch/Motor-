@@ -1,0 +1,22 @@
+# Plano para revisão e execução humana; pacote exclusivamente em simulação.
+# Root: <ROOT>; usuário: arbuser
+# Conferir proprietário/acesso ao checkout e backups antes de instalar.
+# Instalação humana das seis unidades verificadas:
+sudo install -m 0644 -- <ROOT>/units/arb-scheduler.service /etc/systemd/system/arb-scheduler.service
+sudo install -m 0644 -- <ROOT>/units/arb-scheduler.timer /etc/systemd/system/arb-scheduler.timer
+sudo install -m 0644 -- <ROOT>/units/arb-backup.service /etc/systemd/system/arb-backup.service
+sudo install -m 0644 -- <ROOT>/units/arb-backup.timer /etc/systemd/system/arb-backup.timer
+sudo install -m 0644 -- <ROOT>/units/arb-drill.service /etc/systemd/system/arb-drill.service
+sudo install -m 0644 -- <ROOT>/units/arb-drill.timer /etc/systemd/system/arb-drill.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now arb-scheduler.timer arb-backup.timer arb-drill.timer
+systemctl list-timers --all 'arb-*'
+# Execução manual única em simulação; ExecStart força LIVE_MODE=false:
+sudo systemctl start arb-scheduler.service
+sudo journalctl -u arb-scheduler.service -u arb-backup.service -u arb-drill.service --no-pager -n 100
+# Rollback humano; dados, backups e configuração do operador são preservados:
+sudo systemctl disable --now arb-scheduler.timer arb-backup.timer arb-drill.timer
+sudo systemctl stop arb-scheduler.service arb-backup.service arb-drill.service
+sudo rm -- /etc/systemd/system/arb-scheduler.service /etc/systemd/system/arb-scheduler.timer /etc/systemd/system/arb-backup.service /etc/systemd/system/arb-backup.timer /etc/systemd/system/arb-drill.service /etc/systemd/system/arb-drill.timer
+sudo systemctl daemon-reload
+# Revisar ledger/backup antes de qualquer retomada; não autoriza dinheiro real.

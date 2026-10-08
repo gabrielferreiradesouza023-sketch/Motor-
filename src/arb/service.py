@@ -100,3 +100,61 @@ def check(*, output: Path = Path("data/service")) -> dict:
         "errors": sorted(set(errors)),
         "scope": "verificação somente leitura; serviço não instalado",
     }
+
+
+def install_plan(*, output: Path = Path("data/service")) -> str:
+    """Imprime um roteiro verificado; não executa nenhum dos comandos."""
+    import shlex
+
+    from arb.hostinfo import is_wsl
+
+    reject_links(output / "manifest.json")
+    original = (output / "manifest.json").read_text()
+    result = check(output=output)
+    if not result["ok"]:
+        raise ValueError("pacote recusado: " + "; ".join(result["errors"]))
+    if (output / "manifest.json").read_text() != original:
+        raise ValueError("manifest mudou durante a verificação")
+    manifest = json.loads(original)
+    root = Path(manifest["root"])
+    directory = output.resolve()
+    q = shlex.quote
+    timers = "arb-scheduler.timer arb-backup.timer arb-drill.timer"
+    services = "arb-scheduler.service arb-backup.service arb-drill.service"
+    lines = [
+        "# Plano para revisão e execução humana; pacote exclusivamente em simulação.",
+        f"# Root: {root}; usuário: {manifest['user']}",
+        "# Conferir proprietário/acesso ao checkout e backups antes de instalar.",
+    ]
+    if is_wsl():
+        lines += [
+            "# WSL: no Linux, preservar outras seções de /etc/wsl.conf e configurar:",
+            "# [boot]",
+            "# systemd=true",
+            "sudoedit /etc/wsl.conf",
+            "# Depois, no PowerShell do Windows (encerra as distribuições WSL):",
+            "# wsl --shutdown",
+            "# Reabrir WSL e confirmar systemd PID1 com arb service status.",
+            "# WSL pode suspender; disponibilidade contínua exige decisão humana.",
+        ]
+    lines += ["# Instalação humana das seis unidades verificadas:"]
+    lines += [
+        f"sudo install -m 0644 -- {q(str(directory / name))} /etc/systemd/system/{name}"
+        for name in NAMES
+    ]
+    lines += [
+        "sudo systemctl daemon-reload",
+        f"sudo systemctl enable --now {timers}",
+        "systemctl list-timers --all 'arb-*'",
+        "# Execução manual única em simulação; ExecStart força LIVE_MODE=false:",
+        "sudo systemctl start arb-scheduler.service",
+        "sudo journalctl -u arb-scheduler.service -u arb-backup.service "
+        "-u arb-drill.service --no-pager -n 100",
+        "# Rollback humano; dados, backups e configuração do operador são preservados:",
+        f"sudo systemctl disable --now {timers}",
+        f"sudo systemctl stop {services}",
+        "sudo rm -- " + " ".join(f"/etc/systemd/system/{name}" for name in NAMES),
+        "sudo systemctl daemon-reload",
+        "# Revisar ledger/backup antes de qualquer retomada; não autoriza dinheiro real.",
+    ]
+    return "\n".join(lines) + "\n"

@@ -27,6 +27,7 @@ MONEY_MODULES = (
     "accept_pause",
     "accept_tracking",
     "readiness",
+    "validation",
 )
 
 

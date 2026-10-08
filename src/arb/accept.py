@@ -2,13 +2,16 @@
 
 import hashlib
 import json
+import os
 import re
+import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from arb import safety
-from arb.permissions import inspect_paths, private_open
+from arb.launcher import approval
+from arb.permissions import inspect_paths, private_open, reject_links
 from arb.rules import load_rules
 
 
@@ -113,3 +116,52 @@ def f5(reader, *, root: Path = Path("."), now=None):
         spend_cap_cents=amount if cap_ok else None,
         window={"since": (until - timedelta(days=1)).isoformat(), "until": until.isoformat()},
     )
+
+
+def read_evidence(path: Path) -> dict:
+    reject_links(path)
+    body = json.loads(path.read_text())
+    if not isinstance(body, dict) or body.get("kind") not in {"f5", "f6_pause", "tracking"}:
+        raise ValueError("evidência de aceite inválida")
+    unsigned = {key: value for key, value in body.items() if key not in {"signature", "sha256"}}
+    if body.get("sha256") != hashlib.sha256(approval.canonical_document(unsigned)).hexdigest():
+        raise ValueError("hash da evidência inválido")
+    return body
+
+
+def verify_evidence(path: Path, *, settings=approval.SETTINGS) -> dict:
+    body = read_evidence(path)
+    approval.verify_document(body, settings=settings)
+    return body
+
+
+def replace_document(path: Path, body: dict, original: str) -> None:
+    """Publicação atômica 0600; recusa caminhos indiretos ou edição concorrente."""
+    reject_links(path)
+    if path.read_text() != original:
+        raise ValueError("documento mudou durante a confirmação")
+    descriptor, name = tempfile.mkstemp(dir=path.parent, prefix=".signed-")
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, "w") as file:
+            file.write(json.dumps(body, sort_keys=True, indent=2, ensure_ascii=False) + "\n")
+        reject_links(path)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def sign_evidence(path: Path, confirm) -> dict:
+    if not approval.is_interactive():
+        raise ValueError("assinatura exige tty interativo na máquina humana")
+    body = read_evidence(path)
+    original = path.read_text()
+    if json.loads(original) != body:
+        raise ValueError("documento mudou durante a leitura")
+    if body.get("signature"):
+        raise ValueError("evidência já assinada")
+    if not confirm(f"Assinar evidência {body['kind']}; hash={body['sha256']}?"):
+        raise ValueError("assinatura cancelada pelo humano")
+    signed = approval.sign_document(body)
+    replace_document(path, signed, original)
+    return signed

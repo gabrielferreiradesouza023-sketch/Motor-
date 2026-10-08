@@ -1135,3 +1135,110 @@ def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")
                 typer.echo("  Próximo passo: " + item["next_step"])
     if not result["ready"]:
         raise typer.Exit(1)
+
+
+evidence_app = typer.Typer(help="Assinar evidências somente na máquina humana")
+app.add_typer(evidence_app, name="evidence")
+
+
+@evidence_app.command("sign")
+def evidence_sign(arquivo: str):
+    from pathlib import Path
+
+    from arb.accept import sign_evidence
+
+    try:
+        sign_evidence(Path(arquivo), typer.confirm)
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo("Evidência assinada; não autoriza exposição")
+
+
+@evidence_app.command("verify")
+def evidence_verify(arquivo: str):
+    from pathlib import Path
+
+    from arb.accept import verify_evidence
+
+    try:
+        verify_evidence(Path(arquivo))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo("Assinatura válida; aceite e validade temporal são avaliados por readiness")
+
+
+validate_app = typer.Typer(help="Registrar validações assinadas na máquina humana")
+app.add_typer(validate_app, name="validate")
+
+
+@validate_app.command("record")
+def validate_record(item: str, evidence: str = typer.Option(...), root: str = "."):
+    from pathlib import Path
+
+    from arb.validation import record
+
+    try:
+        record(item, evidence, typer.confirm, root=Path(root))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo(f"{item}: registro assinado; não autoriza exposição")
+
+
+@validate_app.command("show")
+def validate_show(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+    import json
+    from pathlib import Path
+
+    from arb.validation import show
+
+    try:
+        result = show(root=Path(root))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2))
+    else:
+        for name, row in result.items():
+            typer.echo(f"{'✔' if row['valid'] else '✘'} {name}: {row['status']}")
+
+
+@service_app.command("status")
+def service_status(json_output: bool = typer.Option(False, "--json")):
+    import json
+
+    from arb.hostinfo import inspect
+
+    result = inspect()
+    if json_output:
+        typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    else:
+        typer.echo(
+            f"WSL={result['wsl']}; systemd PID1={result['systemd_pid1']}; "
+            f"timezone={result['timezone']}"
+        )
+        for warning in result["warnings"]:
+            typer.echo("AVISO: " + warning)
+        for row in result["units"]:
+            typer.echo(
+                f"{row['name']}: instalado={row['installed']}; "
+                f"estado={row['active_state']}; próximo={row['next']}"
+            )
+        typer.echo(result["scope"])
+
+
+@service_app.command("install-plan")
+def service_install_plan(output: str = "data/service"):
+    from pathlib import Path
+
+    from arb.service import install_plan
+
+    try:
+        plan = install_plan(output=Path(output))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo(plan, nl=False)

@@ -24,13 +24,36 @@ from arb.permissions import private_directory, private_open, reject_links
 SETTINGS = Path("config/settings.yaml")
 
 
-def canonical(approval: Approval) -> bytes:
+def canonical_document(document: dict) -> bytes:
     return json.dumps(
-        approval.model_dump(mode="json", exclude={"signature"}),
+        {key: value for key, value in document.items() if key != "signature"},
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
     ).encode("utf-8")
+
+
+def canonical(approval: Approval) -> bytes:
+    return canonical_document(approval.model_dump(mode="json"))
+
+
+def sign_document(document: dict, *, settings: Path = SETTINGS) -> dict:
+    private = _private_key()
+    expected = configured_public_key(settings).public_bytes(Encoding.Raw, PublicFormat.Raw)
+    if public_hex(private) != expected.hex():
+        raise ValueError("chave privada não corresponde à approval_public_key versionada")
+    return document | {"signature": private.sign(canonical_document(document)).hex()}
+
+
+def verify_document(document: dict, *, settings: Path = SETTINGS) -> None:
+    signature = document.get("signature")
+    if not signature:
+        raise ValueError("documento não assinado")
+    key = configured_public_key(settings)
+    try:
+        key.verify(bytes.fromhex(signature), canonical_document(document))
+    except (InvalidSignature, ValueError, TypeError):
+        raise ValueError("assinatura humana inválida") from None
 
 
 def public_hex(private: Ed25519PrivateKey) -> str:
@@ -69,22 +92,15 @@ def _private_key() -> Ed25519PrivateKey:
 
 def sign(approval: Approval, *, settings: Path = SETTINGS) -> Approval:
     """Primitiva do comando humano; não decide status nem concede aprovação."""
-    private = _private_key()
-    expected = configured_public_key(settings).public_bytes(Encoding.Raw, PublicFormat.Raw)
-    if public_hex(private) != expected.hex():
-        raise ValueError("chave privada não corresponde à approval_public_key versionada")
-    signature = private.sign(canonical(approval)).hex()
-    return Approval.model_validate(approval.model_dump() | {"signature": signature})
+    return Approval.model_validate(
+        sign_document(approval.model_dump(mode="json"), settings=settings)
+    )
 
 
 def verify(approval: Approval, *, settings: Path = SETTINGS) -> None:
-    key = configured_public_key(settings)
     if not approval.signature:
         raise ValueError("aprovação sem assinatura humana")
-    try:
-        key.verify(bytes.fromhex(approval.signature), canonical(approval))
-    except (InvalidSignature, ValueError):
-        raise ValueError("assinatura humana inválida") from None
+    verify_document(approval.model_dump(mode="json"), settings=settings)
 
 
 def keygen(destination: Path, repository: Path) -> str:

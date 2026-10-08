@@ -160,3 +160,78 @@ def test_incident_scenarios_match_exercised_drill_reference():
     assert names == set(reference) and len(names) == 7
     assert run(42)["scenarios"] == reference
     assert all(reference.values())
+
+
+def test_operator_commands_exist_and_do_not_increase_exposure():
+    import re
+    import shlex
+
+    text = (ROOT / "docs/runbooks/operador.md").read_text()
+    commands = set()
+    groups = {"db", "scheduler", "service", "validate", "evidence", "accept", "approve"}
+    for line in re.findall(r"^uv run arb (.+)$", text, flags=re.MULTILINE):
+        words = shlex.split(line)
+        commands.add(tuple(words[: 2 if words[0] in groups else 1]))
+    assert commands == {
+        ("doctor",),
+        ("service", "status"),
+        ("db", "migrate"),
+        ("scheduler", "once"),
+        ("db", "backup"),
+        ("db", "drill"),
+        ("service", "render"),
+        ("service", "check"),
+        ("service", "install-plan"),
+        ("validate", "record"),
+        ("validate", "show"),
+        ("preflight",),
+        ("accept", "f5"),
+        ("accept", "register-test"),
+        ("accept", "pause"),
+        ("evidence", "sign"),
+        ("evidence", "verify"),
+        ("accept", "tracking-propose"),
+        ("approve", "sign"),
+        ("approve", "verify"),
+        ("accept", "tracking"),
+        ("readiness",),
+    }
+    for command in commands:
+        result = CliRunner().invoke(app, [*command, "--help"])
+        assert result.exit_code == 0, (command, result.output)
+    assert not any(c[0] in {"launch", "activate", "scale", "deploy"} for c in commands)
+    assert "tracking_test" in text and "exposição zero" in text
+
+
+def test_operator_document_has_no_secret_values_or_operational_live_assignment():
+    import re
+
+    text = (ROOT / "docs/runbooks/operador.md").read_text()
+    assert not re.search(r"\bLIVE_MODE\s*=\s*true\b", text)
+    assert not re.search(r"\b(?:[a-fA-F0-9]{64}|[a-fA-F0-9]{128})\b", text)
+    assert not re.search(r"(?:TOKEN|SECRET|SIGNING_KEY)\s*=\s*\S+", text)
+    assert not re.search(r"(?:cat|type|Get-Content)\s+[^\n]*(?:\.env|approval_ed25519)", text)
+    for item in [f"V-{n:02d}" for n in range(1, 7)]:
+        assert item in text
+    assert "export PYTHONUTF8=1" in text and '$env:PYTHONUTF8 = "1"' in text
+    assert text.count("Enviar ao Claude") >= 7
+    assert "evidência não assinada" in text and "sete dias" in text and "48 horas" in text
+
+
+def test_operator_internal_links_resolve():
+    import re
+
+    document = ROOT / "docs/runbooks/operador.md"
+    links = re.findall(r"\[[^\]]+\]\(([^)]+)\)", document.read_text())
+    internal = [link for link in links if not link.startswith("https://")]
+    assert len(internal) >= 6
+    for link in internal:
+        parts = link.split("#", 1)
+        target = (document.parent / parts[0]).resolve()
+        assert target.is_file(), link
+        if len(parts) == 2:
+            headings = re.findall(r"^#+ (.+)$", target.read_text(), flags=re.MULTILINE)
+            anchors = {
+                re.sub(r"[^\w -]", "", title.lower()).replace(" ", "-") for title in headings
+            }
+            assert parts[1] in anchors, link
