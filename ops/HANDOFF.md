@@ -42,3 +42,108 @@
 
 ### BATCH-06 T-82 — review
 23 testes novos; conjunto afetado 82 verdes. CSV antigo, ranking 54.15/44.97/44.09, serialização sem None novos e tetos antigos preservados; 9 resumos + 8 células de calibração byte-idênticos à main 35dbab5. Permissão negada elimina e bloqueia plano; evidência ausente alerta; prova de mercado declarada e conversão diagnóstica explicadas. Refund por oferta: até 19 transações produtor, com 20 próprio; replays/testes/outras ofertas não inflam amostra. Referências: comissão 6000, refund .2 -> receita 9600/2 vendas e teto G3 14400. Ruff, cobertura/gate dinheiro, doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. ADR-043 proposto e 3 contratos regenerados; exemplo sintético separado, config/rules e CSV antigo intactos. Gates locais: 1102 testes, 91.75% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+## BATCH-06 — Entrega para revisão (T-77–T-83)
+
+PR: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/37
+Branch codex/batch-06; base origin/main 35dbab563916bcc3bb428836c3b47d3c1301c5c5 (BATCH-05 #36 mergeado).
+Planejamento materializado verbatim em f1f8b82. Um commit de implementação por tarefa, mais LOCK commitado/push antes de cada tarefa. Cards em review; LOCK vazio ao publicar T-83.
+
+### Feito e evidência por tarefa
+
+| Tarefa | Status | Commit implementação | Testes Python adicionados | Suíte na tarefa | Evidência |
+|---|---|---|---:|---:|---|
+| T-77 | review | d96e41e | 32 | 1000 passed, 0 skips | C opcional; posterior contra Decimal; bloqueia candidato/escala |
+| T-78 | review | 886f1d4 | 19 | 1019 passed, 0 skips | 100 seeds × 12 linhas; JSON/MD de duas execuções idênticos |
+| T-79 | review | 55c677c | 28 | 1047 passed, 0 skips | perfil local por geo; janela/fuso, Wilson, test:true, modo ro |
+| T-80 | review | 789ca51 | 4 | 1051 passed, 0 skips | mais 8 testes Node; 11/11 Worker, capi.ts 100%; nonce no Chromium |
+| T-81 | review | f01e41e | 28 | 1079 passed, 0 skips | 3 dias GET + CSV + zero escritas; guardas fumaça/F6/hierarquia |
+| T-82 | review | 9b77332 | 23 | 1102 passed, 0 skips | CSV/hash/tetos antigos iguais; refund próprio com 20 únicas |
+| T-83 | review | neste commit | 9 | 1111 passed, 0 skips | 12 comandos extraídos do Markdown; 42 testes no subset; origem preservada |
+
+Gates finais: 1111 testes sem skips; cobertura combinada 92.2354% (linhas+branches); 25 módulos de dinheiro >=95%. Ruff check/format, check_coverage, doctor, contratos, detect-secrets verdes; drill seed 42 byte-idêntico ao JSON versionado. npm typecheck e Worker: 11/11, zero skips, capi.ts 100% linhas/branches/funções.
+Comandos: `uv run ruff check`; `uv run ruff format --check`; `uv run pytest --cov=arb --cov-branch --cov-report=json:data/coverage.json`; `uv run python scripts/check_coverage.py data/coverage.json`; `uv run arb doctor`; `uv run arb drill run --seed 42 --json` + cmp; `npm --prefix worker test` na T-80.
+CI gates + worker confirmado verde em cada HEAD T-77–T-82 antes da tarefa seguinte. Para o HEAD T-83, conferir Checks e corpo do PR; só converter de draft para ready após ambos verdes. Não foi feito merge.
+
+### Cobertura final de dinheiro (linhas + branches)
+
+| Módulo | Cobertura |
+|---|---:|
+| arb.rules | 100.0000% |
+| arb.metrics | 100.0000% |
+| arb.launcher | 97.9622% |
+| arb.safety | 100.0000% |
+| arb.meta.pause | 100.0000% |
+| arb.ledger | 100.0000% |
+| arb.reconcile | 100.0000% |
+| arb.quarantine | 100.0000% |
+| arb.db.checkpoint | 97.7011% |
+| arb.scout.approve | 100.0000% |
+| arb.creative.approve | 100.0000% |
+| arb.launcher.scale | 97.0588% |
+| arb.remote | 99.4366% |
+| arb.remote.journal | 100.0000% |
+| arb.remote.launch | 95.8333% |
+| arb.drill | 100.0000% |
+| arb.tracker.ids | 100.0000% |
+| arb.permissions | 100.0000% |
+| arb.accept | 96.9925% |
+| arb.accept_pause | 100.0000% |
+| arb.accept_tracking | 100.0000% |
+| arb.readiness | 100.0000% |
+| arb.validation | 97.4684% |
+| arb.sim.observed | 100.0000% |
+| arb.smoke | 100.0000% |
+
+### Bugs encontrados e corrigidos
+
+- Relatório da fumaça contava anúncio reparentado em duas campanhas: atribui ao root observado uma vez, preservando proteção dos IDs originais; teste com referência 6000/6780 centavos e pais ausentes/cíclicos.
+- Testes da T-83 reproduziram overwrite do SQLite por observed profile e overwrite de perfil/JSON/HTML na calibração. Recusa antes da escrita, inclusive hardlink/symlink/config, com integridade dos bytes de origem. T-81 também recusa destino do relatório igual ao banco.
+- Doctor inicialmente detectou catálogo local sem 011: backup do banco antes da migração nova; doctor passou depois. Nenhuma migração antiga alterada.
+
+### Bloqueios e decisões humanas
+
+Os kits e capacidades estão implementados/testados em simulação; os pontos abaixo bloqueiam aceite/exposição reais, não foram contornados.
+- Humano/Claude: revisar PR #37 e merge humano; BATCH-05 #36 já está na main. Ordem: revisão dos contratos/ADRs e T-77→T-83 no mesmo PR, então decisão/merge humano. Nenhum PR anterior de planejamento pendente para esta base.
+- Humano: ADR-039/040/041/042/043 seguem **Proposto — aguarda aceite humano**. C permanece None, CAPI false, regras/pesos/CSV antigo/settings intactos. Não ativar por conclusão de testes.
+- Humano no próprio host: campanha de fumaça, dados reais locais, evidências assinadas F5/F6/rastreio, V-01–V-06, cartão/spend_cap e instalação/disponibilidade do serviço. Nenhuma privada real no cloud.
+- Provedor/humano: versão/permissões, formato de vendas e rastreio, dados/evidência escrita do produtor; não foram inventados. T-79/81/82 aguardam entradas reais para aprendizagem/aceite.
+- Executor Graph de exposição T-55 segue ausente (somente FakeMeta); não há liberação para lançamento/aumento real.
+
+### Riscos e limites
+
+- Relatório T-78 usa hipóteses existentes, não dados de mercado: C reduz falsos positivos mas não os zera e aumenta custo; repetidas olhadas, Poisson/prior e amostras/coortes exigem julgamento humano.
+- Perfis observados medem tráfego/funil; comissão/refund/orçamento do laboratório continuam hipóteses. Intervalos condicionais e atraso de vendas/reembolsos impedem chamar isso de ROI garantido.
+- C confirma mesmo entity/geo; não transfere confirmação implicitamente entre entidades/geos. Planejar transferência explicitamente antes de exposição.
+- CAPI best effort após D1, sem retry automático; falha pode perder medição remota, nunca recibo. Pixel/GRAPH_VERSION devem ser correspondentes/verificados pelo humano; registro não prova entrega CAPI.
+- Smoke é operado pelo humano: teto só alerta, não pausa; gasto ainda conta nos freios das outras campanhas. Observado/invoice não equivale a aceite assinado.
+- Não foi feita API real, deploy, gasto, conta, serviço, mensagem, leitura .env ou privada real. Falha temporária do exec-server foi recuperada, alterações preservadas.
+
+### Prontidão final
+
+Saída real de `uv run arb readiness --json` / `uv run arb readiness`: **não pronto**, ready=false, exit 1. Evidências F5/F6/rastreio sem assinatura são recusadas.
+
+| Pendência | Motivo real |
+|---|---|
+| preflight | Preflight pendente: credentials, graph_version, meta_spend_cap, card_limit, backup_drill, scheduler_lock |
+| drill_recent | Drill de backup ausente/falho ou mais antigo que 48h |
+| f5 | evidência não assinada |
+| f6_pause | evidência não assinada |
+| tracking | evidência não assinada |
+| V-01 | Validação do provedor ainda não registrada pelo humano |
+| V-02 | Validação do provedor ainda não registrada pelo humano |
+| V-03 | Validação do provedor ainda não registrada pelo humano |
+| V-04 | Validação do provedor ainda não registrada pelo humano |
+| V-05 | Validação do provedor ainda não registrada pelo humano |
+| V-06 | Validação do provedor ainda não registrada pelo humano |
+| graph_executor | T-55: executor de exposição Graph ausente; somente FakeMeta |
+| card_limit | Limite do cartão não confirmado ou preflight/teto pendente |
+| spend_cap | spend_cap real não confirmado dentro do teto |
+| persistent_host | Host persistente ainda não confirmado |
+| service_package | Pacote de serviço ausente/inválido; nenhuma instalação executada |
+| service_installed | Instalação/disponibilidade do serviço ainda não confirmada pelo humano |
+
+Não pronto para dinheiro real. Próxima operação é revisão do Claude/humano, não merge automático ou execução real.
+
+### BATCH-06 T-83 — review
+9 testes novos; 12 comandos do roteiro português executados contra SQLite sintético + MockTransport (somente GET), subset afetado 42 passed. Regressões reproduzidas antes da correção: observed profile sobrescrevia banco; calibração sobrescrevia entrada/saída. Recusa aliases/hardlinks/symlinks/config antes de escrever; bytes de origem preservados. Ruff, cobertura/gate dinheiro (25 módulos), doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. Readiness real não pronto, ready=false, 17 pendências; evidência sem assinatura recusada. HANDOFF final inclui tabela, riscos/bloqueios e ordem Claude/humano; nenhum merge. Gates locais: 1111 testes, 92.24% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

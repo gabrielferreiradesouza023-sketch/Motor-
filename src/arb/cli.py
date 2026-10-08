@@ -575,6 +575,12 @@ def sim_calibrate(
 
     if seeds < 1:
         raise typer.BadParameter("seeds precisa ser positivo")
+    try:
+        report_paths(
+            [Path(output), Path(report)], source=Path(profile_file) if profile_file else None
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     result = calibrate(
         seeds=list(range(seeds)),
         workers=workers,
@@ -1319,6 +1325,7 @@ def observed_profile(
         reject_links(Path(database))
         _, end = window(since, until)
         target = Path(output) if output else Path("reports") / f"observed-profile-{end.date()}.yaml"
+        report_paths([target], source=Path(database))
         connection = sqlite3.connect(Path(database).absolute().as_uri() + "?mode=ro", uri=True)
         try:
             result = profile(
@@ -1440,3 +1447,22 @@ def smoke_report(
         typer.echo(text, nl=False)
     except (ValueError, sqlite3.Error) as exc:
         raise typer.BadParameter(str(exc)) from exc
+
+
+def report_paths(targets, *, source=None):
+    """Operator pipeline outputs cannot alias inputs, config, or each other."""
+    from pathlib import Path
+
+    from arb.permissions import reject_links
+
+    previous = [source] if source is not None else []
+    for target in targets:
+        reject_links(target)
+        if Path("config").resolve() in (target.resolve(), *target.resolve().parents):
+            raise ValueError("saída não pode escrever em config")
+        for other in previous:
+            if target.resolve() == other.resolve() or (
+                target.exists() and other.exists() and target.samefile(other)
+            ):
+                raise ValueError("saída não pode sobrescrever origem ou outro relatório")
+        previous.append(target)
