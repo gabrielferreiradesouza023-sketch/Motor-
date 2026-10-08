@@ -94,13 +94,14 @@ def run_lab(
     states = {e.id: "testing" for e in ads}
     stages = {a: "1" for a in groups}
     histories = {e.id: [] for e in ads}
+    confirmation_starts = {}
     platform_total = 0
     day_platform = 0
     day_sales = []
     day = 0
     step = 0
     stopped = False
-    while any(stage in ("1", "2", "3") for stage in stages.values()) and not stopped:
+    while any(stage in ("1", "2", "3", "C") for stage in stages.values()) and not stopped:
         step += 1
         if step > 10000:
             raise RuntimeError("simulação não convergiu")
@@ -108,7 +109,7 @@ def run_lab(
         for ad in ads:
             stage = stages[ad.angle_id]
             eligible = states[ad.id] == "testing" if stage == "1" else states[ad.id] == "pass"
-            if stage not in ("1", "2", "3") or not eligible:
+            if stage not in ("1", "2", "3", "C") or not eligible:
                 continue
             # Estima conservadoramente o custo máximo do lote antes de entregar.
             max_platform = round(p.truth[ad.id].cpm_cents * 0.115)
@@ -165,19 +166,30 @@ def run_lab(
                     stages[aid] = "killed"
                     continue
                 stages[aid] = "2"
-            if stages[aid] not in ("2", "3"):
+            if stages[aid] not in ("2", "3", "C"):
                 continue
             group.gate = stages[aid]
             snapshots = [s for ad in children for s in histories[ad.id]]
             latest = max((s.ts for s in snapshots), default=now)
             total = aggregate(snapshots, group.id, latest)
             sales = [s for s in run.sales if s.matched_entity_id in {ad.id for ad in children}]
-            decision = evaluate(group, total, sales, 6000, r, now)
+            decision = evaluate(
+                group,
+                total,
+                sales,
+                6000,
+                r,
+                now,
+                confirmation_start_cents=confirmation_starts.get(aid),
+            )
             decision.id = f"s{seed}-d{len(run.decisions)}"
             run.decisions.append(decision)
             if decision.verdict == "pass":
                 if stages[aid] == "2":
                     stages[aid] = "3"
+                elif stages[aid] == "3" and r.gate_C is not None:
+                    confirmation_starts[aid] = decision.metrics_json["spend_gross"]
+                    stages[aid] = "C"
                 else:
                     stages[aid] = "validated"
                     run.winners.append(aid)

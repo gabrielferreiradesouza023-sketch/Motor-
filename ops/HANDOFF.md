@@ -1,40 +1,29 @@
-# HANDOFF — BATCH-05
+# HANDOFF — BATCH-06
 
 ## Estado atual
-- Branch `codex/batch-05`; PR [#36](https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/36) para main. Claude revisa; merge somente humano.
-- Base usada: planejamento `89cf60a` da branch `claude/inspiring-davinci-o0loro`, escolhido quando #35 estava aberto. #35 já mergeado; main conferida `9ba15e8`. #34/BATCH-04 já revisado e mergeado.
-- T-72 a T-76 concluídas para review. LOCK será liberado no commit T-76. PR só passa a ready após gates + worker verdes no head final.
-- Motor **não pronto para dinheiro real**. `arb readiness`: não pronto, exit 1; 17 pendências, aceites ausentes recusados como “evidência não assinada”.
+- Base main `35dbab563916bcc3bb428836c3b47d3c1301c5c5`: #36/BATCH-05 mergeado, T-72–T-76 em review na main.
+- Branch `codex/batch-06`. Planejamento exato recebido do humano publicado em `f1f8b82`.
+- T-77 concluída; draft será aberto após seu commit. Ordem T-78 → T-83; CI verde por tarefa antes da próxima.
+- Sem merge; Claude revisa, humano decide. Motor não pronto para dinheiro real.
 
-## Feito
-- T-72: assinatura Ed25519 de evidências; kits continuam unsigned até revisão/assinatura humana. Primitivas de approval reutilizadas, hash preservado, campos integralmente assinados, TTY e chave existente.
-- T-73: `arb validate record/show`; assinatura liga domínio e item. Edição/cópia/vencimento não confirma nada. Registro versionado continua pending, sem fatos inventados. validation no gate 95%.
-- T-74: `arb service status`, diagnóstico WSL/PID1/timezone/unidades por leitura. Avisos no doctor/preflight e metadados no readiness; persistent_host ainda exige registro assinado.
-- T-75: `arb service install-plan`; snapshot verificável, pacote/hash recusados se inválidos, caminhos escapados, WSL, instalação/timers/journal/rollback apenas impressos.
-- T-76: [Guia do operador](../docs/runbooks/operador.md), 22 comandos validados com help, links/âncoras e ausência de segredos. Valores e aceites reais pertencem ao humano.
+## Feito e evidências
+- T-77: C opcional (None), referência de gasto no primeiro G3 pass no mesmo entity/geo, posterior Gamma-Poisson, candidatos sem escala, biblioteca/controles somente C/T quando ligado. Contratos regenerados; ADR-039 proposto.
+- Comparação independente contra código de main: 9 summaries (seeds 0/7/42 × 3 perfis) e 8 células de calibração byte-idênticos (`/tmp/b06-compat.py`).
+- 32 testes novos: referência Decimal 80 dígitos, violações/amostras/tetos/stale/zero custo, contexto/geo, escala local, scheduler e biblioteca.
+- Houve um outlier de 220 ms no teste existente de auditoria (<200 ms). Repetição intacta: pending 5.08 ms e last_increase 7.22 ms; suíte completa repetida verde, nenhum limite/teste removido ou alterado.
 
-## Evidências
-- 968 testes passed, 0 skips; total combinado 90.66%; todos os 23 grupos de dinheiro >=95%. Ruff, format, coverage gate, doctor, contratos e detect-secrets verdes.
-- Drill 42 idêntico ao versionado; 6 invariantes e 7 cenários verdadeiros. Sem alteração da referência.
-- T-72–T-75: CI gates + worker SUCCESS confirmado antes da tarefa seguinte. T-76/resultado final: [Checks do PR](https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/36/checks), observado antes de marcar ready/encerrar.
-- T-73 teve preparação de runner presa; mesma job reexecutada e verde, sem mudar workflow/gates.
-- Tabela de commits, cobertura por módulo, URLs do CI e readiness completo: [Evidência BATCH-05](../docs/validation/batch-05-evidence.md).
-- config/rules.yaml, config/settings.yaml, ops/validation-status.json e arb.models intocados. Nenhuma migração nova.
+## Falta
+- T-78–T-83 e respectivos gates/CI; relatório de falsos positivos no corpo do PR; handoff final e ready.
 
 ## Bloqueios
-Nenhuma tarefa de software bloqueada. Pendências operacionais continuam bloqueando dinheiro real:
-- Humano + provedores: V-01–V-06 (webhook/CSV/rastreio/permissões do produtor/reembolsos/impostos/Graph). Impacto: dados e contrato reais ausentes; confirmações continuam pending.
-- Humano: cartão, spend_cap, host sempre ligado, instalação manual do pacote em simulação e disponibilidade real. Diagnóstico/check não confirmam esses fatos.
-- Humano no próprio host autorizado: aceites F5, uma pausa F6 e rastreio; precisam de credenciais/versionamento, entidade de teste existente e Worker publicado. Agente não cria/provisiona/deploya esses recursos.
-- T-55: contrato e executor Graph de exposição ausentes. Resolver versão/permissões/idempotência com provedor e implementar em novo escopo revisado. Só FakeMeta permanece disponível.
-- Claude: revisar #36. Humano: decidir merge; #35 já resolvido. Chave pública existente não precisa ser gerada/trocada.
+- Nenhum bloqueio de software até T-77. Operação real segue bloqueada por V-01–V-06, cartão/spend_cap, host persistente, aceites F5/F6/rastreio assinados e executor Graph T-55.
+- ADRs deste batch permanecem Proposto — aguarda aceite humano. C desativado, rules.yaml intocado.
 
-## Riscos e decisões do humano
-- Manter privada só na máquina assinadora; pública/configuração são raiz de confiança e mudanças passam por PR.
-- Assinatura não comprova a verdade da resposta humana nem disponibilidade contínua de WSL. Avaliar host persistente e ACLs pessoalmente.
-- Evidências/registros duram 7 dias; drill do backup <=48h. Preservar tentativas anteriores e reconciliar uncertain antes de repetir.
-- Instalação só humana, sempre em simulação neste pacote. Aceites reais demandam autorização específica no terminal manual; não mudam serviço para live nem implementam executor.
-- Próxima ação humana: revisão/merge #36 e execução do guia no host. Não declarar o motor apto a dinheiro real.
+## Riscos e revisão
+- Posterior assume taxa constante e comissão/refund esperados; probabilidade não garante lucro e múltiplas avaliações podem produzir falsos positivos. Relatório T-78 medirá hipóteses, não mercado.
+- Referência C é vinculada à entidade/geo; não transferir confirmação para outra identidade/contexto implicitamente. Fluxo de exposição Graph continua indisponível.
+- Nenhuma API real, .env, privada real, conta, gasto, mensagem, deploy ou serviço instalado.
+- Revisão: Claude revisa PR inteiro e ADRs propostos; humano aceita/rejeita ADRs e decide merge em separado.
 
-### BATCH-05 T-76 — review
-3 testes novos: 22 comandos por --help, ausência de segredos/aumento de exposição e links/âncoras válidos. Guia, HANDOFF e relatório de evidências completos. Gates locais: 968 testes, 90.66% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+### BATCH-06 T-77 — review
+32 testes novos; referência posterior Decimal, candidato/kill/pass/stale, contexto/geo, escala, scheduler e biblioteca; 9 summaries e 8 células byte-idênticos à main. Gates locais: 1000 testes, 90.81% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

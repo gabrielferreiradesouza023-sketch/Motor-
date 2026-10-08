@@ -402,3 +402,25 @@ futura e <=7 dias. pending antigo continua válido mas não confirma nada; by=hu
 não prova origem. record exige TTY, confirmação e privada humana; show/readiness só verificam.
 Publicação atômica e modos privados; nenhum valor do provedor ou limite presumido. Módulo
 validation entra no gate combinado de 95%. Não muda settings, regras nem arb.models.
+
+
+## ADR-039 — Portão C opcional e posterior determinístico (T-77)
+Status: **Proposto — aguarda aceite humano**.
+
+Gamma-Poisson usa gasto bruto em centavos como exposição, prior Gamma(shape=1,
+rate=1 centavo): adiciona uma venda e um centavo de exposição; sua influência decai
+com a amostra. Sobrevivência Gamma inteira calculada como CDF Poisson em log-space,
+sem sorteio; comissão líquida esperada fixa define lambda > 1/comissão. É uma hipótese,
+não uma garantia nem evidência de mercado. Sem gasto/comissão, probabilidade é ausente.
+Sugestão somente para fixtures/relatório: cap adicional 15000, 4 vendas acumuladas,
+ROI >=0 e probabilidade >=0.8. Vizinhas 10000/20000 são diagnósticas.
+
+Rules.gate_C default None mantém vereditos/summary/goldens/drill/calibração atuais;
+p_roi_positive é diagnóstico adicional nos metrics_json de G3/T/C. Com C ativo, G3 é
+candidato; referência durável é seu primeiro pass e gasto bruto no mesmo entity/geo.
+O teto C é essa referência mais a fatia; dados atrasados não passam, teto pode matar
+sem amostra. Ausência de referência recusa avaliação (falha fechada). C não aumenta
+orçamento: todas as barreiras e aprovações anteriores continuam. Escala e T exigem
+último pass em C na mesma entidade/geo; mudar geo exige nova confirmação explícita.
+Biblioteca/controles contam C/T, nunca G3 candidato. Gate público inclui C e contratos
+regenerados. Ativar regras depende do aceite humano em PR futuro, rules.yaml intocado.

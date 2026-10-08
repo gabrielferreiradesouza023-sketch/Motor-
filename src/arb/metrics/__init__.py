@@ -1,5 +1,6 @@
 """Fórmulas oficiais da seção 4. Dinheiro em centavos, taxas como frações."""
 
+import math
 from collections.abc import Iterable
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -92,3 +93,21 @@ def summarize(
         "roi_expected": roi_expected(revenue, gross),
         "sales": sum(s.status == "approved" for s in sales),
     }
+
+
+def p_roi_positive(sales: int, spent_cents: int, net_commission_cents: float) -> float | None:
+    """Gamma(1, 1 centavo) prior; survival Gamma(sales+1, spent+1) at 1/net.
+
+    Integer shape reduces to Poisson CDF. Log terms avoid overflow/underflow.
+    Zero spend/commission cannot establish profitability and returns None.
+    """
+    if type(sales) is not int or type(spent_cents) is not int or sales < 0 or spent_cents < 0:
+        raise ValueError("contagens/gasto inválidos")
+    if not math.isfinite(net_commission_cents) or net_commission_cents < 0:
+        raise ValueError("comissão líquida inválida")
+    if not spent_cents or not net_commission_cents:
+        return None
+    x = (spent_cents + 1) / net_commission_cents
+    terms = [-x + n * math.log(x) - math.lgamma(n + 1) for n in range(sales + 1)]
+    largest = max(terms)
+    return min(1.0, math.exp(largest) * math.fsum(math.exp(t - largest) for t in terms))

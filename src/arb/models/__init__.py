@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 Identifier = Annotated[str, Field(min_length=1)]
 Cents = Annotated[int, Field(strict=True, ge=0)]
 Count = Annotated[int, Field(strict=True, ge=0)]
-Gate = Literal["0", "1", "2", "3", "T"]
+Gate = Literal["0", "1", "2", "3", "T", "C"]
 
 
 class Model(BaseModel):

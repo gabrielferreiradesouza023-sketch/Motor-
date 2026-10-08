@@ -68,6 +68,13 @@ class Gate3(ConfigModel):
     hard_cap_multiplier: Annotated[float, Field(gt=1, le=5)]
 
 
+class GateC(ConfigModel):
+    cap_cents: PositiveInt
+    min_sales_total: PositiveInt
+    min_roi: Annotated[float, Field(ge=0)]
+    min_p_roi_positive: Rate
+
+
 class GateT(ConfigModel):
     cap_cents: PositiveInt
 
@@ -96,6 +103,7 @@ class Rules(ConfigModel):
     gate_2: Gate2
     gate_3: Gate3
     gate_T: GateT
+    gate_C: GateC | None = None
     controls: Controls
 
 

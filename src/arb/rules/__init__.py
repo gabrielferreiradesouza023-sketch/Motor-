@@ -7,7 +7,7 @@ from uuid import uuid4
 import yaml
 
 from arb.config import Rules
-from arb.metrics import summarize
+from arb.metrics import p_roi_positive, summarize
 from arb.models import Decision, Entity, MetricSnapshot, SaleEvent
 
 
@@ -26,6 +26,8 @@ def evaluate(
     video: bool = True,
     media_tax_rate: float = 0.13,
     refund_rate: float = 0.15,
+    confirmation_start_cents: int | None = None,
+    confirmed: bool = False,
 ) -> Decision:
     if now.utcoffset() is None or snapshot.ts > now:
         raise ValueError("tempo inválido")
@@ -36,7 +38,27 @@ def evaluate(
     )
     gate = entity.gate
     spent = metrics["spend_gross"]
-    if gate == "1":
+    if gate in ("3", "T", "C"):
+        metrics["p_roi_positive"] = p_roi_positive(
+            metrics["sales"], spent, commission_cents * (1 - refund_rate)
+        )
+    if rules.gate_C is not None and gate in ("3", "T", "C"):
+        metrics["confirmation_geo"] = entity.geo
+    if gate == "C":
+        if commission_cents <= 0:
+            raise ValueError("comissão precisa ser positiva")
+        if rules.gate_C is None:
+            raise ValueError("Portão C desligado")
+        if (
+            confirmation_start_cents is None
+            or type(confirmation_start_cents) is not int
+            or not 0 <= confirmation_start_cents <= spent
+        ):
+            raise ValueError("Portão C exige gasto inicial confirmado no mesmo geo")
+        cap = confirmation_start_cents + rules.gate_C.cap_cents
+        sampled = metrics["sales"] >= rules.gate_C.min_sales_total
+        metrics["confirmation_start_cents"] = confirmation_start_cents
+    elif gate == "1":
         cap = rules.gate_1.cap_cents
         sampled = snapshot.impressions >= rules.gate_1.min_impressions
     elif gate == "2":
@@ -52,11 +74,11 @@ def evaluate(
         )
         sampled = metrics["sales"] >= rules.gate_3.min_sales
     else:
-        raise ValueError("Portão 0 pertence ao scout; evaluator suporta 1/2/3/T")
+        raise ValueError("Portão 0 pertence ao scout; evaluator suporta 1/2/3/T/C")
     stale = now - snapshot.ts > timedelta(hours=rules.controls.stale_after_hours)
     verdict, rule_id, reason = "hold", f"g{gate}.hold", "Entre limites; continuar até o teto"
     # Teto é a única exceção à exigência de amostra. G3 com vendas não é kill automático.
-    cap_kill = spent >= cap and (gate in ("1", "2") or metrics["sales"] == 0)
+    cap_kill = spent >= cap and (gate in ("1", "2", "C") or metrics["sales"] == 0)
     if stale:
         verdict = "kill" if cap_kill else "insufficient_data"
         rule_id = f"g{gate}.cap" if cap_kill else "data.stale"
@@ -80,6 +102,15 @@ def evaluate(
             verdict, rule_id, reason = "kill", "g2.signal", "Ponte sem intenção suficiente"
         elif metrics["bridge_rate"] >= rules.gate_2.pass_bridge_rate:
             verdict, rule_id, reason = "pass", "g2.pass", "Intenção confirmada"
+    elif gate == "C":
+        c = rules.gate_C
+        if (
+            metrics["roi_expected"] is not None
+            and metrics["p_roi_positive"] is not None
+            and metrics["roi_expected"] >= c.min_roi
+            and metrics["p_roi_positive"] >= c.min_p_roi_positive
+        ):
+            verdict, rule_id, reason = "pass", "gC.pass", "Vencedor confirmado no mesmo geo"
     else:
         if (
             metrics["roi_expected"] is not None
@@ -99,6 +130,12 @@ def evaluate(
             f"g{gate}.hard_cap",
             "Teto rígido atingido sem validar o combo",
         )
+    if rules.gate_C is not None and gate == "3" and verdict == "pass":
+        reason = "Candidato: exige confirmação C antes de escala/transferência"
+    if rules.gate_C is not None and gate == "T" and not confirmed:
+        verdict, rule_id, reason = "insufficient_data", "gT.confirmation", "Exige pass em C"
+        if spent >= cap:
+            verdict, rule_id, reason = "kill", "gT.cap", "Teto sem confirmação C"
     metrics["sample_sufficient"] = sampled
     metrics["cap_cents"] = cap
     metrics["hard_cap_cents"] = hard_cap
@@ -152,11 +189,35 @@ def scale_allowed(
     now: datetime,
     *,
     approved: bool,
+    confirmed: bool = False,
 ) -> bool:
     return (
         approved
+        and (rules.gate_C is None or confirmed)
         and current_cents > 0
         and proposed_cents > current_cents
         and proposed_cents <= int(current_cents * (1 + rules.controls.max_scale_fraction))
         and now - last_increase >= timedelta(hours=rules.controls.scale_interval_hours)
     )
+
+
+def confirmation_context(entity: Entity, decisions: list[Decision]) -> tuple[int | None, bool]:
+    """A referência e o vencedor pertencem à mesma entidade/geo, nunca a um candidato."""
+    relevant = sorted(
+        (
+            d
+            for d in decisions
+            if d.entity_id == entity.id and d.metrics_json.get("confirmation_geo") == entity.geo
+        ),
+        key=lambda d: (d.ts, d.id),
+    )
+    baseline = next(
+        (d.metrics_json["spend_gross"] for d in relevant if d.gate == "3" and d.verdict == "pass"),
+        None,
+    )
+    confirmations = [d for d in relevant if d.gate == "C"]
+    return baseline, bool(confirmations and confirmations[-1].verdict == "pass")
+
+
+def winner_gates(rules: Rules) -> set[str]:
+    return {"C", "T"} if rules.gate_C is not None else {"3", "T"}
