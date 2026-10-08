@@ -424,3 +424,31 @@ orçamento: todas as barreiras e aprovações anteriores continuam. Escala e T e
 último pass em C na mesma entidade/geo; mudar geo exige nova confirmação explícita.
 Biblioteca/controles contam C/T, nunca G3 candidato. Gate público inclui C e contratos
 regenerados. Ativar regras depende do aceite humano em PR futuro, rules.yaml intocado.
+
+
+## ADR-040 — Perfis observados por janela e incerteza (T-79)
+Status: **Proposto — aguarda aceite humano**.
+
+Gerador somente lê SQLite local; CLI usa mode=ro. Datas incluem dias completos no fuso configurado (o mesmo da conta Meta);
+timestamps precisam fuso e usam fim exclusivo. Métricas Meta usam period_start,
+correções são somadas por período; ponte usa recibos sem test:true, sem contar novamente
+snapshots derivados, com fallback explícito para contadores sem recibos. Entidades de
+aceite de teste são excluídas. Vendas somente aprovadas, casadas e dentro da janela.
+
+Amostras mínimas são as regras atuais, sem novos números de mercado. Wilson 90% para
+CTR/hook/ponte/checkout-venda; CPM usa aproximação Poisson condicional de impressões,
+bruto informado com imposto configurado, intervalo de simulação em CPM de plataforma
+para não cobrar imposto duas vezes. Janela não é coorte e pode ter atraso de vendas.
+Abaixo da amostra, dados inválidos, gasto zero ou CPM subcentavo, só insufficient_data.
+
+YAML em reports usa os quatro corpos SimDistribution existentes, iguais por geo;
+não inventa segmentos vencedores/perdedores. Metadata completa fica no cabeçalho.
+Loader admite perfis nomeados; calibrate --profile-file é opt-in. Configs/goldens/drill
+padrão permanecem idênticos. Comissão/refund/orçamento continuam hipóteses existentes
+do laboratório: este perfil observa somente os cinco sinais solicitados, não comprova
+ROI futuro nem confirma V-01/V-04. Não escreve config nem autoriza dinheiro real.
+
+Para arquivo observado, calibrate classifica vencedores pelo ROI verdadeiro do modelo
+(hipóteses de custo/receita existentes), não pelo rótulo nominal winner do perfil.
+Borderline é null: nenhuma classe de vencedor limítrofe foi observada/identificada.
+Isso não altera a calibração padrão; teste planta rótulo winner numa verdade perdedora.

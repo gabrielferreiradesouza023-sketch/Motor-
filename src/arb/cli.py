@@ -559,6 +559,7 @@ def sim_calibrate(
     workers: int = 4,
     output: str = "docs/validation/calibration-grid.json",
     report: str = "reports/calibration.html",
+    profile_file: str | None = None,
 ):
     import json
     from pathlib import Path
@@ -567,7 +568,11 @@ def sim_calibrate(
 
     if seeds < 1:
         raise typer.BadParameter("seeds precisa ser positivo")
-    result = calibrate(seeds=list(range(seeds)), workers=workers)
+    result = calibrate(
+        seeds=list(range(seeds)),
+        workers=workers,
+        profile_file=Path(profile_file) if profile_file else None,
+    )
     target = Path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
@@ -1280,3 +1285,50 @@ def sim_confirm_report(
         with private_open(path) as file:
             file.write(body)
     typer.echo(f"{len(result['rows'])} comparações; hipóteses, não mercado; JSON: {output}")
+
+
+observed_app = typer.Typer(help="Perfis observados somente do banco local")
+app.add_typer(observed_app, name="observed")
+
+
+@observed_app.command("profile")
+def observed_profile(
+    since: str = typer.Option(...),
+    until: str = typer.Option(...),
+    database: str = "data/engine.db",
+    output: str | None = None,
+):
+    import sqlite3
+    from pathlib import Path
+
+    import yaml
+
+    from arb.config import Settings
+    from arb.permissions import reject_links
+    from arb.rules import load_rules
+    from arb.sim.observed import profile, window, write_profile
+
+    try:
+        reject_links(Path(database))
+        _, end = window(since, until)
+        target = Path(output) if output else Path("reports") / f"observed-profile-{end.date()}.yaml"
+        connection = sqlite3.connect(Path(database).absolute().as_uri() + "?mode=ro", uri=True)
+        try:
+            result = profile(
+                connection,
+                since,
+                until,
+                rules=load_rules(),
+                settings=Settings.model_validate(
+                    yaml.safe_load(Path("config/settings.yaml").read_text())
+                ),
+            )
+            write_profile(result, target)
+        finally:
+            connection.close()
+    except (ValueError, OSError, sqlite3.Error) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(
+        f"Perfil local: {target}; suficientes: "
+        + str(sum(row["status"] == "sufficient" for row in result["geos"].values()))
+    )

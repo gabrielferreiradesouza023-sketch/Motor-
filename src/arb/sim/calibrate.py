@@ -7,7 +7,7 @@ from pathlib import Path
 
 from jinja2 import Environment
 
-from arb.config import Rules
+from arb.config import Rules, load_profile_file
 from arb.rules import load_rules
 from arb.sim.lab import run_lab
 
@@ -30,9 +30,32 @@ def variant(base: Rules, parameters: dict) -> Rules:
 
 
 def _cell(task):
-    index, profile, parameters, seeds, rules, current = task
+    index, profile, parameters, seeds, rules, current, profile_file = task
     rules = Rules.model_validate(rules)
-    runs = [run_lab(seed, profile=profile, rules=rules).summary() for seed in seeds]
+    from arb.sim.lab import confirmation_stats
+
+    runs = []
+    for seed in seeds:
+        run = run_lab(
+            seed,
+            profile=profile,
+            rules=rules,
+            **({"profile_file": profile_file} if profile_file else {}),
+        )
+        summary = run.summary()
+        if profile_file:
+            truth = confirmation_stats(run)
+            winners = {key for key, value in truth["truth"].items() if value}
+            entities = {entity.id: entity for entity in run.population.entities}
+            summary["winner_found"] = truth["true_validations"] > 0
+            summary["killed_winners"] = sorted(
+                {
+                    entities[d.entity_id].angle_id
+                    for d in run.decisions
+                    if d.verdict == "kill" and entities[d.entity_id].angle_id in winners
+                }
+            )
+        runs.append(summary)
     validated = [
         r["spend_to_first_g3_pass_cents"]
         for r in runs
@@ -44,7 +67,9 @@ def _cell(task):
         parameters=parameters,
         seeds=len(seeds),
         winner_found_rate=sum(r["winner_found"] for r in runs) / len(runs),
-        borderline_found_rate=sum(r["borderline_found"] for r in runs) / len(runs),
+        borderline_found_rate=None
+        if profile_file
+        else sum(r["borderline_found"] for r in runs) / len(runs),
         killed_winner_rate=sum(bool(r["killed_winners"]) for r in runs) / len(runs),
         mean_waste_ratio=sum(r["waste_ratio"] or 0 for r in runs) / len(runs),
         mean_spend_to_validate_cents=sum(validated) / len(validated) if validated else None,
@@ -58,8 +83,9 @@ def calibrate(
     *,
     grid: dict | None = None,
     seeds: list[int] | None = None,
-    profiles: tuple[str, ...] = ("realistic", "pessimistic"),
+    profiles: tuple[str, ...] | None = None,
     workers: int = 1,
+    profile_file: Path | None = None,
 ) -> dict:
     grid = GRID if grid is None else grid
     seeds = list(range(100)) if seeds is None else seeds
@@ -67,7 +93,13 @@ def calibrate(
         raise ValueError("seeds inteiras únicas são obrigatórias")
     if not grid or any(k not in GRID or not v for k, v in grid.items()):
         raise ValueError("grid inválido")
-    if not profiles or any(p not in {"realistic", "pessimistic"} for p in profiles):
+    available = (
+        load_profile_file(profile_file)
+        if profile_file
+        else {"realistic": None, "pessimistic": None}
+    )
+    profiles = tuple(available) if profiles is None else profiles
+    if not profiles or any(p not in available for p in profiles):
         raise ValueError("perfil inválido")
     if workers < 1 or workers > 8:
         raise ValueError("workers precisa estar em 1–8")
@@ -78,7 +110,10 @@ def calibrate(
     for index, values in enumerate(itertools.product(*(grid[k] for k in keys))):
         parameters = current | dict(zip(keys, values, strict=True))
         rules = variant(base, parameters)
-        tasks.extend((index, p, parameters, seeds, rules.model_dump(), current) for p in profiles)
+        tasks.extend(
+            (index, p, parameters, seeds, rules.model_dump(), current, profile_file)
+            for p in profiles
+        )
     if workers == 1:
         rows = [_cell(task) for task in tasks]
     else:

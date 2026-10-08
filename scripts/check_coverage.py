@@ -28,6 +28,7 @@ MONEY_MODULES = (
     "accept_tracking",
     "readiness",
     "validation",
+    "sim.observed",
 )
 
 

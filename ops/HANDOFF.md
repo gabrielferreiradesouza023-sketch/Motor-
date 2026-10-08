@@ -30,3 +30,6 @@
 
 ### BATCH-06 T-78 — review
 19 testes novos; perdedor de sorte barrado com C, vencedor preservado, entradas/destinos inválidos recusados; relatório 0-99 gerado duas vezes byte-idêntico. Realistic: FP 31/871 sem C, 18/871 com C15000; acerto 17/29→16/29. Gates locais: 1019 testes, 90.91% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-06 T-79 — review
+28 testes novos; CPM/CTR/hook/funil contra referências, Wilson Decimal, data de conta, replay/test excluídos, janela/amostra insuficiente sem parâmetros, leitura sem alteração SQLite e calibração do YAML. Módulo observed 100%; compatibilidade 9 summaries/8 células preservada. Gates locais: 1047 testes, 91.37% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

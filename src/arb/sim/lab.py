@@ -80,13 +80,20 @@ class Run:
 
 
 def run_lab(
-    seed: int, budget_cents: int = 240000, *, profile: str = "planted", rules: Rules | None = None
+    seed: int,
+    budget_cents: int = 240000,
+    *,
+    profile: str = "planted",
+    rules: Rules | None = None,
+    profile_file: Path | None = None,
 ) -> Run:
     if budget_cents <= 0:
         raise ValueError("orçamento precisa ser positivo")
     r = Rules.model_validate(rules.model_dump()) if rules else load_rules()
     budget_cents = min(budget_cents, r.controls.total_cap_cents)
-    p = population(seed, profile=profile)
+    p = population(
+        seed, profile=profile, **({"profile_file": profile_file} if profile_file else {})
+    )
     run = Run(seed, p, profile=profile)
     rng = random.Random(seed)
     ads = [e for e in p.entities if e.kind == "ad"]
