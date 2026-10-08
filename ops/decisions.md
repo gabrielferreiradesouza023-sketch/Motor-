@@ -387,3 +387,10 @@ falharam antes das correções; nenhum alvo privado real foi lido nem serviço e
 - Hash prova integridade, não autenticidade. Revisão humana das evidências é obrigatória.
   Cartão, spend_cap, host e instalação real requerem confirmações separadas; pacote
   verificado não equivale a serviço instalado, nem readiness libera uma assinatura/gate.
+
+## ADR-037 — Origem Ed25519 das evidências (T-72)
+Hash canônico permanece compatível com kits, excluindo sha256/signature. Assinatura cobre
+todos os campos, inclusive o hash; usa a primitiva Ed25519 de approval e a chave pública
+versionada. Kits não assinam; humano revisa em TTY e assina localmente. Publicação atômica
+0600 recusa symlinks e alterações concorrentes. Readiness verifica apenas com a pública,
+exige assinatura e mantém validade, checks, teto e Graph bloqueado. Não é aprovação de gasto.

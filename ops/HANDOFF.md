@@ -117,3 +117,6 @@ Painel read-only não pronto com 19 checks, 47 testes novos e readiness 100%; 89
   guia do operador.
 - Humano (decidido em 2026-10-08): instalar host/serviço em simulação agora; Hotmart, Meta e
   limites no fim de semana; aceites reais bloqueados até lá.
+
+### BATCH-05 T-72 — review
+14 testes novos: origem, adulteração, chave divergente, TTY e chave ausente; evidência sem assinatura recusada. Gates locais: 912 testes, 90.36% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

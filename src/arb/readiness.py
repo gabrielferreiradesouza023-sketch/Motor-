@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from arb import preflight, service
-from arb.launcher.approval import configured_public_key
+from arb.launcher.approval import configured_public_key, verify_document
 from arb.permissions import inspect_paths, reject_links
 from arb.rules import load_rules
 
@@ -46,9 +46,11 @@ def fresh(stamp, now, *, days=7):
         return False
 
 
-def proof(path, kind, now, *, cap=None):
+def proof(path, kind, now, *, cap=None, settings=Path("config/settings.yaml")):
     try:
         document = read_json(path)
+        verify_document(document, settings=settings)
+        document.pop("signature")
         hashed = document.pop("sha256")
         actual = hashlib.sha256(
             json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
@@ -129,7 +131,13 @@ def inspect(*, root=Path("."), now=None):
         safe_config = False
     human = confirmations(root, now)
     proofs = {
-        kind: proof(root / f"ops/validation/{kind}.json", kind, now, cap=cap)
+        kind: proof(
+            root / f"ops/validation/{kind}.json",
+            kind,
+            now,
+            cap=cap,
+            settings=root / "config/settings.yaml",
+        )
         for kind in PROOF_CHECKS
     }
     # Preflight continua sem rede. Uma evidência F5 íntegra + confirmação humana pode
@@ -184,11 +192,17 @@ def inspect(*, root=Path("."), now=None):
         "Revisar chave pública existente via PR; manter privada apenas no host do signatário",
     )
     for kind in PROOF_CHECKS:
+        try:
+            unsigned = not read_json(root / f"ops/validation/{kind}.json").get("signature")
+        except (OSError, ValueError, AttributeError):
+            unsigned = True
         record(
             kind,
             proofs[kind],
-            "Aceite humano ausente, inválido, falho ou antigo (>7 dias)",
-            f"Humano: executar kit {kind}; revisar ops/validation/{kind}.json no próprio host",
+            "evidência não assinada"
+            if unsigned
+            else "Aceite humano inválido, falho ou antigo (>7 dias)",
+            f"Humano: executar kit {kind}, revisar e assinar com arb evidence sign no próprio host",
         )
     for name in HUMAN_ITEMS[:6]:
         record(

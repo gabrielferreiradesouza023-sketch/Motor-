@@ -1135,3 +1135,35 @@ def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")
                 typer.echo("  Próximo passo: " + item["next_step"])
     if not result["ready"]:
         raise typer.Exit(1)
+
+
+evidence_app = typer.Typer(help="Assinar evidências somente na máquina humana")
+app.add_typer(evidence_app, name="evidence")
+
+
+@evidence_app.command("sign")
+def evidence_sign(arquivo: str):
+    from pathlib import Path
+
+    from arb.accept import sign_evidence
+
+    try:
+        sign_evidence(Path(arquivo), typer.confirm)
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo("Evidência assinada; não autoriza exposição")
+
+
+@evidence_app.command("verify")
+def evidence_verify(arquivo: str):
+    from pathlib import Path
+
+    from arb.accept import verify_evidence
+
+    try:
+        verify_evidence(Path(arquivo))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo("Assinatura válida; aceite e validade temporal são avaliados por readiness")

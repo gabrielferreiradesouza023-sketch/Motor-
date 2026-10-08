@@ -12,6 +12,7 @@ from typer.testing import CliRunner
 import arb.readiness as panel
 from arb.accept import evidence, save
 from arb.cli import app
+from arb.launcher.approval import sign_document
 from arb.permissions import private_directory, private_open
 
 NOW = datetime(2026, 10, 7, tzinfo=UTC)
@@ -24,11 +25,12 @@ def write(path, body):
 
 
 def resign(body):
+    body.pop("signature", None)
     body.pop("sha256", None)
     body["sha256"] = hashlib.sha256(
         json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
     ).hexdigest()
-    return body
+    return sign_document(body)
 
 
 @pytest.fixture
@@ -45,7 +47,9 @@ def complete(tmp_path, monkeypatch):
             )
         )
         save(
-            evidence(kind, [{"name": n, "ok": True} for n in sorted(names)], now=NOW, **facts),
+            sign_document(
+                evidence(kind, [{"name": n, "ok": True} for n in sorted(names)], now=NOW, **facts)
+            ),
             tmp_path / f"ops/validation/{kind}.json",
         )
     write(
