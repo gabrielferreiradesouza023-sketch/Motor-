@@ -1228,3 +1228,17 @@ def service_status(json_output: bool = typer.Option(False, "--json")):
                 f"estado={row['active_state']}; próximo={row['next']}"
             )
         typer.echo(result["scope"])
+
+
+@service_app.command("install-plan")
+def service_install_plan(output: str = "data/service"):
+    from pathlib import Path
+
+    from arb.service import install_plan
+
+    try:
+        plan = install_plan(output=Path(output))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(1) from None
+    typer.echo(plan, nl=False)

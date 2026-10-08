@@ -126,3 +126,6 @@ Painel read-only não pronto com 19 checks, 47 testes novos e readiness 100%; 89
 
 ### BATCH-05 T-74 — review
 16 testes novos; diagnóstico WSL/systemd/timezone/unidades somente por show; avisos propagados sem confirmar persistent_host. Gates locais: 956 testes, 90.60% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-05 T-75 — review
+9 testes novos; snapshot fixo, manifest/hash/unidades/modes adulterados recusados, mudança concorrente recusada e nenhum subprocesso no plano. Gates locais: 965 testes, 90.66% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
