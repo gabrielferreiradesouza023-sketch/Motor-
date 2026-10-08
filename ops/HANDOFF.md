@@ -3,7 +3,7 @@
 ## Estado atual
 - Base main `35dbab563916bcc3bb428836c3b47d3c1301c5c5`: #36/BATCH-05 mergeado, T-72–T-76 em review na main.
 - Branch `codex/batch-06`. Planejamento exato recebido do humano publicado em `f1f8b82`.
-- T-77 concluída; draft será aberto após seu commit. Ordem T-78 → T-83; CI verde por tarefa antes da próxima.
+- T-77 concluída; PR draft [#37](https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/37) aberto. CI gates+worker verde no head `d96e41e` antes de pegar T-78. Ordem T-78 → T-83; CI verde por tarefa antes da próxima.
 - Sem merge; Claude revisa, humano decide. Motor não pronto para dinheiro real.
 
 ## Feito e evidências
@@ -27,3 +27,6 @@
 
 ### BATCH-06 T-77 — review
 32 testes novos; referência posterior Decimal, candidato/kill/pass/stale, contexto/geo, escala, scheduler e biblioteca; 9 summaries e 8 células byte-idênticos à main. Gates locais: 1000 testes, 90.81% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-06 T-78 — review
+19 testes novos; perdedor de sorte barrado com C, vencedor preservado, entradas/destinos inválidos recusados; relatório 0-99 gerado duas vezes byte-idêntico. Realistic: FP 31/871 sem C, 18/871 com C15000; acerto 17/29→16/29. Gates locais: 1019 testes, 90.91% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

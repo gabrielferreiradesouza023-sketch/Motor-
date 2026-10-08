@@ -2,6 +2,7 @@
 
 import itertools
 from concurrent.futures import ProcessPoolExecutor
+from contextlib import nullcontext
 from pathlib import Path
 
 from jinja2 import Environment
@@ -149,3 +150,143 @@ document.querySelectorAll('th').forEach((th,i)=>th.onclick=()=>{
         )
     )
     return output
+
+
+CONFIRMATION_VARIANTS = {"current": None, "C-10000": 10000, "C-15000": 15000, "C-20000": 20000}
+
+
+def confirmation_variant(base: Rules, name: str) -> Rules:
+    from arb.config import GateC
+
+    if name not in CONFIRMATION_VARIANTS:
+        raise ValueError("variante de confirmação inválida")
+    cap = CONFIRMATION_VARIANTS[name]
+    return base.model_copy(
+        update={
+            "gate_C": None
+            if cap is None
+            else GateC(cap_cents=cap, min_sales_total=4, min_roi=0, min_p_roi_positive=0.8)
+        }
+    )
+
+
+def confirm_report(
+    *,
+    seeds=None,
+    profiles=("planted", "realistic", "pessimistic"),
+    variants=tuple(CONFIRMATION_VARIANTS),
+    workers: int = 1,
+) -> dict:
+    from arb.sim.lab import confirmation_stats
+
+    seeds = list(range(100)) if seeds is None else seeds
+    if not seeds or len(set(seeds)) != len(seeds) or any(type(s) is not int for s in seeds):
+        raise ValueError("seeds inteiras únicas são obrigatórias")
+    if not profiles or any(p not in {"planted", "realistic", "pessimistic"} for p in profiles):
+        raise ValueError("perfil inválido")
+    if not variants or len(set(variants)) != len(variants):
+        raise ValueError("variantes únicas obrigatórias")
+    if type(workers) is not int or not 1 <= workers <= 8:
+        raise ValueError("workers precisa estar em 1–8")
+    base = load_rules()
+    rows = []
+    with ProcessPoolExecutor(max_workers=workers) if workers > 1 else nullcontext() as pool:
+        for profile in profiles:
+            for name in variants:
+                r = confirmation_variant(base, name)
+                runs = (
+                    list(
+                        pool.map(
+                            _confirmation_seed, [(seed, profile, r.model_dump()) for seed in seeds]
+                        )
+                    )
+                    if pool
+                    else [
+                        confirmation_stats(run_lab(seed, profile=profile, rules=r))
+                        for seed in seeds
+                    ]
+                )
+                totals = {
+                    key: sum(run[key] for run in runs)
+                    for key in (
+                        "true_winners",
+                        "true_losers",
+                        "true_validations",
+                        "false_validations",
+                        "missed_winners",
+                        "spend_gross_cents",
+                    )
+                }
+                rows.append(
+                    {
+                        "profile": profile,
+                        "variant": name,
+                        "seeds": len(seeds),
+                        **totals,
+                        "false_positive_rate": totals["false_validations"] / totals["true_losers"]
+                        if totals["true_losers"]
+                        else None,
+                        "winner_hit_rate": totals["true_validations"] / totals["true_winners"]
+                        if totals["true_winners"]
+                        else None,
+                        "mean_total_spend_cents": totals["spend_gross_cents"] / len(seeds),
+                        "spend_per_true_winner_cents": totals["spend_gross_cents"]
+                        / totals["true_validations"]
+                        if totals["true_validations"]
+                        else None,
+                    }
+                )
+    return {
+        "seeds": seeds,
+        "hypotheses_not_market_data": True,
+        "truth_definition": (
+            "expected net revenue > gross media cost; equal impressions per creative"
+        ),
+        "confirmation": {"min_sales_total": 4, "min_roi": 0, "min_p_roi_positive": 0.8},
+        "rows": rows,
+        "limitations": [
+            "Perfis são hipóteses, não dados de mercado. Não escolher "
+            "configuração automaticamente.",
+            "Taxa FP = perdedores validados / perdedores verdadeiros; acerto "
+            "= vencedores validados / vencedores verdadeiros.",
+            "Custo por vencedor inclui todo gasto e divide somente pelos "
+            "vencedores verdadeiros validados; sem acerto é null.",
+            "Taxas do perfil são amostradas uma vez; C usa novos lotes no "
+            "mesmo geo e métricas acumuladas.",
+            "Avaliações repetidas, seleção nos portões anteriores e 100 seeds "
+            "não garantem taxa fora da amostra.",
+            "Sem C, saídas históricas de summary/calibrate permanecem inalteradas.",
+        ],
+    }
+
+
+def confirmation_markdown(result: dict) -> str:
+    def number(value, rate=False):
+        return "—" if value is None else f"{value * 100:.2f}%" if rate else f"{value:.2f}"
+
+    lines = [
+        "# Confirmação estatística — hipóteses, não mercado",
+        "",
+        f"Seeds: {len(result['seeds'])}. Valores monetários em centavos. "
+        "C desligado nas regras atuais.",
+        "",
+        "| Perfil | Variante | FP / perdedores | Taxa FP | Acertos / "
+        "vencedores | Acerto | Gasto médio | Gasto por vencedor |",
+        "|---|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for r in result["rows"]:
+        lines.append(
+            f"| {r['profile']} | {r['variant']} | {r['false_validations']} / {r['true_losers']} | "
+            f"{number(r['false_positive_rate'], True)} | "
+            f"{r['true_validations']} / {r['true_winners']} | "
+            f"{number(r['winner_hit_rate'], True)} | {number(r['mean_total_spend_cents'])} | "
+            f"{number(r['spend_per_true_winner_cents'])} |"
+        )
+    return "\n".join(lines + ["", *["- " + item for item in result["limitations"]], ""])
+
+
+def _confirmation_seed(task):
+    from arb.sim.lab import confirmation_stats
+
+    seed, profile, rules = task
+    return confirmation_stats(run_lab(seed, profile=profile, rules=Rules.model_validate(rules)))

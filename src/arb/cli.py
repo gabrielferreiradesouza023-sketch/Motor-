@@ -1242,3 +1242,41 @@ def service_install_plan(output: str = "data/service"):
         typer.echo(str(error))
         raise typer.Exit(1) from None
     typer.echo(plan, nl=False)
+
+
+@sim_app.command("confirm-report")
+def sim_confirm_report(
+    seeds: str = "0-99",
+    output: str = "reports/confirmation.json",
+    report: str = "reports/confirmation.md",
+    workers: int = 4,
+):
+    """Compara hipóteses atuais e C sem alterar regras nem chamar APIs."""
+    import json
+    import re
+    from pathlib import Path
+
+    from arb.permissions import private_open, reject_links
+    from arb.sim.calibrate import confirm_report, confirmation_markdown
+
+    match = re.fullmatch(r"(\d+)-(\d+)", seeds)
+    if not match or not 0 <= int(match[1]) <= int(match[2]) <= 9999:
+        raise typer.BadParameter("seeds: intervalo inclusivo 0-99, limite 9999")
+    paths = [Path(output), Path(report)]
+    try:
+        for path in paths:
+            reject_links(path)
+            if "config" in path.absolute().parts:
+                raise ValueError("relatório não pode escrever em config")
+        if paths[0].absolute() == paths[1].absolute():
+            raise ValueError("JSON e Markdown exigem destinos diferentes")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    result = confirm_report(seeds=list(range(int(match[1]), int(match[2]) + 1)), workers=workers)
+    for path, body in [
+        (Path(output), json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n"),
+        (Path(report), confirmation_markdown(result)),
+    ]:
+        with private_open(path) as file:
+            file.write(body)
+    typer.echo(f"{len(result['rows'])} comparações; hipóteses, não mercado; JSON: {output}")

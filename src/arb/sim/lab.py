@@ -234,3 +234,32 @@ def persist(run: Run, database: Path) -> None:
                     Repository(connection, type(record)).add(record)
     finally:
         connection.close()
+
+
+def confirmation_stats(run: Run) -> dict:
+    """Ground truth is expected net revenue/cost, not the sampled outcome or role label.
+
+    Equal impression allocation across the combo's creatives, fixed 6000 commission,
+    15% refund and 13% media tax match the existing synthetic traffic model.
+    """
+    truth = {}
+    for angle in run.population.angles:
+        creatives = [c for c in run.population.creatives if c.angle_id == angle.id]
+        signals = [run.population.truth[c.id] for c in creatives]
+        expected_revenue = sum(
+            t.ctr * 0.92 * t.checkout * t.purchase * 5100 * 1000 for t in signals
+        )
+        expected_cost = sum(t.cpm_cents * 1.13 for t in signals)
+        truth[angle.id] = expected_revenue > expected_cost
+    winners = {key for key, value in truth.items() if value}
+    losers = set(truth) - winners
+    validated = set(run.winners)
+    return {
+        "truth": dict(sorted(truth.items())),
+        "true_winners": len(winners),
+        "true_losers": len(losers),
+        "true_validations": len(validated & winners),
+        "false_validations": len(validated & losers),
+        "missed_winners": len(winners - validated),
+        "spend_gross_cents": run.summary()["spend_gross_cents"],
+    }
