@@ -2,11 +2,12 @@
 
 import itertools
 from concurrent.futures import ProcessPoolExecutor
+from contextlib import nullcontext
 from pathlib import Path
 
 from jinja2 import Environment
 
-from arb.config import Rules
+from arb.config import Rules, load_profile_file
 from arb.rules import load_rules
 from arb.sim.lab import run_lab
 
@@ -29,9 +30,32 @@ def variant(base: Rules, parameters: dict) -> Rules:
 
 
 def _cell(task):
-    index, profile, parameters, seeds, rules, current = task
+    index, profile, parameters, seeds, rules, current, profile_file = task
     rules = Rules.model_validate(rules)
-    runs = [run_lab(seed, profile=profile, rules=rules).summary() for seed in seeds]
+    from arb.sim.lab import confirmation_stats
+
+    runs = []
+    for seed in seeds:
+        run = run_lab(
+            seed,
+            profile=profile,
+            rules=rules,
+            **({"profile_file": profile_file} if profile_file else {}),
+        )
+        summary = run.summary()
+        if profile_file:
+            truth = confirmation_stats(run)
+            winners = {key for key, value in truth["truth"].items() if value}
+            entities = {entity.id: entity for entity in run.population.entities}
+            summary["winner_found"] = truth["true_validations"] > 0
+            summary["killed_winners"] = sorted(
+                {
+                    entities[d.entity_id].angle_id
+                    for d in run.decisions
+                    if d.verdict == "kill" and entities[d.entity_id].angle_id in winners
+                }
+            )
+        runs.append(summary)
     validated = [
         r["spend_to_first_g3_pass_cents"]
         for r in runs
@@ -43,7 +67,9 @@ def _cell(task):
         parameters=parameters,
         seeds=len(seeds),
         winner_found_rate=sum(r["winner_found"] for r in runs) / len(runs),
-        borderline_found_rate=sum(r["borderline_found"] for r in runs) / len(runs),
+        borderline_found_rate=None
+        if profile_file
+        else sum(r["borderline_found"] for r in runs) / len(runs),
         killed_winner_rate=sum(bool(r["killed_winners"]) for r in runs) / len(runs),
         mean_waste_ratio=sum(r["waste_ratio"] or 0 for r in runs) / len(runs),
         mean_spend_to_validate_cents=sum(validated) / len(validated) if validated else None,
@@ -57,8 +83,9 @@ def calibrate(
     *,
     grid: dict | None = None,
     seeds: list[int] | None = None,
-    profiles: tuple[str, ...] = ("realistic", "pessimistic"),
+    profiles: tuple[str, ...] | None = None,
     workers: int = 1,
+    profile_file: Path | None = None,
 ) -> dict:
     grid = GRID if grid is None else grid
     seeds = list(range(100)) if seeds is None else seeds
@@ -66,7 +93,13 @@ def calibrate(
         raise ValueError("seeds inteiras únicas são obrigatórias")
     if not grid or any(k not in GRID or not v for k, v in grid.items()):
         raise ValueError("grid inválido")
-    if not profiles or any(p not in {"realistic", "pessimistic"} for p in profiles):
+    available = (
+        load_profile_file(profile_file)
+        if profile_file
+        else {"realistic": None, "pessimistic": None}
+    )
+    profiles = tuple(available) if profiles is None else profiles
+    if not profiles or any(p not in available for p in profiles):
         raise ValueError("perfil inválido")
     if workers < 1 or workers > 8:
         raise ValueError("workers precisa estar em 1–8")
@@ -77,7 +110,10 @@ def calibrate(
     for index, values in enumerate(itertools.product(*(grid[k] for k in keys))):
         parameters = current | dict(zip(keys, values, strict=True))
         rules = variant(base, parameters)
-        tasks.extend((index, p, parameters, seeds, rules.model_dump(), current) for p in profiles)
+        tasks.extend(
+            (index, p, parameters, seeds, rules.model_dump(), current, profile_file)
+            for p in profiles
+        )
     if workers == 1:
         rows = [_cell(task) for task in tasks]
     else:
@@ -149,3 +185,143 @@ document.querySelectorAll('th').forEach((th,i)=>th.onclick=()=>{
         )
     )
     return output
+
+
+CONFIRMATION_VARIANTS = {"current": None, "C-10000": 10000, "C-15000": 15000, "C-20000": 20000}
+
+
+def confirmation_variant(base: Rules, name: str) -> Rules:
+    from arb.config import GateC
+
+    if name not in CONFIRMATION_VARIANTS:
+        raise ValueError("variante de confirmação inválida")
+    cap = CONFIRMATION_VARIANTS[name]
+    return base.model_copy(
+        update={
+            "gate_C": None
+            if cap is None
+            else GateC(cap_cents=cap, min_sales_total=4, min_roi=0, min_p_roi_positive=0.8)
+        }
+    )
+
+
+def confirm_report(
+    *,
+    seeds=None,
+    profiles=("planted", "realistic", "pessimistic"),
+    variants=tuple(CONFIRMATION_VARIANTS),
+    workers: int = 1,
+) -> dict:
+    from arb.sim.lab import confirmation_stats
+
+    seeds = list(range(100)) if seeds is None else seeds
+    if not seeds or len(set(seeds)) != len(seeds) or any(type(s) is not int for s in seeds):
+        raise ValueError("seeds inteiras únicas são obrigatórias")
+    if not profiles or any(p not in {"planted", "realistic", "pessimistic"} for p in profiles):
+        raise ValueError("perfil inválido")
+    if not variants or len(set(variants)) != len(variants):
+        raise ValueError("variantes únicas obrigatórias")
+    if type(workers) is not int or not 1 <= workers <= 8:
+        raise ValueError("workers precisa estar em 1–8")
+    base = load_rules()
+    rows = []
+    with ProcessPoolExecutor(max_workers=workers) if workers > 1 else nullcontext() as pool:
+        for profile in profiles:
+            for name in variants:
+                r = confirmation_variant(base, name)
+                runs = (
+                    list(
+                        pool.map(
+                            _confirmation_seed, [(seed, profile, r.model_dump()) for seed in seeds]
+                        )
+                    )
+                    if pool
+                    else [
+                        confirmation_stats(run_lab(seed, profile=profile, rules=r))
+                        for seed in seeds
+                    ]
+                )
+                totals = {
+                    key: sum(run[key] for run in runs)
+                    for key in (
+                        "true_winners",
+                        "true_losers",
+                        "true_validations",
+                        "false_validations",
+                        "missed_winners",
+                        "spend_gross_cents",
+                    )
+                }
+                rows.append(
+                    {
+                        "profile": profile,
+                        "variant": name,
+                        "seeds": len(seeds),
+                        **totals,
+                        "false_positive_rate": totals["false_validations"] / totals["true_losers"]
+                        if totals["true_losers"]
+                        else None,
+                        "winner_hit_rate": totals["true_validations"] / totals["true_winners"]
+                        if totals["true_winners"]
+                        else None,
+                        "mean_total_spend_cents": totals["spend_gross_cents"] / len(seeds),
+                        "spend_per_true_winner_cents": totals["spend_gross_cents"]
+                        / totals["true_validations"]
+                        if totals["true_validations"]
+                        else None,
+                    }
+                )
+    return {
+        "seeds": seeds,
+        "hypotheses_not_market_data": True,
+        "truth_definition": (
+            "expected net revenue > gross media cost; equal impressions per creative"
+        ),
+        "confirmation": {"min_sales_total": 4, "min_roi": 0, "min_p_roi_positive": 0.8},
+        "rows": rows,
+        "limitations": [
+            "Perfis são hipóteses, não dados de mercado. Não escolher "
+            "configuração automaticamente.",
+            "Taxa FP = perdedores validados / perdedores verdadeiros; acerto "
+            "= vencedores validados / vencedores verdadeiros.",
+            "Custo por vencedor inclui todo gasto e divide somente pelos "
+            "vencedores verdadeiros validados; sem acerto é null.",
+            "Taxas do perfil são amostradas uma vez; C usa novos lotes no "
+            "mesmo geo e métricas acumuladas.",
+            "Avaliações repetidas, seleção nos portões anteriores e 100 seeds "
+            "não garantem taxa fora da amostra.",
+            "Sem C, saídas históricas de summary/calibrate permanecem inalteradas.",
+        ],
+    }
+
+
+def confirmation_markdown(result: dict) -> str:
+    def number(value, rate=False):
+        return "—" if value is None else f"{value * 100:.2f}%" if rate else f"{value:.2f}"
+
+    lines = [
+        "# Confirmação estatística — hipóteses, não mercado",
+        "",
+        f"Seeds: {len(result['seeds'])}. Valores monetários em centavos. "
+        "C desligado nas regras atuais.",
+        "",
+        "| Perfil | Variante | FP / perdedores | Taxa FP | Acertos / "
+        "vencedores | Acerto | Gasto médio | Gasto por vencedor |",
+        "|---|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for r in result["rows"]:
+        lines.append(
+            f"| {r['profile']} | {r['variant']} | {r['false_validations']} / {r['true_losers']} | "
+            f"{number(r['false_positive_rate'], True)} | "
+            f"{r['true_validations']} / {r['true_winners']} | "
+            f"{number(r['winner_hit_rate'], True)} | {number(r['mean_total_spend_cents'])} | "
+            f"{number(r['spend_per_true_winner_cents'])} |"
+        )
+    return "\n".join(lines + ["", *["- " + item for item in result["limitations"]], ""])
+
+
+def _confirmation_seed(task):
+    from arb.sim.lab import confirmation_stats
+
+    seed, profile, rules = task
+    return confirmation_stats(run_lab(seed, profile=profile, rules=Rules.model_validate(rules)))

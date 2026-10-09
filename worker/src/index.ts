@@ -1,4 +1,5 @@
-export interface Env {
+import { sendCheckout, type CapiEnv } from "./capi.ts";
+export interface Env extends CapiEnv {
   DB: D1Database;
   ALLOWED_ORIGIN: string;
   SALE_TOKEN?: string;
@@ -15,8 +16,9 @@ export function validateEvent(value: unknown): Record<string, unknown> {
   const v = value as Record<string, unknown>;
   if (!identifier(v.id) || !identifier(v.ad_id) || !["view", "checkout_click"].includes(String(v.kind)) ||
     typeof v.geo !== "string" || !/^[A-Z]{2}$/.test(v.geo) || !timestamp(v.ts) ||
-    (!(Object.keys(v).sort().join() === "ad_id,geo,id,kind,ts" ||
-      (Object.keys(v).sort().join() === "ad_id,geo,id,kind,test,ts" && v.test === true)))) throw new Error("invalid event");
+    Object.keys(v).some(k => !["id","ad_id","kind","geo","ts","test","event_id"].includes(k)) ||
+    ("test" in v && v.test !== true) ||
+    ("event_id" in v && (!identifier(v.event_id) || v.event_id !== v.id || v.kind !== "checkout_click"))) throw new Error("invalid event");
   return v;
 }
 
@@ -49,7 +51,7 @@ function json(body: unknown, status = 200, origin?: string): Response {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin");
     if (request.method === "OPTIONS" && url.pathname === "/event") {
@@ -99,7 +101,11 @@ export default {
     } catch { return json({ error: "invalid payload" }, 400, origin || undefined); }
     const table = url.pathname === "/event" ? "events" : "sales";
     // Sales é uma sequência de eventos: refund tem novo id e o mesmo hotmart_tx_id.
-    await env.DB.prepare(`INSERT OR IGNORE INTO ${table}(id,body) VALUES (?,?)`).bind(value.id,JSON.stringify(value)).run();
+    const inserted = await env.DB.prepare(`INSERT OR IGNORE INTO ${table}(id,body) VALUES (?,?)`).bind(value.id,JSON.stringify(value)).run();
+    if (table === "events" && inserted.meta.changes === 1) {
+      const delivery = sendCheckout(value, request, env);
+      if (ctx) ctx.waitUntil(delivery); else await delivery;
+    }
     return json({ status: "accepted" }, 202, origin || undefined);
   }
 };

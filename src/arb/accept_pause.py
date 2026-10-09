@@ -28,6 +28,9 @@ def eligible(connection, meta_id, *, flagged=True):
     if len(entities) != 1 or entities[0].kind != "ad":
         raise ValueError("anúncio local único obrigatório; não usar campanha/conjunto")
     entity = entities[0]
+    from arb.smoke import require_automatic
+
+    require_automatic(connection, entity.id)
     if flagged and connection.execute(
         "SELECT meta_id FROM acceptance_test_entities WHERE entity_id=?", (entity.id,)
     ).fetchone() != (meta_id,):

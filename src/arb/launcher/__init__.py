@@ -30,7 +30,11 @@ def plan(
     Verba diária é total por oferta, distribuída entre conjuntos ABO. O orçamento
     não autoriza exposição: criação e ativação são aprovações separadas.
     """
-    if offer.status != "approved" or not offer.allows_paid_traffic:
+    if (
+        offer.status != "approved"
+        or not offer.allows_paid_traffic
+        or offer.producer_paid_traffic_ok is False
+    ):
         raise ValueError("oferta precisa estar aprovada e permitir tráfego pago")
     if geo not in {"CO", "PE"}:
         raise ValueError("laboratório restrito a CO/PE; transferência requer outro plano")

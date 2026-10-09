@@ -4,9 +4,11 @@ import sqlite3
 
 from arb.db import Repository
 from arb.models import Angle, AngleLearning, Creative, Decision, Entity, Offer
+from arb.rules import load_rules, winner_gates
 
 
-def archive(connection: sqlite3.Connection) -> int:
+def archive(connection: sqlite3.Connection, *, rules=None) -> int:
+    gates = winner_gates(rules or load_rules())
     entities = {e.id: e for e in Repository(connection, Entity).list()}
     angles = {a.id: a for a in Repository(connection, Angle).list()}
     offers = {o.id: o for o in Repository(connection, Offer).list()}
@@ -23,7 +25,7 @@ def archive(connection: sqlite3.Connection) -> int:
             group = [e for e in entities.values() if e.angle_id == angle_id and e.geo == geo]
             if any(e.status == "active" for e in group):
                 continue
-            if d.verdict != "kill" and not (d.verdict == "pass" and d.gate in ("3", "T")):
+            if d.verdict != "kill" and not (d.verdict == "pass" and d.gate in gates):
                 continue
             angle = angles[angle_id]
             learning = AngleLearning(

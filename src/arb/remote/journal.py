@@ -10,9 +10,9 @@ from arb.launcher.approval import verify
 from arb.launcher.execute import require_simulation, store_approval
 from arb.launcher.scale import digest
 from arb.ledger import pending
-from arb.models import Action, Approval, Entity, LaunchPlan
+from arb.models import Action, Approval, Decision, Entity, LaunchPlan
 from arb.remote.fake import FakeMeta
-from arb.rules import load_rules, scale_allowed
+from arb.rules import confirmation_context, load_rules, scale_allowed
 
 
 def require_fake(writer):
@@ -63,6 +63,7 @@ def authorize(connection, operation, source, context, approval, now):
             datetime.fromisoformat(context["last_increase"]),
             now,
             approved=True,
+            confirmed=confirmation_context(source, Repository(connection, Decision).list())[1],
         ):
             raise ValueError("intenção/limites de escala divergentes")
         desired = Entity.model_validate(source.model_dump() | {"daily_budget_cents": amount})
@@ -141,6 +142,9 @@ def finish(connection, attempt, observed, *, now, reconciled=False):
 
 
 def perform(connection, writer, source, operation, key, *, context, approval=None, now):
+    from arb.smoke import require_automatic
+
+    require_automatic(connection, source.id)
     require_fake(writer)
     if connection.in_transaction:
         raise ValueError("efeito exige commit anterior")

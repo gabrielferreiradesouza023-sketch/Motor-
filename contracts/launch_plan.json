@@ -166,7 +166,8 @@
             "1",
             "2",
             "3",
-            "T"
+            "T",
+            "C"
           ],
           "title": "Gate",
           "type": "string"
@@ -245,6 +246,19 @@
     "Offer": {
       "additionalProperties": false,
       "properties": {
+        "advertisers_30d": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Advertisers 30D"
+        },
         "affiliate_link": {
           "format": "uri",
           "maxLength": 2083,
@@ -265,6 +279,19 @@
           "pattern": "^[A-Z]{3}$",
           "title": "Currency",
           "type": "string"
+        },
+        "evidence_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Ref"
         },
         "hotmart_product_id": {
           "minLength": 1,
@@ -295,6 +322,46 @@
           "minimum": 0,
           "title": "Price Local",
           "type": "integer"
+        },
+        "producer_conversion_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Producer Conversion Rate"
+        },
+        "producer_paid_traffic_ok": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Producer Paid Traffic Ok"
+        },
+        "producer_refund_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Producer Refund Rate"
         },
         "sales_page_url": {
           "format": "uri",

@@ -11,9 +11,9 @@ from arb.db.checkpoint import snapshot_before
 from arb.launcher.approval import read_document
 from arb.launcher.execute import approved_file, require_simulation, store_approval
 from arb.ledger import pending
-from arb.models import Action, Approval, Entity
+from arb.models import Action, Approval, Decision, Entity
 from arb.quarantine import require_released
-from arb.rules import load_rules, scale_allowed
+from arb.rules import confirmation_context, load_rules, scale_allowed
 
 
 def last_increase(connection, entity_id):
@@ -48,6 +48,10 @@ def digest(plan):
 
 
 def check(connection, entity, proposed_cents, now):
+    from arb.smoke import require_automatic
+
+    if entity is not None:
+        require_automatic(connection, entity.id)
     require_released(connection)
     if pending(connection):
         raise ValueError("pendência aberta: reconciliar antes de escala")
@@ -61,6 +65,7 @@ def check(connection, entity, proposed_cents, now):
         last_increase(connection, entity.id),
         now,
         approved=True,
+        confirmed=confirmation_context(entity, Repository(connection, Decision).list())[1],
     ):
         raise ValueError("escala excede +20% ou intervalo mínimo de 24 h")
 

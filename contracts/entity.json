@@ -38,7 +38,8 @@
         "1",
         "2",
         "3",
-        "T"
+        "T",
+        "C"
       ],
       "title": "Gate",
       "type": "string"

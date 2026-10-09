@@ -9,7 +9,7 @@ import yaml
 
 from arb.config import Policy
 from arb.db import Repository
-from arb.models import AdObservation, Approval, Offer, OfferIntake
+from arb.models import PRODUCER_FIELDS, AdObservation, Approval, Offer, OfferIntake
 from arb.rules import load_rules
 
 
@@ -26,11 +26,11 @@ def rank(
     ranked = []
     rejected = {}
     for item in intake:
-        offer = item.offer
+        offer = producer_offer(item)
         reasons = []
         if offer.niche not in policy.allowed_niches or offer.niche in policy.forbidden_niches:
             reasons.append("nicho fora da lista permitida")
-        if not offer.allows_paid_traffic:
+        if not offer.allows_paid_traffic or offer.producer_paid_traffic_ok is False:
             reasons.append("produtor não permite tráfego pago")
         if offer.commission_brl_cents < r.min_commission_cents:
             reasons.append("comissão abaixo do mínimo")
@@ -45,8 +45,24 @@ def rank(
             if a.offer_id == offer.id and a.active and (a.observed_at - a.first_seen).days >= 30
         }
         normalized = {
-            "commission": min(offer.commission_brl_cents * 0.85 / 10000, 1),
-            "market_proof": min(len(advertisers) / 5, 1),
+            "commission": min(
+                offer.commission_brl_cents
+                * (
+                    1
+                    - (
+                        offer.producer_refund_rate
+                        if offer.producer_refund_rate is not None
+                        else 0.15
+                    )
+                )
+                / 10000,
+                1,
+            ),
+            "market_proof": min(
+                (offer.advertisers_30d if offer.advertisers_30d is not None else len(advertisers))
+                / 5,
+                1,
+            ),
             "sales_page": (item.sales_page_quality - 1) / 4,
             "popularity": item.popularity / 100,
         }
@@ -98,7 +114,15 @@ def propose(
         for offer in ranked:
             existing = offers.get(offer.id)
             if existing:
-                offers.update(existing.model_copy(update={"score": offer.score}))
+                updates = {
+                    "score": offer.score,
+                    **{
+                        key: getattr(offer, key)
+                        for key in PRODUCER_FIELDS
+                        if getattr(offer, key) is not None
+                    },
+                }
+                offers.update(existing.model_copy(update=updates))
             else:
                 offers.add(offer)
         if not approvals.get(approval.id):
@@ -106,3 +130,40 @@ def propose(
     if not path.exists() and approvals.get(approval.id).status == "pending":
         path.write_text(payload)
     return path
+
+
+def producer_offer(item: OfferIntake) -> Offer:
+    updates = {}
+    for key in PRODUCER_FIELDS:
+        declared = getattr(item, key)
+        nested = getattr(item.offer, key)
+        if declared is not None:
+            if nested is not None and nested != declared:
+                raise ValueError("dados do produtor conflitantes no intake")
+            updates[key] = declared
+    return item.offer.model_copy(update=updates)
+
+
+def producer_report(intake: list[OfferIntake]) -> dict:
+    result = {}
+    for item in intake:
+        offer = producer_offer(item)
+        provided = {
+            key: getattr(offer, key) for key in PRODUCER_FIELDS if getattr(offer, key) is not None
+        }
+        if provided:
+            result[offer.id] = {
+                "declared": provided,
+                "alerts": ["permissão declarada sem referência de evidência"]
+                if offer.producer_paid_traffic_ok is True and not offer.evidence_ref
+                else [],
+                "commission_refund_basis": "producer"
+                if offer.producer_refund_rate is not None
+                else "default",
+                "market_proof_basis": "producer"
+                if offer.advertisers_30d is not None
+                else "ad_observations",
+                "conversion_use": "diagnostic_only; no unapproved score normalization",
+                "evidence_verified": False,
+            }
+    return result

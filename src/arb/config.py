@@ -68,6 +68,13 @@ class Gate3(ConfigModel):
     hard_cap_multiplier: Annotated[float, Field(gt=1, le=5)]
 
 
+class GateC(ConfigModel):
+    cap_cents: PositiveInt
+    min_sales_total: PositiveInt
+    min_roi: Annotated[float, Field(ge=0)]
+    min_p_roi_positive: Rate
+
+
 class GateT(ConfigModel):
     cap_cents: PositiveInt
 
@@ -96,6 +103,7 @@ class Rules(ConfigModel):
     gate_2: Gate2
     gate_3: Gate3
     gate_T: GateT
+    gate_C: GateC | None = None
     controls: Controls
 
 
@@ -222,3 +230,33 @@ class SalesCSV(ConfigModel):
 
 def load_sales_csv(path: Path = Path("config/sales_csv.yaml")) -> SalesCSV:
     return SalesCSV.model_validate(yaml.safe_load(path.read_text()))
+
+
+def load_profile_file(path: Path) -> dict[str, SimProfile]:
+    """Same profile body as sim_profiles; named geos and insufficiency are explicit."""
+    import re
+
+    from arb.permissions import reject_links
+
+    reject_links(path)
+    body = yaml.load(
+        path.read_text(encoding="utf-8"), Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+    )
+    if not isinstance(body, dict) or not body:
+        raise ValueError("arquivo de perfil inválido")
+    result = {}
+    for key, value in body.items():
+        if not isinstance(key, str):
+            raise ValueError("nome de perfil inválido")
+        if not isinstance(value, dict):
+            raise ValueError("perfil inválido")
+        if value.get("status") == "insufficient_data":
+            continue
+        if key not in {"planted", "realistic", "pessimistic"} and not re.fullmatch(
+            r"observed_[A-Z]{2}", key
+        ):
+            raise ValueError("nome de perfil inválido")
+        result[key] = SimProfile.model_validate(value)
+    if not result:
+        raise ValueError("insufficient_data: nenhum geo com amostra suficiente")
+    return result

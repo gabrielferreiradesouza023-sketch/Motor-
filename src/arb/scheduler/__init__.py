@@ -17,6 +17,7 @@ from arb.analyst.report import generate_report
 from arb.config import Settings
 from arb.db import Repository, backup_daily
 from arb.launcher.actions import pause
+from arb.metrics import effective_refund_rates
 from arb.models import (
     Action,
     Creative,
@@ -29,7 +30,14 @@ from arb.models import (
 )
 from arb.permissions import private_open
 from arb.remote.fake import FakeMeta
-from arb.rules import controls, evaluate, load_rules
+from arb.rules import (
+    ConfirmationUnavailable,
+    confirmation_context,
+    controls,
+    evaluate,
+    load_rules,
+    winner_gates,
+)
 
 ZONE = ZoneInfo("America/Sao_Paulo")
 
@@ -171,15 +179,28 @@ def _run(
         stale = collection is None or now - collection > timedelta(
             hours=rules.controls.stale_after_hours
         )
+        from arb.smoke import ids as smoke_ids
+        from arb.smoke import report as smoke_report
+
+        smoke = smoke_ids(connection)
         entities = Repository(connection, Entity).list()
         snapshots = Repository(connection, MetricSnapshot).list()
         adjustments = Repository(connection, MetricAdjustment).list()
         sales = Repository(connection, SaleEvent).list()
         offers = {o.id: o for o in Repository(connection, Offer).list()}
+        rates = effective_refund_rates(
+            offers.values(),
+            entities,
+            sales,
+            settings.refund_rate,
+            exclude_ids={
+                r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
+            },
+        )
         creatives = {c.id: c for c in Repository(connection, Creative).list()}
         if "rules" not in result["stages"]:
             for entity in entities:
-                if entity.status != "active" or entity.gate == "0":
+                if entity.id in smoke or entity.status != "active" or entity.gate == "0":
                     continue
                 family = family_ids(entity, entities)
                 leaves = family - {e.parent_id for e in entities if e.id in family}
@@ -200,22 +221,48 @@ def _run(
                     )
                 }
                 combined = MetricSnapshot(entity_id=entity.id, ts=stamp, **totals)
-                decision = evaluate(
-                    entity,
-                    combined,
-                    [s for s in sales if s.matched_entity_id in leaves],
-                    offers[entity.offer_id].commission_brl_cents,
-                    rules,
-                    now,
-                    video=entity.creative_id not in creatives
-                    or creatives[entity.creative_id].format == "video",
-                    media_tax_rate=settings.media_tax_rate,
-                    refund_rate=settings.refund_rate,
+                baseline, confirmed = confirmation_context(
+                    entity, Repository(connection, Decision).list()
                 )
+                try:
+                    decision = evaluate(
+                        entity,
+                        combined,
+                        [s for s in sales if s.matched_entity_id in leaves],
+                        offers[entity.offer_id].commission_brl_cents,
+                        rules,
+                        now,
+                        video=entity.creative_id not in creatives
+                        or creatives[entity.creative_id].format == "video",
+                        media_tax_rate=settings.media_tax_rate,
+                        refund_rate=rates.get(entity.id, settings.refund_rate),
+                        confirmation_start_cents=baseline,
+                        confirmed=confirmed,
+                    )
+                except ConfirmationUnavailable as exc:
+                    # Configuration rollback or missing same-geo baseline is not a
+                    # statistical kill. Audit unavailable data and reduce exposure.
+                    decision = Decision(
+                        id=str(uuid5(NAMESPACE_URL, key + ":" + entity.id)),
+                        ts=now,
+                        entity_id=entity.id,
+                        gate=entity.gate,
+                        verdict="insufficient_data",
+                        metrics_json=exc.metrics,
+                        rule_id="gC.unavailable",
+                        reason=str(exc),
+                    )
                 decision.id = str(uuid5(NAMESPACE_URL, key + ":" + entity.id))
                 with connection:
                     if Repository(connection, Decision).get(decision.id) is None:
                         Repository(connection, Decision).add(decision)
+                        if (
+                            rules.gate_C is not None
+                            and entity.gate == "3"
+                            and decision.verdict == "pass"
+                        ):
+                            entity.gate = "C"
+                            Repository(connection, Entity).update(entity)
                 result["decisions"].append(decision.id)
             result["decisions"] = sorted(set(result["decisions"]))
             result["stages"].append("rules")
@@ -231,7 +278,7 @@ def _run(
                 (row for row in data["groups"]["daily"] if row["key"] == day.isoformat()), {}
             )
             revenue = sum(
-                int(s.commission_cents * (1 - settings.refund_rate))
+                int(s.commission_cents * (1 - rates.get(s.matched_entity_id, settings.refund_rate)))
                 for s in sales
                 if s.status == "approved"
                 and s.matched_entity_id is not None
@@ -244,24 +291,48 @@ def _run(
                 day_revenue_cents=revenue,
                 total_spend_cents=data["totals"]["spend_gross"],
                 passed_gate_2=len(
-                    {d.entity_id for d in decisions if d.gate == "2" and d.verdict == "pass"}
+                    {
+                        d.entity_id
+                        for d in decisions
+                        if d.entity_id not in smoke and d.gate == "2" and d.verdict == "pass"
+                    }
                 ),
                 validated_combos=len(
-                    {d.entity_id for d in decisions if d.gate in {"3", "T"} and d.verdict == "pass"}
+                    {
+                        d.entity_id
+                        for d in decisions
+                        if d.entity_id not in smoke
+                        and d.gate in winner_gates(rules)
+                        and d.verdict == "pass"
+                    }
                 ),
             )
             result["alerts"].extend(brakes)
+            result["alerts"].extend(
+                alert
+                for row in smoke_report(connection, media_tax_rate=settings.media_tax_rate)[
+                    "campaigns"
+                ]
+                for alert in row["alerts"]
+            )
             if stale:
                 result["alerts"].append("stale: dados atrasados/ausentes; simulação congelada")
             targets = {e.id for e in entities if e.status == "active"} if brakes or stale else set()
             for decision_id in result["decisions"]:
                 d = Repository(connection, Decision).get(decision_id)
+                if d.rule_id == "gC.unavailable":
+                    result["alerts"].append(f"confirmation_unavailable: {d.entity_id}; {d.reason}")
                 if (
-                    d.verdict == "kill"
-                    or d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
+                    d.rule_id == "gC.unavailable"
+                    or d.verdict == "kill"
+                    or (
+                        d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
+                        and not (rules.gate_C is not None and d.gate == "3" and d.verdict == "pass")
+                    )
                 ):
                     entity = next(e for e in entities if e.id == d.entity_id)
                     targets |= family_ids(entity, entities)
+            targets -= smoke
             covered = set()
             priority = {"campaign": 0, "adset": 1, "ad": 2}
             ordered = sorted(

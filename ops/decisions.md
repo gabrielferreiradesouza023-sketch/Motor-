@@ -402,3 +402,120 @@ futura e <=7 dias. pending antigo continua válido mas não confirma nada; by=hu
 não prova origem. record exige TTY, confirmação e privada humana; show/readiness só verificam.
 Publicação atômica e modos privados; nenhum valor do provedor ou limite presumido. Módulo
 validation entra no gate combinado de 95%. Não muda settings, regras nem arb.models.
+
+
+## ADR-039 — Portão C opcional e posterior determinístico (T-77)
+Status: **Proposto — aguarda aceite humano**.
+
+Gamma-Poisson usa gasto bruto em centavos como exposição, prior Gamma(shape=1,
+rate=1 centavo): adiciona uma venda e um centavo de exposição; sua influência decai
+com a amostra. Sobrevivência Gamma inteira calculada como CDF Poisson em log-space,
+sem sorteio; comissão líquida esperada fixa define lambda > 1/comissão. É uma hipótese,
+não uma garantia nem evidência de mercado. Sem gasto/comissão, probabilidade é ausente.
+Sugestão somente para fixtures/relatório: cap adicional 15000, 4 vendas acumuladas,
+ROI >=0 e probabilidade >=0.8. Vizinhas 10000/20000 são diagnósticas.
+
+Rules.gate_C default None mantém vereditos/summary/goldens/drill/calibração atuais;
+p_roi_positive é diagnóstico adicional nos metrics_json de G3/T/C. Com C ativo, G3 é
+candidato; referência durável é seu primeiro pass e gasto bruto no mesmo entity/geo.
+O teto C é essa referência mais a fatia; dados atrasados não passam, teto pode matar
+sem amostra. Ausência de referência recusa avaliação (falha fechada). C não aumenta
+orçamento: todas as barreiras e aprovações anteriores continuam. Escala e T exigem
+último pass em C na mesma entidade/geo; mudar geo exige nova confirmação explícita.
+Biblioteca/controles contam C/T, nunca G3 candidato. Gate público inclui C e contratos
+regenerados. Ativar regras depende do aceite humano em PR futuro, rules.yaml intocado.
+
+
+## ADR-040 — Perfis observados por janela e incerteza (T-79)
+Status: **Proposto — aguarda aceite humano**.
+
+Gerador somente lê SQLite local; CLI usa mode=ro. Datas incluem dias completos no fuso configurado (o mesmo da conta Meta);
+timestamps precisam fuso e usam fim exclusivo. Métricas Meta usam period_start,
+correções são somadas por período; ponte usa recibos sem test:true, sem contar novamente
+snapshots derivados, com fallback explícito para contadores sem recibos. Entidades de
+aceite de teste são excluídas. Vendas somente aprovadas, casadas e dentro da janela.
+
+Amostras mínimas são as regras atuais, sem novos números de mercado. Wilson 90% para
+CTR/hook/ponte/checkout-venda; CPM usa aproximação Poisson condicional de impressões,
+bruto informado com imposto configurado, intervalo de simulação em CPM de plataforma
+para não cobrar imposto duas vezes. Janela não é coorte e pode ter atraso de vendas.
+Abaixo da amostra, dados inválidos, gasto zero ou CPM subcentavo, só insufficient_data.
+
+YAML em reports usa os quatro corpos SimDistribution existentes, iguais por geo;
+não inventa segmentos vencedores/perdedores. Metadata completa fica no cabeçalho.
+Loader admite perfis nomeados; calibrate --profile-file é opt-in. Configs/goldens/drill
+padrão permanecem idênticos. Comissão/refund/orçamento continuam hipóteses existentes
+do laboratório: este perfil observa somente os cinco sinais solicitados, não comprova
+ROI futuro nem confirma V-01/V-04. Não escreve config nem autoriza dinheiro real.
+
+Para arquivo observado, calibrate classifica vencedores pelo ROI verdadeiro do modelo
+(hipóteses de custo/receita existentes), não pelo rótulo nominal winner do perfil.
+Borderline é null: nenhuma classe de vencedor limítrofe foi observada/identificada.
+Isso não altera a calibração padrão; teste planta rótulo winner numa verdade perdedora.
+
+
+## ADR-041 — CAPI opt-in de medição com nonce compartilhado (T-80)
+Status: **Proposto — aguarda aceite humano**.
+
+bridge build --capi-enabled gera nonce único no clique, enviado ao pixel e ao Worker.
+Sem a opção, o HTML versionado permanece byte-idêntico. Worker desliga por padrão,
+exige token/pixel/GRAPH_VERSION explícitos (V-06); nenhum valor/versionamento real
+é presumido. Corpos antigos são aceitos sem enviar CAPI: falta nonce compartilhado.
+Eventos test:true nunca saem. INSERT OR IGNORE no D1 precede envio e impede reenvio
+em replay; entrega é best effort, sem retry automático que possa duplicar eventos.
+Falha/timeout não perde recibo nem muda o 202 existente. waitUntil quando disponível.
+Somente IP e user agent exigidos; source URL remove query/fragmento, sem persistir
+IP/UA/token no D1. Token em header, nunca URL. Não é executor de exposição Graph,
+não confirma F5/F6, não ativa LIVE_MODE e depende de aceite/configuração humana.
+Novo módulo de efeito externo capi.ts entra em gate de 95% linhas e branches no npm test.
+
+## ADR-042 — Fumaça humana isolada do motor (T-81)
+Status: **Proposto — aguarda aceite humano**.
+
+Migração 011 registra campanha/teto e todos os IDs originais numa tabela própria;
+sem alteração de arb.models. Entidades começam pausadas/gate 0, orçamento desconhecido
+zero; sync GET observa estado/orçamento reais. Não cria nada na Meta. Registro atomicamente
+auditado actor=human; IDs existentes/duplicados recusados. Registro local não autoriza gasto.
+Descendentes novos também ficam protegidos. Guardas na pausa, ativação, escala e journal
+recusam operações sobre fumaça ou ancestrais que a afetariam; scheduler não decide nem
+pausa fumaça mesmo com stale/freios. Seu gasto ainda entra no P&L/freios das outras campanhas.
+Kit de aceite F6 recusa fumaça explicitamente, inclusive registro como entidade de teste.
+
+Relatório é acumulado da campanha: snapshots/correções e vendas casadas, sem entidades
+aceite/teste; vendas não casadas são do banco inteiro, sem atribuição inventada. Gasto bruto
+usa imposto configurado, explicitamente estimado. smoke invoice guarda somente totais e
+referência textual humana (não lê fatura/arquivo); imposto implícito só aparece se o total
+plataforma da fatura cobrir exatamente o gasto acumulado atual. Caso contrário V-04 pendente.
+Observado V-02/V-04 não é confirmação assinada/readiness nem aceite F6. Alerta de teto é
+local, dirigido à operação manual; nenhuma mensagem é enviada. smoke entra no gate de 95%.
+
+Relatório atribui gasto/vendas ao root smoke atualmente observado quando um anúncio
+muda de campanha, sem dupla contagem. Se não houver root observado, preserva vínculo
+original. Proteção da operação humana sempre preserva IDs originais, inclusive ciclos.
+
+## ADR-043 — Dados declarados do produtor e refund por oferta (T-82)
+Status: **Proposto — aguarda aceite humano**.
+
+Offer e OfferIntake recebem cinco campos opcionais; None é omitido na serialização
+para preservar banco, planos, hashes, ranking, goldens e drill antigos. Contratos regenerados.
+CSV original permanece intacto: colunas opcionais só após o cabeçalho existente, vazias
+permitidas, desconhecidas/duplicadas recusadas. Exemplo novo separado offers-producer.csv
+é explicitamente sintético, porque examples/scout/offers.csv já existe e não pode mudar.
+
+Permissão negativa elimina oferta e impede plano mesmo se allows_paid_traffic antigo disser
+true. Permissão positiva sem evidence_ref gera alerta; referência é descrição, nunca arquivo
+lido nem evidência automaticamente verificada. Advertisers declarado substitui contagem de
+prova, mantendo os mesmos pesos/normalização existente. Conversão da página é exibida como
+diagnóstico: não se inventa normalização/peso não aprovado. Comissão no ranking usa refund
+declarado quando presente; padrão .15 permanece igual quando não há dado.
+
+Refund declarado vale até 19 transações próprias únicas; a partir de 20, refund/chargeback
+observado / total de transações finais. Replays não multiplicam amostra; vendas sem match,
+de outras ofertas e entidades de aceite de teste não entram nela. Todas as entidades de uma
+oferta usam sua amostra completa, não somente a do anúncio atual. Sem producer_refund_rate,
+continua o padrão anterior inclusive após 20 vendas: opção ausente não ativa regra nova.
+Scheduler usa taxa por oferta em vereditos/tetos e controles; P&L/rev_expected particionam
+comissões por taxa, arredondando HALF_UP cada taxa e evitando multiplicar desconto no mesmo
+montante. Aprovações/plano carregam os dados novos no hash; dado do produtor não é autorização.
+A amostra de refund depende de idade/coorte; hipótese declarada não comprova ROI futuro nem
+valida V-01–V-06. Nenhum valor real foi inventado, pesos e rules.yaml intocados.

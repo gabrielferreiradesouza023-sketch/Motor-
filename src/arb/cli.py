@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import typer
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
@@ -198,10 +200,12 @@ def scout_rank(
 
     from arb.db import connect, migrate
     from arb.scout import import_adlibrary, import_offers
-    from arb.scout.ranking import propose, rank
+    from arb.scout.ranking import producer_report, propose, rank
 
     try:
-        ranked, rejected = rank(import_offers(Path(offers)), import_adlibrary(Path(adlibrary)))
+        intake = import_offers(Path(offers))
+        ranked, rejected = rank(intake, import_adlibrary(Path(adlibrary)))
+        producer = producer_report(intake)
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
     connection = connect(Path(database))
@@ -216,6 +220,7 @@ def scout_rank(
                 "ranking": [{"id": o.id, "score": o.score} for o in ranked],
                 "rejected": rejected,
                 "approval": str(path),
+                **({"producer": producer} if producer else {}),
             },
             ensure_ascii=False,
             indent=2,
@@ -237,6 +242,7 @@ def bridge_build(
     slug: str = typer.Option(...),
     database: str = "data/engine.db",
     output: str = "bridges_out",
+    capi_enabled: bool = False,
 ):
     from pathlib import Path
 
@@ -263,6 +269,7 @@ def bridge_build(
             tracking_key=tracking_key,
             output=Path(output),
             connection=connection,
+            capi_enabled=capi_enabled,
             tracking_id_max_length=settings.tracking_id_max_length,
             tracking_id_alphabet=settings.tracking_id_alphabet,
         )
@@ -559,6 +566,7 @@ def sim_calibrate(
     workers: int = 4,
     output: str = "docs/validation/calibration-grid.json",
     report: str = "reports/calibration.html",
+    profile_file: str | None = None,
 ):
     import json
     from pathlib import Path
@@ -567,7 +575,17 @@ def sim_calibrate(
 
     if seeds < 1:
         raise typer.BadParameter("seeds precisa ser positivo")
-    result = calibrate(seeds=list(range(seeds)), workers=workers)
+    try:
+        report_paths(
+            [Path(output), Path(report)], source=Path(profile_file) if profile_file else None
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    result = calibrate(
+        seeds=list(range(seeds)),
+        workers=workers,
+        profile_file=Path(profile_file) if profile_file else None,
+    )
     target = Path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
@@ -1242,3 +1260,209 @@ def service_install_plan(output: str = "data/service"):
         typer.echo(str(error))
         raise typer.Exit(1) from None
     typer.echo(plan, nl=False)
+
+
+@sim_app.command("confirm-report")
+def sim_confirm_report(
+    seeds: str = "0-99",
+    output: str = "reports/confirmation.json",
+    report: str = "reports/confirmation.md",
+    workers: int = 4,
+):
+    """Compara hipóteses atuais e C sem alterar regras nem chamar APIs."""
+    import json
+    import re
+    from pathlib import Path
+
+    from arb.permissions import private_open, reject_links
+    from arb.sim.calibrate import confirm_report, confirmation_markdown
+
+    match = re.fullmatch(r"(\d+)-(\d+)", seeds)
+    if not match or not 0 <= int(match[1]) <= int(match[2]) <= 9999:
+        raise typer.BadParameter("seeds: intervalo inclusivo 0-99, limite 9999")
+    paths = [Path(output), Path(report)]
+    try:
+        for path in paths:
+            reject_links(path)
+            if "config" in path.absolute().parts:
+                raise ValueError("relatório não pode escrever em config")
+        if paths[0].absolute() == paths[1].absolute():
+            raise ValueError("JSON e Markdown exigem destinos diferentes")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    result = confirm_report(seeds=list(range(int(match[1]), int(match[2]) + 1)), workers=workers)
+    for path, body in [
+        (Path(output), json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n"),
+        (Path(report), confirmation_markdown(result)),
+    ]:
+        with private_open(path) as file:
+            file.write(body)
+    typer.echo(f"{len(result['rows'])} comparações; hipóteses, não mercado; JSON: {output}")
+
+
+observed_app = typer.Typer(help="Perfis observados somente do banco local")
+app.add_typer(observed_app, name="observed")
+
+
+@observed_app.command("profile")
+def observed_profile(
+    since: str = typer.Option(...),
+    until: str = typer.Option(...),
+    database: str = "data/engine.db",
+    output: str | None = None,
+):
+    import sqlite3
+    from pathlib import Path
+
+    import yaml
+
+    from arb.config import Settings
+    from arb.permissions import reject_links
+    from arb.rules import load_rules
+    from arb.sim.observed import profile, window, write_profile
+
+    try:
+        reject_links(Path(database))
+        _, end = window(since, until)
+        target = Path(output) if output else Path("reports") / f"observed-profile-{end.date()}.yaml"
+        report_paths([target], source=Path(database))
+        connection = sqlite3.connect(Path(database).absolute().as_uri() + "?mode=ro", uri=True)
+        try:
+            result = profile(
+                connection,
+                since,
+                until,
+                rules=load_rules(),
+                settings=Settings.model_validate(
+                    yaml.safe_load(Path("config/settings.yaml").read_text())
+                ),
+            )
+            write_profile(result, target)
+        finally:
+            connection.close()
+    except (ValueError, OSError, sqlite3.Error) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(
+        f"Perfil local: {target}; suficientes: "
+        + str(sum(row["status"] == "sufficient" for row in result["geos"].values()))
+    )
+
+
+smoke_app = typer.Typer(help="Campanha criada e operada pelo humano; motor só lê")
+app.add_typer(smoke_app, name="smoke")
+
+
+@smoke_app.command("register")
+def smoke_register(
+    campaign: str = typer.Option(...),
+    adset: str = typer.Option(...),
+    ad: Annotated[list[str], typer.Option()] = ...,
+    offer: str = typer.Option(...),
+    geo: str = typer.Option(...),
+    cap_cents: int = typer.Option(...),
+    database: str = "data/engine.db",
+):
+    import json
+    from contextlib import closing
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.smoke import register
+
+    try:
+        with closing(connect(Path(database))) as connection:
+            migrate(connection)
+            value = register(connection, campaign, adset, ad, offer, geo, cap_cents)
+        typer.echo(json.dumps(value, sort_keys=True))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@smoke_app.command("invoice")
+def smoke_invoice(
+    campaign: str = typer.Option(...),
+    platform_cents: int = typer.Option(...),
+    total_cents: int = typer.Option(...),
+    evidence_ref: str = typer.Option(...),
+    database: str = "data/engine.db",
+):
+    from contextlib import closing
+    from pathlib import Path
+
+    from arb.db import connect, migrate
+    from arb.smoke import record_invoice
+
+    try:
+        with closing(connect(Path(database))) as connection:
+            migrate(connection)
+            record_invoice(
+                connection, "meta-" + campaign, platform_cents, total_cents, evidence_ref
+            )
+        typer.echo("Fatura registrada localmente; não é confirmação assinada V-04.")
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@smoke_app.command("report")
+def smoke_report(
+    campaign: str | None = None,
+    database: str = "data/engine.db",
+    output: str = "reports/smoke.json",
+    report_file: str = "reports/smoke.md",
+):
+    import json
+    import sqlite3
+    from contextlib import closing
+    from pathlib import Path
+
+    import yaml
+
+    from arb.config import Settings
+    from arb.permissions import private_open, reject_links
+    from arb.smoke import markdown, report
+
+    try:
+        path = Path(database)
+        reject_links(path)
+        targets = [Path(output), Path(report_file)]
+        if targets[0].resolve() == targets[1].resolve():
+            raise ValueError("saídas precisam ser diferentes")
+        for target in targets:
+            reject_links(target)
+            if target.resolve() == path.resolve():
+                raise ValueError("saída não pode sobrescrever o banco")
+            if Path("config").resolve() in [target.resolve(), *target.resolve().parents]:
+                raise ValueError("saída não pode ficar em config")
+        settings = Settings.model_validate(yaml.safe_load(Path("config/settings.yaml").read_text()))
+        with closing(sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro", uri=True)) as connection:
+            value = report(
+                connection,
+                "meta-" + campaign if campaign is not None else None,
+                media_tax_rate=settings.media_tax_rate,
+            )
+        text = json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
+        for target, content in zip(targets, [text, markdown(value)], strict=True):
+            with private_open(target) as stream:
+                stream.write(content)
+        typer.echo(text, nl=False)
+    except (ValueError, sqlite3.Error) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+def report_paths(targets, *, source=None):
+    """Operator pipeline outputs cannot alias inputs, config, or each other."""
+    from pathlib import Path
+
+    from arb.permissions import reject_links
+
+    previous = [source] if source is not None else []
+    for target in targets:
+        reject_links(target)
+        if Path("config").resolve() in (target.resolve(), *target.resolve().parents):
+            raise ValueError("saída não pode escrever em config")
+        for other in previous:
+            if target.resolve() == other.resolve() or (
+                target.exists() and other.exists() and target.samefile(other)
+            ):
+                raise ValueError("saída não pode sobrescrever origem ou outro relatório")
+        previous.append(target)

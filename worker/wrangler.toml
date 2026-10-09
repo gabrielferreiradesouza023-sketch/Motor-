@@ -3,6 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2026-10-05"
 
 [vars]
+CAPI_ENABLED = "false"
 ALLOWED_ORIGIN = "http://127.0.0.1:8000"
 
 [[d1_databases]]

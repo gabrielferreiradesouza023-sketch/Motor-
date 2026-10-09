@@ -3,8 +3,9 @@
 import random
 from dataclasses import dataclass, replace
 from datetime import datetime
+from pathlib import Path
 
-from arb.config import load_sim_profiles
+from arb.config import load_profile_file, load_sim_profiles
 from arb.models import Angle, Creative, Entity, MetricSnapshot, Offer, SaleEvent
 
 
@@ -29,7 +30,13 @@ class Population:
 
 
 def population(
-    seed: int, offers: int = 3, angles: int = 3, creatives: int = 3, *, profile: str = "planted"
+    seed: int,
+    offers: int = 3,
+    angles: int = 3,
+    creatives: int = 3,
+    *,
+    profile: str = "planted",
+    profile_file: Path | None = None,
 ) -> Population:
     if min(offers, angles, creatives) < 1:
         raise ValueError("dimensões precisam ser positivas")
@@ -129,10 +136,11 @@ def population(
                 else:
                     truth = Truth(rng.uniform(0.002, 0.006), 0.18, 0.04, 0.01, 1000)
                 result.truth[cid] = truth
-    profiles = load_sim_profiles()
-    if profile not in type(profiles).model_fields:
+    profiles = load_profile_file(profile_file) if profile_file else load_sim_profiles()
+    names = profiles if isinstance(profiles, dict) else type(profiles).model_fields
+    if profile not in names:
         raise ValueError("perfil desconhecido")
-    if profile == "planted":
+    if profile == "planted" and profile_file is None:
         for cid, truth in result.truth.items():
             role = (
                 "winner"
@@ -148,7 +156,9 @@ def population(
         sampler = random.Random(seed ^ 0xA8B)
         winner, borderline = sampler.sample([a.id for a in result.angles], 2)
         trap = next((a.id for a in result.angles if a.id not in {winner, borderline}), None)
-        distributions = getattr(profiles, profile)
+        distributions = (
+            profiles[profile] if isinstance(profiles, dict) else getattr(profiles, profile)
+        )
         for creative in result.creatives:
             role = (
                 "winner"
@@ -169,6 +179,9 @@ def population(
                 winner=role == "winner",
                 role=role,
             )
+    if profile_file and profile.startswith("observed_"):
+        for entity in result.entities:
+            entity.geo = profile.removeprefix("observed_")
     return result
 
 
