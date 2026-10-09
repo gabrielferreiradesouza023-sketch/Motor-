@@ -147,3 +147,17 @@ Não pronto para dinheiro real. Próxima operação é revisão do Claude/humano
 
 ### BATCH-06 T-83 — review
 9 testes novos; 12 comandos do roteiro português executados contra SQLite sintético + MockTransport (somente GET), subset afetado 42 passed. Regressões reproduzidas antes da correção: observed profile sobrescrevia banco; calibração sobrescrevia entrada/saída. Recusa aliases/hardlinks/symlinks/config antes de escrever; bytes de origem preservados. Ruff, cobertura/gate dinheiro (25 módulos), doctor, contratos e detect-secrets verdes; drill 42 byte-idêntico. Readiness real não pronto, ready=false, 17 pendências; evidência sem assinatura recusada. HANDOFF final inclui tabela, riscos/bloqueios e ordem Claude/humano; nenhum merge. Gates locais: 1111 testes, 92.24% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+
+## Revisão bloqueante do PR #37 — T-77 (2026-10-09)
+
+Reprodução confirmada antes da correção: os dois casos novos falhavam com ValueError e interrompiam o ciclo antes das pausas. O avaliador agora sinaliza ConfirmationUnavailable exclusivamente para C desligado ou baseline ausente/inválido. O scheduler isola essa condição por entidade, registra gC.unavailable/insufficient_data com motivo e métricas e pausa a família sem promover candidato ou inventar teto/resultado estatístico. Outros erros não são capturados por esse tratamento.
+
+Evidências: `uv run pytest -q tests/test_gate_c.py tests/test_scheduler.py`: 38 passed. Dois testes de regressão (rollback da configuração C e ausência de baseline) verificam ciclo completo, pausa da entidade C e da outra entidade com sinal ruim, ausência de transação pendente e repetição sem duplicar decisões/ações. Gates completos: ruff check/format, pytest com cobertura: 1113 passed, zero skips; cobertura combinada 92.2468142186452%; check_coverage sem falhas nos 25 grupos de dinheiro (rules 100%); doctor OK; contratos sem drift; detect-secrets verde; drill seed 42 byte-idêntico. CI do novo commit será acompanhado antes da entrega. LOCK liberado ao devolver T-77 a review; merge continua reservado ao humano após revisão do Claude.
+
+### Bloqueios — decisões humanas complementares
+
+- Refund do produtor: sugestão do revisor de usar max(taxa declarada, 15%) até 20 vendas próprias, para reduzir otimismo do produtor. Humano decide alteração da política/ADR-043; comportamento atual preservado nesta correção.
+- Campanha de fumaça: não recebe pausa automática, inclusive sob freios/dados atrasados. Humano deve configurar teto de gasto na própria Meta antes de ligar o piloto. O teto local continua apenas alertando; nenhuma campanha real foi criada ou ativada.
+
+O motor continua não pronto para dinheiro real; esta correção não fecha os aceites F5/F6, limites externos ou demais pendências registradas acima.

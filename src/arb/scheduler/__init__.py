@@ -30,7 +30,14 @@ from arb.models import (
 )
 from arb.permissions import private_open
 from arb.remote.fake import FakeMeta
-from arb.rules import confirmation_context, controls, evaluate, load_rules, winner_gates
+from arb.rules import (
+    ConfirmationUnavailable,
+    confirmation_context,
+    controls,
+    evaluate,
+    load_rules,
+    winner_gates,
+)
 
 ZONE = ZoneInfo("America/Sao_Paulo")
 
@@ -217,20 +224,34 @@ def _run(
                 baseline, confirmed = confirmation_context(
                     entity, Repository(connection, Decision).list()
                 )
-                decision = evaluate(
-                    entity,
-                    combined,
-                    [s for s in sales if s.matched_entity_id in leaves],
-                    offers[entity.offer_id].commission_brl_cents,
-                    rules,
-                    now,
-                    video=entity.creative_id not in creatives
-                    or creatives[entity.creative_id].format == "video",
-                    media_tax_rate=settings.media_tax_rate,
-                    refund_rate=rates.get(entity.id, settings.refund_rate),
-                    confirmation_start_cents=baseline,
-                    confirmed=confirmed,
-                )
+                try:
+                    decision = evaluate(
+                        entity,
+                        combined,
+                        [s for s in sales if s.matched_entity_id in leaves],
+                        offers[entity.offer_id].commission_brl_cents,
+                        rules,
+                        now,
+                        video=entity.creative_id not in creatives
+                        or creatives[entity.creative_id].format == "video",
+                        media_tax_rate=settings.media_tax_rate,
+                        refund_rate=rates.get(entity.id, settings.refund_rate),
+                        confirmation_start_cents=baseline,
+                        confirmed=confirmed,
+                    )
+                except ConfirmationUnavailable as exc:
+                    # Configuration rollback or missing same-geo baseline is not a
+                    # statistical kill. Audit unavailable data and reduce exposure.
+                    decision = Decision(
+                        id=str(uuid5(NAMESPACE_URL, key + ":" + entity.id)),
+                        ts=now,
+                        entity_id=entity.id,
+                        gate=entity.gate,
+                        verdict="insufficient_data",
+                        metrics_json=exc.metrics,
+                        rule_id="gC.unavailable",
+                        reason=str(exc),
+                    )
                 decision.id = str(uuid5(NAMESPACE_URL, key + ":" + entity.id))
                 with connection:
                     if Repository(connection, Decision).get(decision.id) is None:
@@ -299,9 +320,15 @@ def _run(
             targets = {e.id for e in entities if e.status == "active"} if brakes or stale else set()
             for decision_id in result["decisions"]:
                 d = Repository(connection, Decision).get(decision_id)
-                if d.verdict == "kill" or (
-                    d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
-                    and not (rules.gate_C is not None and d.gate == "3" and d.verdict == "pass")
+                if d.rule_id == "gC.unavailable":
+                    result["alerts"].append(f"confirmation_unavailable: {d.entity_id}; {d.reason}")
+                if (
+                    d.rule_id == "gC.unavailable"
+                    or d.verdict == "kill"
+                    or (
+                        d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
+                        and not (rules.gate_C is not None and d.gate == "3" and d.verdict == "pass")
+                    )
                 ):
                     entity = next(e for e in entities if e.id == d.entity_id)
                     targets |= family_ids(entity, entities)

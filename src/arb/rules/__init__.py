@@ -11,6 +11,14 @@ from arb.metrics import p_roi_positive, summarize
 from arb.models import Decision, Entity, MetricSnapshot, SaleEvent
 
 
+class ConfirmationUnavailable(ValueError):
+    """C cannot authorize exposure; scheduler must isolate and pause this entity."""
+
+    def __init__(self, reason: str, metrics: dict):
+        super().__init__(reason)
+        self.metrics = metrics
+
+
 def load_rules(path: Path = Path("config/rules.yaml")) -> Rules:
     return Rules.model_validate(yaml.safe_load(path.read_text()))
 
@@ -48,13 +56,15 @@ def evaluate(
         if commission_cents <= 0:
             raise ValueError("comissão precisa ser positiva")
         if rules.gate_C is None:
-            raise ValueError("Portão C desligado")
+            raise ConfirmationUnavailable("Portão C desligado", metrics)
         if (
             confirmation_start_cents is None
             or type(confirmation_start_cents) is not int
             or not 0 <= confirmation_start_cents <= spent
         ):
-            raise ValueError("Portão C exige gasto inicial confirmado no mesmo geo")
+            raise ConfirmationUnavailable(
+                "Portão C exige gasto inicial confirmado no mesmo geo", metrics
+            )
         cap = confirmation_start_cents + rules.gate_C.cap_cents
         sampled = metrics["sales"] >= rules.gate_C.min_sales_total
         metrics["confirmation_start_cents"] = confirmation_start_cents

@@ -256,3 +256,57 @@ def test_confirmation_no_cost_is_not_profit_evidence(records):
         evaluate(
             e, records[4], [], 0, confirmation_rules(), records[4].ts, confirmation_start_cents=0
         )
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_scheduler_confirmation_rollback_keeps_other_pauses(tmp_path, records, enabled):
+    """A rolled-back C configuration/baseline must not stop unrelated protection."""
+    import shutil
+    from datetime import date
+    from pathlib import Path
+
+    import yaml
+    from test_scheduler import seeded
+
+    from arb.db import Repository
+    from arb.models import Action, Decision, Entity, MetricSnapshot
+    from arb.scheduler import run_cycle, schedule
+
+    root = tmp_path / "root"
+    shutil.copytree(Path("config"), root / "config")
+    if enabled:
+        (root / "config/rules.yaml").write_text(yaml.safe_dump(confirmation_rules().model_dump()))
+    conn = seeded(tmp_path, records)
+    slot = schedule(date(2026, 10, 5), date(2026, 10, 5))[0]
+    with conn:
+        entity = Repository(conn, Entity).get("entity")
+        entity.gate = "C"
+        Repository(conn, Entity).update(entity)
+        Repository(conn, Entity).add(entity.model_copy(update={"id": "other", "gate": "1"}))
+        for eid in ("entity", "other"):
+            Repository(conn, MetricSnapshot).add(
+                records[4].model_copy(update={"entity_id": eid, "ts": slot, "link_clicks": 0})
+            )
+    try:
+        args = dict(
+            now=slot, root=root, output=tmp_path / "reports", sync_source=lambda db, now: now
+        )
+        result = run_cycle(conn, slot, **args)
+        assert result["stages"] == ["sync", "rules", "actions", "report", "alerts"]
+        assert not conn.in_transaction
+        assert {e.id for e in Repository(conn, Entity).list() if e.status == "paused"} == {
+            "entity",
+            "other",
+        }
+        decisions = {d.entity_id: d for d in Repository(conn, Decision).list()}
+        assert decisions["entity"].verdict == "insufficient_data"
+        assert decisions["entity"].rule_id == "gC.unavailable"
+        assert decisions["other"].verdict == "kill"
+        assert any("confirmation_unavailable: entity" in a for a in result["alerts"])
+        actions = Repository(conn, Action).list()
+        assert sum(a.kind == "pause" for a in actions) == 2
+        assert run_cycle(conn, slot, **args) == result
+        assert len(Repository(conn, Decision).list()) == 2
+        assert Repository(conn, Action).list() == actions
+    finally:
+        conn.close()
