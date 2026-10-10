@@ -8,6 +8,8 @@ MONEY_MODULES = (
     "rules",
     "metrics",
     "launcher",
+    "launcher.confirmation",
+    "scheduler",
     "safety",
     "meta.pause",
     "ledger",

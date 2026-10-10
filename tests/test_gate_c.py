@@ -173,7 +173,7 @@ def test_library_rejects_g3_candidate(tmp_path):
     connection.close()
 
 
-def test_scheduler_candidate_becomes_c_then_confirmed(tmp_path, records):
+def test_scheduler_candidate_becomes_c_then_confirmed(tmp_path, records, monkeypatch):
     import shutil
     from datetime import date
     from pathlib import Path
@@ -206,8 +206,13 @@ def test_scheduler_candidate_becomes_c_then_confirmed(tmp_path, records):
     run_cycle(
         conn, slots[0], now=slots[0], root=root, output=tmp_path / "reports", sync_source=source
     )
-    assert Repository(conn, Entity).get("entity").gate == "C"
+    assert Repository(conn, Entity).get("entity").gate == "3"
     assert Repository(conn, Entity).get("entity").status == "active"
+    from arb.launcher import approval as approval_module
+
+    monkeypatch.setattr(approval_module, "is_interactive", lambda: True)
+    pending = next((root / "ops/approvals/pending").glob("gate-c-*.json"))
+    approval_module.sign_file(pending, confirm=lambda _: True, now=slots[0])
     with conn:
         Repository(conn, type(records[4])).add(records[4].model_copy(update={"ts": slots[1]}))
         for i in range(2, 4):

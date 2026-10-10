@@ -1,6 +1,7 @@
 """Journal sintético: só FakeMeta, jamais um executor Graph."""
 
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 from arb.db import Repository
@@ -141,11 +142,26 @@ def finish(connection, attempt, observed, *, now, reconciled=False):
         raise
 
 
-def perform(connection, writer, source, operation, key, *, context, approval=None, now):
+def perform(
+    connection,
+    writer,
+    source,
+    operation,
+    key,
+    *,
+    context,
+    approval=None,
+    now,
+    confirmation_dir=Path("ops/approvals/approved"),
+):
     from arb.smoke import require_automatic
 
     require_automatic(connection, source.id)
     require_fake(writer)
+    if operation in {"activate", "scale"}:
+        from arb.launcher.confirmation import require_family
+
+        require_family(connection, source.id, directory=confirmation_dir, now=now)
     if connection.in_transaction:
         raise ValueError("efeito exige commit anterior")
     if pending(connection):

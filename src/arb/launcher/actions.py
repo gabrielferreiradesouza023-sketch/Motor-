@@ -126,6 +126,9 @@ def activate(
     if connection.in_transaction:
         raise ValueError("ativação requer conexão sem transação pendente")
     now = now or datetime.now(UTC)
+    from arb.launcher.confirmation import require_family
+
+    require_family(connection, entity_id, directory=approval_dir, now=now)
     if writer is not None:
         from arb.remote.journal import exposure, perform, require_fake
 
@@ -159,6 +162,7 @@ def activate(
             context=intent,
             approval=approval,
             now=now,
+            confirmation_dir=approval_dir,
         )
     snapshot_before(connection, "activate", approval_id)
     connection.execute("BEGIN IMMEDIATE")

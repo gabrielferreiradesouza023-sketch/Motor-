@@ -24,6 +24,8 @@ def synthetic_report():
                 "src/arb/rules/__init__.py",
                 "src/arb/metrics/__init__.py",
                 "src/arb/launcher/execute.py",
+                "src/arb/launcher/confirmation.py",
+                "src/arb/scheduler/__init__.py",
                 "src/arb/safety.py",
                 "src/arb/meta/pause.py",
                 "src/arb/ledger.py",

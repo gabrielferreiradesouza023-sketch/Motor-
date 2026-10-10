@@ -405,7 +405,7 @@ validation entra no gate combinado de 95%. Não muda settings, regras nem arb.mo
 
 
 ## ADR-039 — Portão C opcional e posterior determinístico (T-77)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito** — Decisão humana 1A (2026-10-10).
 
 Gamma-Poisson usa gasto bruto em centavos como exposição, prior Gamma(shape=1,
 rate=1 centavo): adiciona uma venda e um centavo de exposição; sua influência decai
@@ -418,12 +418,19 @@ ROI >=0 e probabilidade >=0.8. Vizinhas 10000/20000 são diagnósticas.
 Rules.gate_C default None mantém vereditos/summary/goldens/drill/calibração atuais;
 p_roi_positive é diagnóstico adicional nos metrics_json de G3/T/C. Com C ativo, G3 é
 candidato; referência durável é seu primeiro pass e gasto bruto no mesmo entity/geo.
-O teto C é essa referência mais a fatia; dados atrasados não passam, teto pode matar
+O teto C é essa referência mais a fatia; entrar em C exige arquivo aprovado e
+assinatura Ed25519 verificada em ops/approvals/approved/, com entidade, geo, oferta,
+baseline, extra, soma e expiração conferidos. Não há gasto extra sem essa aprovação.
+Enquanto candidata sem aprovação, a entidade fica em G3 e pausa no teto G3; a
+proposta pendente explicita o total e expira em 24 h. Aprovar C só admite o portão,
+não ativa nem aumenta orçamento; ativação e escala mantêm seus fluxos assinados.
+Dados atrasados não passam, teto pode matar
 sem amostra. Ausência de referência recusa avaliação (falha fechada). C não aumenta
 orçamento: todas as barreiras e aprovações anteriores continuam. Escala e T exigem
 último pass em C na mesma entidade/geo; mudar geo exige nova confirmação explícita.
 Biblioteca/controles contam C/T, nunca G3 candidato. Gate público inclui C e contratos
-regenerados. Ativar regras depende do aceite humano em PR futuro, rules.yaml intocado.
+regenerados. Ativar C exige alteração humana explícita em PR futuro; aceitar o ADR não
+liga C. rules.yaml intocado.
 
 
 ## ADR-040 — Perfis observados por janela e incerteza (T-79)
@@ -537,3 +544,22 @@ smoke daily reaproveita sync GET, import_sales com mapa explícito validado pelo
 Limiar fixo de atenção 0.8 do teto local: >=80% prepara pausa, exit 0; >=100% (ou teto observado no relatório/fatura) manda PAUSE AGORA NO GERENCIADOR, exit 2. MetaReadError sanitizado: exit 3, nenhum relatório novo, anteriores intactos. Pré-condições/arquivos/mapping inválidos: exit 1. Dado mais velho que stale_after_hours recebe aviso. Sem var/env/.env/segredo nas mensagens.
 
 Arquivos JSON/Markdown em horário local AAAA-MM-DDTHHMM, criação exclusiva 0600, sem sobrescrita/config/links/alias do banco ou entre saídas. Falha de publicação remove somente arquivos criados pela execução, não os existentes. Coletas/importações são idempotentes no banco; nova coleta no mesmo minuto exige outro diretório/minuto. CAPI e C desligados; serviço render padrão permanece intacto (variante opcional não implementada; rotina manual 3x/dia). smoke_daily entra no gate combinado de 95%.
+
+
+## ADR-046 — Aprovação canônica da fatia C (T-87)
+Status: **Proposto — aguarda aceite humano**.
+
+Approval.kind inclui gate_c_confirmation; contratos regenerados. Plano fechado: kind,
+entity_id, geo, offer_id, confirmation_start_cents, extra_cap_cents, total_cap_cents,
+expires_at. SHA256 do JSON canônico (sort_keys, separators compactos, UTF-8) é
+plan_hash; Ed25519 assina a Approval com esse hash, no fluxo humano existente.
+Baseline é o primeiro G3 pass durável no mesmo geo; extra é rules.gate_C.cap_cents,
+total soma ambos; valores monetários são inteiros, validade timezone-aware futura,
+decisão não futura, exposição assinada >=extra. Sem aprovação ou artefato inválido,
+C falha fechado por entidade, audita waiting_approval e pausa sem interromper as demais.
+Arquivos financeiros recusam symlink/hardlink e colisão divergente; propostas 0600
+expiram em 24 h e são renovadas quando pausadas. Admitir é auditado com approval_id
+e conserva status/orçamento. Ativação de família/candidato no teto e journal FakeMeta
+revalidam C; aprovar C não substitui aprovação de ativação/escala, freios, daily_cap
+ou total_cap. Rules.gate_C=None retorna antes desses caminhos, preservando os padrões.
+O simulador continua contrafactual, não concede autorização de exposição.
