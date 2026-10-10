@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from arb.config import validate_config
-from arb.db import TABLES, Repository, connect, migrate, migration_catalog
+from arb.db import TABLES, Repository, connect, migrate, require_current_schema
 from arb.models import MODEL_TYPES, contract_name, contract_text
 
 INTEGRATION_VARIABLES = (
@@ -67,10 +67,7 @@ def diagnose(root: Path) -> tuple[list[str], list[str]]:
                 raise ValueError("integridade")
             if connection.execute("PRAGMA foreign_key_check").fetchall():
                 raise ValueError("referências")
-            applied = dict(connection.execute("SELECT version, checksum FROM schema_migrations"))
-            expected = {number: data[1] for number, data in migration_catalog().items()}
-            if applied != expected:
-                raise ValueError("migrações")
+            require_current_schema(connection)
             for model in TABLES:
                 Repository(connection, model).list()  # valida payloads persistidos
             from arb.ledger import pending

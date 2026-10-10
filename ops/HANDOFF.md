@@ -1,3 +1,24 @@
+# HANDOFF — BATCH-07
+
+## Estado verificado
+Base origin/main 669a23d25565c4d930b4aaa49f5a19173efff267: PR #37/BATCH-06 mergeado, T-77–83 em review, LOCK inicial vazio, nenhum PR batch-07 anterior. Branch codex/batch-07; planejamento verbatim em 2a35f86.
+
+## Feito / sequência
+T-84 devolvida a review após gates locais; draft será aberto agora e CI gates+worker será conferido no commit exato antes de T-85. Seguem T-85 → T-86 → T-87 → T-88. Operação e testes sintéticos; nenhuma API real, privada real, .env, deploy, serviço instalado ou merge.
+
+## Bloqueios e decisões humanas
+A implementação não assume aceites ou limites externos. O humano opera a fumaça e configura limites no próprio host/Meta/cartão. Decisões 1A/2A autorizadas neste prompt serão registradas/implementadas em T-87/88; C e CAPI seguem desligados. Graph T-55 fora deste batch; prontidão full continua não pronto. ADR-044 proposto, novos ADR-045/046 propostos; aceites 039–043 serão registrados conforme as tarefas.
+
+## Evidências e riscos
+T-84: 22 testes novos; subset 92 passed, full 1135 passed sem skips. Full texto/JSON comparados a referências capturadas antes da implementação; nove summaries/oito células idênticos à main 669a23d. Banco observe somente leitura; mesma função de catálogo/checksums usada pelo doctor. Variáveis verificadas por presença sem valores; cada bloqueio plantado nos testes. Observe não autoriza exposição nem substitui aceites F5/F6 completos.
+
+## Ordem de revisão
+Claude: T-84 → T-88, contratos, ADRs e testes; humano (ou Claude delegado) decide merge. Codex não faz merge. O PR só fica ready após todos os gates/CI e o relatório final.
+
+---
+
+## Histórico BATCH-06 (já mergeado; pendências históricas substituídas pelo estado acima)
+
 # HANDOFF — BATCH-06
 
 ## Estado atual
@@ -161,3 +182,6 @@ Evidências: `uv run pytest -q tests/test_gate_c.py tests/test_scheduler.py`: 38
 - Campanha de fumaça: não recebe pausa automática, inclusive sob freios/dados atrasados. Humano deve configurar teto de gasto na própria Meta antes de ligar o piloto. O teto local continua apenas alertando; nenhuma campanha real foi criada ou ativada.
 
 O motor continua não pronto para dinheiro real; esta correção não fecha os aceites F5/F6, limites externos ou demais pendências registradas acima.
+
+### BATCH-07 T-84 — review
+22 testes novos; full texto/JSON byte-idênticos à referência anterior; cada pré-condição plantada, segredo ausente na saída; observe ready com fixture completa. Readiness 100%, 9 summaries e 8 células idênticos à main 669a23d. Gates locais: 1135 testes, 92.31% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

@@ -519,3 +519,11 @@ comissões por taxa, arredondando HALF_UP cada taxa e evitando multiplicar desco
 montante. Aprovações/plano carregam os dados novos no hash; dado do produtor não é autorização.
 A amostra de refund depende de idade/coorte; hipótese declarada não comprova ROI futuro nem
 valida V-01–V-06. Nenhum valor real foi inventado, pesos e rules.yaml intocados.
+
+
+## ADR-044 — Prontidão separada para observação humana (T-84)
+Status: **Proposto — aguarda aceite humano**.
+
+readiness --scope observe só verifica localmente live_mode falso/ausente, database com catálogo/checksums de migrações atual (mesma função do doctor), drill_recent aprovado <=48h, card_limit e spend_cap assinados <=7 dias, presença de META_ACCESS_TOKEN/META_AD_ACCOUNT_ID/META_API_VERSION no processo, smoke_registered com todos os tetos positivos dentro do total_cap e smoke_offer_permission com true e evidence_ref não vazia por oferta. Valores das variáveis nunca são exibidos, hasheados ou registrados; nenhum .env ou privada é lido. Banco é aberto somente em mode=ro.
+
+Graph executor, F5/F6/tracking, V-01–06 completos e host/serviço persistente são listados como dispensados para observe; V-03 por oferta continua obrigatório. Observe não autoriza escrita, gasto, live ou aceite de exposição: campanha criada/operada pelo humano, motor somente lê. Scope full é o padrão e preserva saída/exit anteriores. Tetos reais são decisão/configuração externa humana, nunca presumidos por presença de variáveis.

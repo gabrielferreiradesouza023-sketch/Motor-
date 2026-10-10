@@ -1,0 +1,144 @@
+{
+  "checked_at": "2026-10-10T00:00:00+00:00",
+  "host": {
+    "host": "synthetic reference"
+  },
+  "items": [
+    {
+      "name": "preflight",
+      "next_step": "Humano: corrigir arb preflight no host; aceite F5 fornece evidência da leitura remota",
+      "ok": false,
+      "reason": "Preflight pendente: indisponível"
+    },
+    {
+      "name": "drill_recent",
+      "next_step": "Executar arb db backup e arb db drill no host, sem sobrescrever produção",
+      "ok": false,
+      "reason": "Drill de backup ausente/falho ou mais antigo que 48h"
+    },
+    {
+      "name": "permissions",
+      "next_step": "",
+      "ok": true,
+      "reason": "verificado"
+    },
+    {
+      "name": "approval_public_key",
+      "next_step": "Revisar chave pública existente via PR; manter privada apenas no host do signatário",
+      "ok": false,
+      "reason": "Chave pública ausente/inválida; privada nunca consultada"
+    },
+    {
+      "name": "f5",
+      "next_step": "Humano: executar kit f5, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "f6_pause",
+      "next_step": "Humano: executar kit f6_pause, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "tracking",
+      "next_step": "Humano: executar kit tracking, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "V-01",
+      "next_step": "Humano: resolver V-01; usar arb validate record V-01 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-02",
+      "next_step": "Humano: resolver V-02; usar arb validate record V-02 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-03",
+      "next_step": "Humano: resolver V-03; usar arb validate record V-03 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-04",
+      "next_step": "Humano: resolver V-04; usar arb validate record V-04 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-05",
+      "next_step": "Humano: resolver V-05; usar arb validate record V-05 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-06",
+      "next_step": "Humano: resolver V-06; usar arb validate record V-06 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "graph_executor",
+      "next_step": "Humano: resolver V-06 e aprovar contrato; executor exige implementação/revisão separada",
+      "ok": false,
+      "reason": "T-55: executor de exposição Graph ausente; somente FakeMeta"
+    },
+    {
+      "name": "card_limit",
+      "next_step": "Humano: confirmar teto no emissor e declarar CARD_LIMIT_CENTS <= total_cap_cents",
+      "ok": false,
+      "reason": "Limite do cartão não confirmado ou preflight/teto pendente"
+    },
+    {
+      "name": "spend_cap",
+      "next_step": "Humano: configurar limite Meta e revisar prova F5; registrar confirmação sem credenciais",
+      "ok": false,
+      "reason": "spend_cap real não confirmado dentro do teto"
+    },
+    {
+      "name": "persistent_host",
+      "next_step": "Humano: selecionar e validar disponibilidade, disco privado, relógio e backups do host",
+      "ok": false,
+      "reason": "Host persistente ainda não confirmado"
+    },
+    {
+      "name": "service_package",
+      "next_step": "Renderizar arb service render e verificar arb service check no host correto",
+      "ok": false,
+      "reason": "Pacote de serviço ausente/inválido; nenhuma instalação executada"
+    },
+    {
+      "name": "service_installed",
+      "next_step": "Humano: revisar pacote, instalar no próprio host e registrar evidência de disponibilidade",
+      "ok": false,
+      "reason": "Instalação/disponibilidade do serviço ainda não confirmada pelo humano"
+    }
+  ],
+  "pending": [
+    "preflight",
+    "drill_recent",
+    "approval_public_key",
+    "f5",
+    "f6_pause",
+    "tracking",
+    "V-01",
+    "V-02",
+    "V-03",
+    "V-04",
+    "V-05",
+    "V-06",
+    "graph_executor",
+    "card_limit",
+    "spend_cap",
+    "persistent_host",
+    "service_package",
+    "service_installed"
+  ],
+  "ready": false,
+  "status": "não pronto"
+}

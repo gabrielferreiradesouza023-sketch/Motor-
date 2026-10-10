@@ -1,0 +1,38 @@
+não pronto
+✘ preflight: Preflight pendente: indisponível
+  Próximo passo: Humano: corrigir arb preflight no host; aceite F5 fornece evidência da leitura remota
+✘ drill_recent: Drill de backup ausente/falho ou mais antigo que 48h
+  Próximo passo: Executar arb db backup e arb db drill no host, sem sobrescrever produção
+✔ permissions: verificado
+✘ approval_public_key: Chave pública ausente/inválida; privada nunca consultada
+  Próximo passo: Revisar chave pública existente via PR; manter privada apenas no host do signatário
+✘ f5: evidência não assinada
+  Próximo passo: Humano: executar kit f5, revisar e assinar com arb evidence sign no próprio host
+✘ f6_pause: evidência não assinada
+  Próximo passo: Humano: executar kit f6_pause, revisar e assinar com arb evidence sign no próprio host
+✘ tracking: evidência não assinada
+  Próximo passo: Humano: executar kit tracking, revisar e assinar com arb evidence sign no próprio host
+✘ V-01: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-01; usar arb validate record V-01 na máquina assinadora
+✘ V-02: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-02; usar arb validate record V-02 na máquina assinadora
+✘ V-03: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-03; usar arb validate record V-03 na máquina assinadora
+✘ V-04: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-04; usar arb validate record V-04 na máquina assinadora
+✘ V-05: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-05; usar arb validate record V-05 na máquina assinadora
+✘ V-06: Validação do provedor ainda não registrada pelo humano
+  Próximo passo: Humano: resolver V-06; usar arb validate record V-06 na máquina assinadora
+✘ graph_executor: T-55: executor de exposição Graph ausente; somente FakeMeta
+  Próximo passo: Humano: resolver V-06 e aprovar contrato; executor exige implementação/revisão separada
+✘ card_limit: Limite do cartão não confirmado ou preflight/teto pendente
+  Próximo passo: Humano: confirmar teto no emissor e declarar CARD_LIMIT_CENTS <= total_cap_cents
+✘ spend_cap: spend_cap real não confirmado dentro do teto
+  Próximo passo: Humano: configurar limite Meta e revisar prova F5; registrar confirmação sem credenciais
+✘ persistent_host: Host persistente ainda não confirmado
+  Próximo passo: Humano: selecionar e validar disponibilidade, disco privado, relógio e backups do host
+✘ service_package: Pacote de serviço ausente/inválido; nenhuma instalação executada
+  Próximo passo: Renderizar arb service render e verificar arb service check no host correto
+✘ service_installed: Instalação/disponibilidade do serviço ainda não confirmada pelo humano
+  Próximo passo: Humano: revisar pacote, instalar no próprio host e registrar evidência de disponibilidade

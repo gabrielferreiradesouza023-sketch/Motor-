@@ -1136,15 +1136,28 @@ def accept_tracking(
 
 
 @app.command("readiness")
-def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+def readiness(
+    root: str = ".",
+    json_output: bool = typer.Option(False, "--json"),
+    scope: str = "full",
+):
     import json
     from pathlib import Path
 
-    from arb.readiness import inspect
+    from arb.readiness import inspect, inspect_observe
 
-    result = inspect(root=Path(root))
+    if scope not in {"full", "observe"}:
+        raise typer.BadParameter("scope deve ser full ou observe")
+    result = inspect_observe(root=Path(root)) if scope == "observe" else inspect(root=Path(root))
     if json_output:
         typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    elif scope == "observe":
+        typer.echo("pronto" if result["ready"] else "não pronto")
+        typer.echo(result["authorizes"])
+        for item in result["pending"]:
+            typer.echo(f"✘ {item['item']}: {item['reason']}")
+        for item in result["not_required_for_observe"]:
+            typer.echo(f"Dispensado: {item['item']}: {item['reason']}")
     else:
         typer.echo(result["status"])
         for item in result["items"]:
