@@ -46,6 +46,7 @@ def synthetic_report():
                 "src/arb/validation.py",
                 "src/arb/sim/observed.py",
                 "src/arb/smoke.py",
+                "src/arb/smoke_daily.py",
             ]
         },
     }
@@ -56,6 +57,9 @@ def test_missing_module_or_uncovered_branches_fail():
     assert ASSESS(report)[1] == []
     report["files"]["src/arb/safety.py"]["summary"]["covered_branches"] = 89
     assert ASSESS(report)[1] == ["arb.safety"]  # 94.5%, não arredonda para 95.
+    report = synthetic_report()
+    del report["files"]["src/arb/smoke_daily.py"]
+    assert ASSESS(report)[1] == ["arb.smoke_daily"]
     report = synthetic_report()
     del report["files"]["src/arb/meta/pause.py"]
     assert ASSESS(report)[1] == ["arb.meta.pause"]

@@ -527,3 +527,13 @@ Status: **Proposto — aguarda aceite humano**.
 readiness --scope observe só verifica localmente live_mode falso/ausente, database com catálogo/checksums de migrações atual (mesma função do doctor), drill_recent aprovado <=48h, card_limit e spend_cap assinados <=7 dias, presença de META_ACCESS_TOKEN/META_AD_ACCOUNT_ID/META_API_VERSION no processo, smoke_registered com todos os tetos positivos dentro do total_cap e smoke_offer_permission com true e evidence_ref não vazia por oferta. Valores das variáveis nunca são exibidos, hasheados ou registrados; nenhum .env ou privada é lido. Banco é aberto somente em mode=ro.
 
 Graph executor, F5/F6/tracking, V-01–06 completos e host/serviço persistente são listados como dispensados para observe; V-03 por oferta continua obrigatório. Observe não autoriza escrita, gasto, live ou aceite de exposição: campanha criada/operada pelo humano, motor somente lê. Scope full é o padrão e preserva saída/exit anteriores. Tetos reais são decisão/configuração externa humana, nunca presumidos por presença de variáveis.
+
+
+## ADR-045 — Coleta diária e pausa exclusivamente humana (T-85)
+Status: **Proposto — aguarda aceite humano**.
+
+smoke daily reaproveita sync GET, import_sales com mapa explícito validado pelo schema e smoke report. Mapa válido não confirma automaticamente V-01 do provedor; humano valida formato no host. Janela padrão vai da data local do registro auditado até hoje no settings.timezone. Nenhuma escrita Meta/Worker, mensagem ou pausa automática. Coleta account-level segue sync meta: anúncio desconhecido sem mapeamento recusa a coleta, nunca inventa oferta/geo.
+
+Limiar fixo de atenção 0.8 do teto local: >=80% prepara pausa, exit 0; >=100% (ou teto observado no relatório/fatura) manda PAUSE AGORA NO GERENCIADOR, exit 2. MetaReadError sanitizado: exit 3, nenhum relatório novo, anteriores intactos. Pré-condições/arquivos/mapping inválidos: exit 1. Dado mais velho que stale_after_hours recebe aviso. Sem var/env/.env/segredo nas mensagens.
+
+Arquivos JSON/Markdown em horário local AAAA-MM-DDTHHMM, criação exclusiva 0600, sem sobrescrita/config/links/alias do banco ou entre saídas. Falha de publicação remove somente arquivos criados pela execução, não os existentes. Coletas/importações são idempotentes no banco; nova coleta no mesmo minuto exige outro diretório/minuto. CAPI e C desligados; serviço render padrão permanece intacto (variante opcional não implementada; rotina manual 3x/dia). smoke_daily entra no gate combinado de 95%.

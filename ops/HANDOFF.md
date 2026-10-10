@@ -4,7 +4,7 @@
 Base origin/main 669a23d25565c4d930b4aaa49f5a19173efff267: PR #37/BATCH-06 mergeado, T-77–83 em review, LOCK inicial vazio, nenhum PR batch-07 anterior. Branch codex/batch-07; planejamento verbatim em 2a35f86.
 
 ## Feito / sequência
-T-84 devolvida a review após gates locais; draft será aberto agora e CI gates+worker será conferido no commit exato antes de T-85. Seguem T-85 → T-86 → T-87 → T-88. Operação e testes sintéticos; nenhuma API real, privada real, .env, deploy, serviço instalado ou merge.
+T-84 review, commit 83c1051, CI gates+worker SUCCESS confirmado antes de pegar T-85. PR draft #38: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/38. T-85 review após gates locais; seu CI será conferido no commit exato antes de T-86. Seguem T-86 → T-87 → T-88. Operação e testes sintéticos; nenhuma API real, privada real, .env, deploy, serviço instalado ou merge.
 
 ## Bloqueios e decisões humanas
 A implementação não assume aceites ou limites externos. O humano opera a fumaça e configura limites no próprio host/Meta/cartão. Decisões 1A/2A autorizadas neste prompt serão registradas/implementadas em T-87/88; C e CAPI seguem desligados. Graph T-55 fora deste batch; prontidão full continua não pronto. ADR-044 proposto, novos ADR-045/046 propostos; aceites 039–043 serão registrados conforme as tarefas.
@@ -185,3 +185,6 @@ O motor continua não pronto para dinheiro real; esta correção não fecha os a
 
 ### BATCH-07 T-84 — review
 22 testes novos; full texto/JSON byte-idênticos à referência anterior; cada pré-condição plantada, segredo ausente na saída; observe ready com fixture completa. Readiness 100%, 9 summaries e 8 células idênticos à main 669a23d. Gates locais: 1135 testes, 92.31% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+### BATCH-07 T-85 — review
+26 testes novos; subset 50 passed, limiares 79.99/80/100 e referências 9039/9040/11300 centavos, CPM/CTR/hook, zero POST/DELETE/pausas; CSV/GET idempotentes, falha exit 3 preserva arquivos, disputa por nome e rollback de publicação. smoke_daily 100%, 26 grupos de dinheiro >=95%. Corrigido destino igual ao banco antes do GET; fixture do gate ampliada sem relaxar checks. Serviço padrão intacto; variante opcional fora do escopo implementado. Gates locais: 1161 testes, 92.45% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.

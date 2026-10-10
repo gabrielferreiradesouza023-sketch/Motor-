@@ -130,3 +130,5 @@ aprovações explícitas; continuar sem exposição enquanto readiness disser n�
 
 Compartilhe com Claude só evidências redigidas e relatórios sem segredos. Em resultado
 incerto, usar [incidentes](incidentes.md); não repetir efeito externo por tentativa.
+
+Rotina diária de observação: `arb smoke daily --help` (coleta GET, relatórios datados e pausa manual). O roteiro do dia 1 será documentado em `dia-1.md`.

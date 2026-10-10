@@ -30,6 +30,7 @@ MONEY_MODULES = (
     "validation",
     "sim.observed",
     "smoke",
+    "smoke_daily",
 )
 
 
