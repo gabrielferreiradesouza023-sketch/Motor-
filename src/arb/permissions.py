@@ -77,3 +77,22 @@ def inspect_paths(root: Path, *, database: Path | None = None) -> dict:
         if windows
         else [],
     }
+
+
+def report_paths(targets, *, source=None):
+    """Operator pipeline outputs cannot alias inputs, config, or each other."""
+    from pathlib import Path
+
+    from arb.permissions import reject_links
+
+    previous = [source] if source is not None else []
+    for target in targets:
+        reject_links(target)
+        if Path("config").resolve() in (target.resolve(), *target.resolve().parents):
+            raise ValueError("saída não pode escrever em config")
+        for other in previous:
+            if target.resolve() == other.resolve() or (
+                target.exists() and other.exists() and target.samefile(other)
+            ):
+                raise ValueError("saída não pode sobrescrever origem ou outro relatório")
+        previous.append(target)

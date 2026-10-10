@@ -139,7 +139,14 @@ class Approval(Model):
     id: Identifier
     plan_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
     kind: Literal[
-        "launch", "activate", "scale", "new_offer", "notification", "creative_set", "tracking_test"
+        "launch",
+        "activate",
+        "scale",
+        "new_offer",
+        "notification",
+        "creative_set",
+        "tracking_test",
+        "gate_c_confirmation",
     ]
     summary: Identifier
     max_exposure_cents: Cents

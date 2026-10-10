@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
+from arb.config import load_settings
 from arb.db import Repository
 from arb.metrics import (
     cost_per_learning,
@@ -20,9 +21,16 @@ def pnl(
     connection: sqlite3.Connection,
     *,
     media_tax_rate: float = 0.13,
-    refund_rate: float = 0.15,
+    refund_rate: float | None = None,
+    refund_min_sales: int | None = None,
     total_cap_cents: int = 240000,
 ) -> dict:
+    if refund_rate is None or refund_min_sales is None:
+        settings = load_settings()
+        refund_rate = settings.refund_rate if refund_rate is None else refund_rate
+        refund_min_sales = (
+            settings.refund_min_sales if refund_min_sales is None else refund_min_sales
+        )
     entities = {e.id: e for e in Repository(connection, Entity).list()}
     snapshots = Repository(connection, MetricSnapshot).list()
     sales = Repository(connection, SaleEvent).list()
@@ -31,6 +39,7 @@ def pnl(
         entities.values(),
         sales,
         refund_rate,
+        min_sales=refund_min_sales,
         exclude_ids={
             r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
         },

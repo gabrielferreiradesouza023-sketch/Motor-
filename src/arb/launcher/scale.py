@@ -141,6 +141,9 @@ def apply(
         directory=directory,
         now=now,
     )
+    from arb.launcher.confirmation import require_family
+
+    require_family(connection, plan["entity_id"], directory=directory, now=now)
     if pending(connection):
         raise ValueError("pendência aberta: reconciliar antes de escala")
     existing = Repository(connection, Action).get("scale-apply-" + approval.id)
@@ -163,6 +166,7 @@ def apply(
             context=plan,
             approval=approval,
             now=now,
+            confirmation_dir=directory,
         )
     if entity.meta_id is not None:
         raise ValueError("escala remota exige porta injetada; executor Graph indisponível")

@@ -1136,15 +1136,28 @@ def accept_tracking(
 
 
 @app.command("readiness")
-def readiness(root: str = ".", json_output: bool = typer.Option(False, "--json")):
+def readiness(
+    root: str = ".",
+    json_output: bool = typer.Option(False, "--json"),
+    scope: str = "full",
+):
     import json
     from pathlib import Path
 
-    from arb.readiness import inspect
+    from arb.readiness import inspect, inspect_observe
 
-    result = inspect(root=Path(root))
+    if scope not in {"full", "observe"}:
+        raise typer.BadParameter("scope deve ser full ou observe")
+    result = inspect_observe(root=Path(root)) if scope == "observe" else inspect(root=Path(root))
     if json_output:
         typer.echo(json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False))
+    elif scope == "observe":
+        typer.echo("pronto" if result["ready"] else "não pronto")
+        typer.echo(result["authorizes"])
+        for item in result["pending"]:
+            typer.echo(f"✘ {item['item']}: {item['reason']}")
+        for item in result["not_required_for_observe"]:
+            typer.echo(f"Dispensado: {item['item']}: {item['reason']}")
     else:
         typer.echo(result["status"])
         for item in result["items"]:
@@ -1450,19 +1463,73 @@ def smoke_report(
 
 
 def report_paths(targets, *, source=None):
-    """Operator pipeline outputs cannot alias inputs, config, or each other."""
+    from arb.permissions import report_paths as validate_paths
+
+    validate_paths(targets, source=source)
+
+
+@smoke_app.command("daily")
+def smoke_daily(
+    campaign: str = typer.Option(...),
+    database: str = "data/engine.db",
+    since: str | None = None,
+    until: str | None = None,
+    sales_csv: str | None = None,
+    mapping: str | None = None,
+    output_dir: str = "reports/smoke",
+    json_output: bool = typer.Option(False, "--json"),
+):
+    import json
+    import sqlite3
+    from contextlib import closing
     from pathlib import Path
 
-    from arb.permissions import reject_links
+    import yaml
 
-    previous = [source] if source is not None else []
-    for target in targets:
-        reject_links(target)
-        if Path("config").resolve() in (target.resolve(), *target.resolve().parents):
-            raise ValueError("saída não pode escrever em config")
-        for other in previous:
-            if target.resolve() == other.resolve() or (
-                target.exists() and other.exists() and target.samefile(other)
-            ):
-                raise ValueError("saída não pode sobrescrever origem ou outro relatório")
-        previous.append(target)
+    from arb.config import Settings
+    from arb.db import connect, require_current_schema
+    from arb.launcher.execute import require_simulation
+    from arb.meta.read import MetaReadError
+    from arb.permissions import reject_links
+    from arb.rules import load_rules
+    from arb.smoke_daily import daily, summary
+
+    try:
+        require_simulation()
+        path = Path(database)
+        reject_links(path)
+        if not path.is_file():
+            raise ValueError("banco ausente; migrar e registrar fumaça antes da coleta")
+        settings = Settings.model_validate(yaml.safe_load(Path("config/settings.yaml").read_text()))
+        with closing(connect(path)) as connection:
+            require_current_schema(connection)
+            value, code = daily(
+                connection,
+                campaign,
+                settings=settings,
+                rules=load_rules(),
+                database=path,
+                output_dir=Path(output_dir),
+                since=since,
+                until=until,
+                sales_csv=sales_csv,
+                mapping=mapping,
+            )
+    except MetaReadError:
+        typer.echo(
+            "Coleta Meta falhou; nenhum relatório novo. Verifique leitura no host e repita.",
+            err=True,
+        )
+        raise typer.Exit(3) from None
+    except (ValueError, OSError, sqlite3.Error):
+        typer.echo(
+            "Rotina recusada: confira modo, registro, janela, mapeamento e destinos privados.",
+            err=True,
+        )
+        raise typer.Exit(1) from None
+    typer.echo(
+        json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False)
+        if json_output
+        else summary(value)
+    )
+    raise typer.Exit(code)

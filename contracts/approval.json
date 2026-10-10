@@ -27,7 +27,8 @@
         "new_offer",
         "notification",
         "creative_set",
-        "tracking_test"
+        "tracking_test",
+        "gate_c_confirmation"
       ],
       "title": "Kind",
       "type": "string"

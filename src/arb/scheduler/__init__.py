@@ -16,6 +16,7 @@ from arb.analyst import pnl
 from arb.analyst.report import generate_report
 from arb.config import Settings
 from arb.db import Repository, backup_daily
+from arb.launcher import confirmation
 from arb.launcher.actions import pause
 from arb.metrics import effective_refund_rates
 from arb.models import (
@@ -193,6 +194,7 @@ def _run(
             entities,
             sales,
             settings.refund_rate,
+            min_sales=settings.refund_min_sales,
             exclude_ids={
                 r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
             },
@@ -200,6 +202,40 @@ def _run(
         creatives = {c.id: c for c in Repository(connection, Creative).list()}
         if "rules" not in result["stages"]:
             for entity in entities:
+                if (
+                    rules.gate_C is not None
+                    and entity.id not in smoke
+                    and entity.gate in {"3", "C"}
+                ):
+                    baseline, _ = confirmation_context(
+                        entity, Repository(connection, Decision).list()
+                    )
+                    if baseline is not None:
+                        try:
+                            approval = confirmation.authorized(
+                                entity, baseline, rules, now, root / "ops/approvals/approved"
+                            )
+                            if entity.gate == "3":
+                                confirmation.admit(connection, entity, approval, now)
+                        except (ValueError, OSError):
+                            if entity.status == "paused":
+                                try:
+                                    confirmation.propose(
+                                        connection,
+                                        entity,
+                                        baseline,
+                                        rules,
+                                        now,
+                                        root / "ops/approvals/pending",
+                                    )
+                                except (ValueError, OSError):
+                                    result["alerts"].append(
+                                        f"confirmation_proposal_failed: {entity.id}; "
+                                        "intervenção humana"
+                                    )
+                                _confirmation_audit(
+                                    connection, key, entity, now, "waiting_approval"
+                                )
                 if entity.id in smoke or entity.status != "active" or entity.gate == "0":
                     continue
                 family = family_ids(entity, entities)
@@ -252,24 +288,47 @@ def _run(
                         rule_id="gC.unavailable",
                         reason=str(exc),
                     )
+                if (
+                    rules.gate_C is not None
+                    and entity.gate == "C"
+                    and decision.rule_id != "gC.unavailable"
+                ):
+                    try:
+                        confirmation.authorized(
+                            entity, baseline, rules, now, root / "ops/approvals/approved"
+                        )
+                    except (ValueError, OSError):
+                        decision.verdict = "insufficient_data"
+                        decision.rule_id = "gC.approval"
+                        decision.reason = confirmation.REQUIRED
+                        _confirmation_audit(connection, key, entity, now, "waiting_approval")
                 decision.id = str(uuid5(NAMESPACE_URL, key + ":" + entity.id))
                 with connection:
                     if Repository(connection, Decision).get(decision.id) is None:
                         Repository(connection, Decision).add(decision)
-                        if (
-                            rules.gate_C is not None
-                            and entity.gate == "3"
-                            and decision.verdict == "pass"
-                        ):
-                            entity.gate = "C"
-                            Repository(connection, Entity).update(entity)
+                if rules.gate_C is not None and entity.gate == "3" and decision.verdict == "pass":
+                    baseline, _ = confirmation_context(
+                        entity, Repository(connection, Decision).list()
+                    )
+                    try:
+                        confirmation.propose(
+                            connection, entity, baseline, rules, now, root / "ops/approvals/pending"
+                        )
+                    except (ValueError, OSError):
+                        result["alerts"].append(
+                            f"confirmation_proposal_failed: {entity.id}; intervenção humana"
+                        )
+                    _confirmation_audit(connection, key, entity, now, "waiting_approval")
                 result["decisions"].append(decision.id)
             result["decisions"] = sorted(set(result["decisions"]))
             result["stages"].append("rules")
             checkpoint()
         if "actions" not in result["stages"]:
             data = pnl(
-                connection, media_tax_rate=settings.media_tax_rate, refund_rate=settings.refund_rate
+                connection,
+                media_tax_rate=settings.media_tax_rate,
+                refund_rate=settings.refund_rate,
+                refund_min_sales=settings.refund_min_sales,
             )
             # Gastos do dia por period_start; receitas do dia por timestamp da venda,
             # sem reciclar receita esperada no caixa.
@@ -320,15 +379,12 @@ def _run(
             targets = {e.id for e in entities if e.status == "active"} if brakes or stale else set()
             for decision_id in result["decisions"]:
                 d = Repository(connection, Decision).get(decision_id)
-                if d.rule_id == "gC.unavailable":
+                if d.rule_id in {"gC.unavailable", "gC.approval"}:
                     result["alerts"].append(f"confirmation_unavailable: {d.entity_id}; {d.reason}")
                 if (
-                    d.rule_id == "gC.unavailable"
+                    d.rule_id in {"gC.unavailable", "gC.approval"}
                     or d.verdict == "kill"
-                    or (
-                        d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"]
-                        and not (rules.gate_C is not None and d.gate == "3" and d.verdict == "pass")
-                    )
+                    or (d.metrics_json["spend_gross"] >= d.metrics_json["cap_cents"])
                 ):
                     entity = next(e for e in entities if e.id == d.entity_id)
                     targets |= family_ids(entity, entities)
@@ -383,6 +439,8 @@ def _run(
                     approval_dir=root / "ops/approvals/pending",
                     now=now,
                     alert_messages=result["alerts"],
+                    refund_rate=settings.refund_rate,
+                    refund_min_sales=settings.refund_min_sales,
                 )
             )
             backup_daily(connection, database_backups(connection), day=now.astimezone(UTC).date())
@@ -516,3 +574,20 @@ def once(connection, *, now=None, root=Path("."), **kwargs) -> dict:
         start = end + timedelta(days=1)
     result = run_cycle(connection, latest, now=now, root=root, **kwargs)
     return {"resumed": resumed, "skipped": skipped, "latest": result}
+
+
+def _confirmation_audit(connection, key, entity, now, result):
+    action_id = str(uuid5(NAMESPACE_URL, key + ":confirmation:" + entity.id))
+    with connection:
+        if Repository(connection, Action).get(action_id) is None:
+            Repository(connection, Action).add(
+                Action(
+                    id=action_id,
+                    ts=now,
+                    actor="engine",
+                    kind="gate_c_confirmation",
+                    payload_json={"entity_id": entity.id, "reason": confirmation.REQUIRED},
+                    live=False,
+                    result=result,
+                )
+            )

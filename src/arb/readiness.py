@@ -2,7 +2,9 @@
 
 import hashlib
 import json
+import os
 import re
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -79,6 +81,118 @@ def confirmations(root, now):
         return dict.fromkeys(HUMAN_ITEMS, False)
 
 
+def drill_recent(root, now):
+    try:
+        drill = read_json(root / "data/backups/drill.json")
+        return drill["status"] == "passed" and fresh(drill["checked_at"], now, days=2)
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
+OBSERVE_NOT_REQUIRED = {
+    "graph_executor": "Nenhuma exposição automática; fumaça operada pelo humano",
+    "f5": "Aceite completo separado; observação só requer leitura configurada no host",
+    "f6_pause": "Motor nunca pausa fumaça humana",
+    "tracking": "Aceite assinado de rastreio pertence ao laboratório",
+    **{
+        name: "Validação completa separada; V-03 por oferta é checada aqui"
+        for name in HUMAN_ITEMS[:6]
+    },
+    "persistent_host": "Operação manual no host humano",
+    "service_package": "Comandos manuais; serviço não obrigatório para observar",
+    "service_installed": "Comandos manuais; nenhuma instalação autorizada",
+}
+
+
+def inspect_observe(*, root=Path("."), now=None):
+    from contextlib import closing
+
+    from arb.db import Repository, require_current_schema
+    from arb.launcher.execute import require_simulation
+    from arb.models import Entity, Offer
+
+    now = now or datetime.now(UTC)
+    if now.utcoffset() is None:
+        raise ValueError("prontidão requer timestamp com fuso")
+    pending = []
+
+    def record(item, ok, reason):
+        if not ok:
+            pending.append({"item": item, "reason": reason})
+
+    try:
+        require_simulation()
+        simulation = True
+    except ValueError:
+        simulation = False
+    record("live_mode", simulation, "LIVE_MODE deve estar ausente ou false")
+    human = confirmations(root, now)
+    for name in ("card_limit", "spend_cap"):
+        record(name, human[name], "Registro humano assinado ausente, inválido ou antigo (>7 dias)")
+    record(
+        "drill_recent",
+        drill_recent(root, now),
+        "Drill de backup ausente/falho ou mais antigo que 48h",
+    )
+    record(
+        "meta_read_env",
+        all(
+            os.environ.get(name)
+            for name in ("META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID", "META_API_VERSION")
+        ),
+        "Definir META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION somente no host",
+    )
+    database_ok = registered = permission = False
+    try:
+        reject_links(root / "config/rules.yaml")
+        cap = load_rules(root / "config/rules.yaml").controls.total_cap_cents
+        path = root / "data/engine.db"
+        reject_links(path)
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as conn:
+            require_current_schema(conn)
+            database_ok = True
+            campaigns = conn.execute(
+                "SELECT campaign_id, cap_cents FROM smoke_campaigns"
+            ).fetchall()
+            registered = bool(campaigns) and all(
+                type(c) is int and 0 < c <= cap for _, c in campaigns
+            )
+            entities = {e.id: e for e in Repository(conn, Entity).list()}
+            offers = {o.id: o for o in Repository(conn, Offer).list()}
+            smoke_offers = [
+                offers.get(entities[eid].offer_id) if eid in entities else None
+                for eid, _ in campaigns
+            ]
+            permission = bool(campaigns) and all(
+                o is not None
+                and o.producer_paid_traffic_ok is True
+                and bool(o.evidence_ref and o.evidence_ref.strip())
+                for o in smoke_offers
+            )
+    except (OSError, ValueError, sqlite3.Error):
+        pass
+    record("database", database_ok, "Banco ausente/inválido ou migrações/checksums pendentes")
+    record(
+        "smoke_registered",
+        registered,
+        "Registrar fumaça com teto positivo dentro de controls.total_cap_cents",
+    )
+    record(
+        "smoke_offer_permission",
+        permission,
+        "Cada oferta da fumaça exige permissão escrita de tráfego pago e evidence_ref",
+    )
+    return {
+        "scope": "observe",
+        "ready": not pending,
+        "pending": pending,
+        "not_required_for_observe": [
+            {"item": item, "reason": reason} for item, reason in OBSERVE_NOT_REQUIRED.items()
+        ],
+        "authorizes": "nenhuma escrita; somente leitura da fumaça humana",
+    }
+
+
 def inspect(*, root=Path("."), now=None):
     now = now or datetime.now(UTC)
     if now.utcoffset() is None:
@@ -134,11 +248,7 @@ def inspect(*, root=Path("."), now=None):
         "Preflight pendente: " + ", ".join(errors),
         "Humano: corrigir arb preflight no host; aceite F5 fornece evidência da leitura remota",
     )
-    try:
-        drill = read_json(root / "data/backups/drill.json")
-        drill_ok = drill["status"] == "passed" and fresh(drill["checked_at"], now, days=2)
-    except (OSError, ValueError, KeyError, TypeError):
-        drill_ok = False
+    drill_ok = drill_recent(root, now)
     record(
         "drill_recent",
         drill_ok,

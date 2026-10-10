@@ -352,3 +352,5 @@ F6 nesta sessão não teve campanha real criada/ativada, nem teste de gasto.
 
 A troca foi ensaiada com dois tokens sintéticos em MockTransport, sem expor valores
 nem contactar provedores. Nenhuma credencial real foi emitida, alterada ou revogada.
+
+Roteiro de observação humana: [dia 1](docs/runbooks/dia-1.md).

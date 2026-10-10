@@ -156,8 +156,10 @@ def generate_report(
     approval_dir: Path = Path("ops/approvals/pending"),
     now: datetime | None = None,
     alert_messages: list[str] | None = None,
+    refund_rate: float | None = None,
+    refund_min_sales: int | None = None,
 ) -> Path:
-    data = pnl(connection)
+    data = pnl(connection, refund_rate=refund_rate, refund_min_sales=refund_min_sales)
     data["alerts"].extend(alert_messages or [])
     instant = now or datetime.now(UTC)
     stamp = instant.astimezone(ZoneInfo("America/Sao_Paulo"))

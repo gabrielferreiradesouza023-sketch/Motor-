@@ -260,3 +260,8 @@ def load_profile_file(path: Path) -> dict[str, SimProfile]:
     if not result:
         raise ValueError("insufficient_data: nenhum geo com amostra suficiente")
     return result
+
+
+def load_settings(path: Path = Path("config/settings.yaml")) -> Settings:
+    """Public settings loader; never environment or credentials."""
+    return Settings.model_validate(yaml.safe_load(path.read_text()))

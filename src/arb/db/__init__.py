@@ -61,6 +61,14 @@ def migration_catalog() -> dict[int, tuple[str, str]]:
     }
 
 
+def require_current_schema(connection: sqlite3.Connection) -> None:
+    """Validate the same applied migration numbers/checksums in every local diagnostic."""
+    applied = dict(connection.execute("SELECT version, checksum FROM schema_migrations"))
+    expected = {number: data[1] for number, data in migration_catalog().items()}
+    if applied != expected:
+        raise ValueError("migrações")
+
+
 def migrate(connection: sqlite3.Connection) -> None:
     """Migrações atômicas com checksum; não aceitam alteração de SQL já aplicado."""
     connection.execute(

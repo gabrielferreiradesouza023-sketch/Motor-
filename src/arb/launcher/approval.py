@@ -132,6 +132,7 @@ def read_document(path: Path) -> tuple[Approval, dict | None]:
             "creative_set",
             "scale",
             "tracking_test",
+            "gate_c_confirmation",
         } or not isinstance(plan, dict):
             raise ValueError("envelope de aprovação inválido")
         digest = hashlib.sha256(

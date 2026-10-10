@@ -4,6 +4,7 @@ import math
 from collections.abc import Iterable
 from decimal import ROUND_HALF_UP, Decimal
 
+from arb.config import load_settings
 from arb.models import Entity, MetricSnapshot, Offer, SaleEvent
 
 
@@ -36,15 +37,23 @@ def bridge_rate(checkout_clicks: int, bridge_views: int) -> float | None:
 
 
 def effective_refund_rate(
-    offer: Offer, own_sales: Iterable[SaleEvent], default: float = 0.15
+    offer: Offer,
+    own_sales: Iterable[SaleEvent],
+    default: float | None = None,
+    *,
+    min_sales: int | None = None,
 ) -> float:
+    if default is None or min_sales is None:
+        settings = load_settings()
+        default = settings.refund_rate if default is None else default
+        min_sales = settings.refund_min_sales if min_sales is None else min_sales
     if offer.producer_refund_rate is None:
         return default
     unique = {}
     for sale in sorted(own_sales, key=lambda s: (s.ts, s.status != "approved", s.id)):
         unique[sale.hotmart_tx_id] = sale
-    if len(unique) < 20:
-        return offer.producer_refund_rate
+    if len(unique) < min_sales:
+        return max(offer.producer_refund_rate, default)
     return sum(s.status != "approved" for s in unique.values()) / len(unique)
 
 
@@ -52,8 +61,9 @@ def effective_refund_rates(
     offers: Iterable[Offer],
     entities: Iterable[Entity],
     sales: Iterable[SaleEvent],
-    default: float = 0.15,
+    default: float | None = None,
     *,
+    min_sales: int | None = None,
     exclude_ids: set[str] | None = None,
 ) -> dict[str, float]:
     entities = list(entities)
@@ -64,7 +74,7 @@ def effective_refund_rates(
             continue
         own = {e.id for e in entities if e.offer_id == offer.id} - (exclude_ids or set())
         rate = effective_refund_rate(
-            offer, [s for s in sales if s.matched_entity_id in own], default
+            offer, [s for s in sales if s.matched_entity_id in own], default, min_sales=min_sales
         )
         result.update({e.id: rate for e in entities if e.offer_id == offer.id})
     return result

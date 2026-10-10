@@ -405,7 +405,7 @@ validation entra no gate combinado de 95%. Não muda settings, regras nem arb.mo
 
 
 ## ADR-039 — Portão C opcional e posterior determinístico (T-77)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito** — Decisão humana 1A (2026-10-10).
 
 Gamma-Poisson usa gasto bruto em centavos como exposição, prior Gamma(shape=1,
 rate=1 centavo): adiciona uma venda e um centavo de exposição; sua influência decai
@@ -418,16 +418,26 @@ ROI >=0 e probabilidade >=0.8. Vizinhas 10000/20000 são diagnósticas.
 Rules.gate_C default None mantém vereditos/summary/goldens/drill/calibração atuais;
 p_roi_positive é diagnóstico adicional nos metrics_json de G3/T/C. Com C ativo, G3 é
 candidato; referência durável é seu primeiro pass e gasto bruto no mesmo entity/geo.
-O teto C é essa referência mais a fatia; dados atrasados não passam, teto pode matar
+O teto C é essa referência mais a fatia; entrar em C exige arquivo aprovado e
+assinatura Ed25519 verificada em ops/approvals/approved/, com entidade, geo, oferta,
+baseline, extra, soma e expiração conferidos. Não há gasto extra sem essa aprovação.
+Enquanto candidata sem aprovação, a entidade fica em G3 e pausa no teto G3; a
+proposta pendente explicita o total e expira em 24 h. Aprovar C só admite o portão,
+não ativa nem aumenta orçamento; ativação e escala mantêm seus fluxos assinados.
+Dados atrasados não passam, teto pode matar
 sem amostra. Ausência de referência recusa avaliação (falha fechada). C não aumenta
 orçamento: todas as barreiras e aprovações anteriores continuam. Escala e T exigem
 último pass em C na mesma entidade/geo; mudar geo exige nova confirmação explícita.
 Biblioteca/controles contam C/T, nunca G3 candidato. Gate público inclui C e contratos
-regenerados. Ativar regras depende do aceite humano em PR futuro, rules.yaml intocado.
+regenerados. Ativar C exige alteração humana explícita em PR futuro; aceitar o ADR não
+liga C. rules.yaml intocado.
 
 
 ## ADR-040 — Perfis observados por janela e incerteza (T-79)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 Gerador somente lê SQLite local; CLI usa mode=ro. Datas incluem dias completos no fuso configurado (o mesmo da conta Meta);
 timestamps precisam fuso e usam fim exclusivo. Métricas Meta usam period_start,
@@ -455,7 +465,10 @@ Isso não altera a calibração padrão; teste planta rótulo winner numa verdad
 
 
 ## ADR-041 — CAPI opt-in de medição com nonce compartilhado (T-80)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 bridge build --capi-enabled gera nonce único no clique, enviado ao pixel e ao Worker.
 Sem a opção, o HTML versionado permanece byte-idêntico. Worker desliga por padrão,
@@ -470,7 +483,10 @@ não confirma F5/F6, não ativa LIVE_MODE e depende de aceite/configuração hum
 Novo módulo de efeito externo capi.ts entra em gate de 95% linhas e branches no npm test.
 
 ## ADR-042 — Fumaça humana isolada do motor (T-81)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 Migração 011 registra campanha/teto e todos os IDs originais numa tabela própria;
 sem alteração de arb.models. Entidades começam pausadas/gate 0, orçamento desconhecido
@@ -494,7 +510,7 @@ muda de campanha, sem dupla contagem. Se não houver root observado, preserva v�
 original. Proteção da operação humana sempre preserva IDs originais, inclusive ciclos.
 
 ## ADR-043 — Dados declarados do produtor e refund por oferta (T-82)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito** — Decisão humana 2A (2026-10-10).
 
 Offer e OfferIntake recebem cinco campos opcionais; None é omitido na serialização
 para preservar banco, planos, hashes, ranking, goldens e drill antigos. Contratos regenerados.
@@ -507,9 +523,12 @@ true. Permissão positiva sem evidence_ref gera alerta; referência é descriç�
 lido nem evidência automaticamente verificada. Advertisers declarado substitui contagem de
 prova, mantendo os mesmos pesos/normalização existente. Conversão da página é exibida como
 diagnóstico: não se inventa normalização/peso não aprovado. Comissão no ranking usa refund
-declarado quando presente; padrão .15 permanece igual quando não há dado.
+max(declarado, settings.refund_rate) quando presente; sem dado, usa o padrão
+configurado (.15 atual), preservando o ranking antigo. Relatório distingue producer_floor
+(quando o piso vence), producer (declarado >=padrão) e default (sem declarado).
 
-Refund declarado vale até 19 transações próprias únicas; a partir de 20, refund/chargeback
+Antes de settings.refund_min_sales (20 atual) transações próprias únicas, refund
+é max(declarado, settings.refund_rate). Na amostra mínima, refund/chargeback
 observado / total de transações finais. Replays não multiplicam amostra; vendas sem match,
 de outras ofertas e entidades de aceite de teste não entram nela. Todas as entidades de uma
 oferta usam sua amostra completa, não somente a do anúncio atual. Sem producer_refund_rate,
@@ -519,3 +538,49 @@ comissões por taxa, arredondando HALF_UP cada taxa e evitando multiplicar desco
 montante. Aprovações/plano carregam os dados novos no hash; dado do produtor não é autorização.
 A amostra de refund depende de idade/coorte; hipótese declarada não comprova ROI futuro nem
 valida V-01–V-06. Nenhum valor real foi inventado, pesos e rules.yaml intocados.
+
+
+Antes/depois numérico com comissão 6000: declarado .10 dava 5400 e teto G3 16200;
+com piso .15 dá 5100 e teto 15300. Declarado .20 continua 4800/teto 14400.
+20 transações próprias, 2 reembolsos, dão .10 observado/5400, sem piso. Antes da
+amostra mínima, declarar .05 ou .15 tem mesma comissão/ranking. Exemplo versionado
+offers-producer.csv usa .20, permanece idêntico; nenhum golden sem produtor muda.
+Load_settings público fornece os parâmetros aos consumidores de dados do produtor
+(scout, scheduler, P&L); fórmulas primitivas preservam seus padrões existentes.
+Nenhuma configuração ou modelo muda. Metrics entra no gate de 100% combinado.
+
+## ADR-044 — Prontidão separada para observação humana (T-84)
+Status: **Proposto — aguarda aceite humano**.
+
+readiness --scope observe só verifica localmente live_mode falso/ausente, database com catálogo/checksums de migrações atual (mesma função do doctor), drill_recent aprovado <=48h, card_limit e spend_cap assinados <=7 dias, presença de META_ACCESS_TOKEN/META_AD_ACCOUNT_ID/META_API_VERSION no processo, smoke_registered com todos os tetos positivos dentro do total_cap e smoke_offer_permission com true e evidence_ref não vazia por oferta. Valores das variáveis nunca são exibidos, hasheados ou registrados; nenhum .env ou privada é lido. Banco é aberto somente em mode=ro.
+
+Graph executor, F5/F6/tracking, V-01–06 completos e host/serviço persistente são listados como dispensados para observe; V-03 por oferta continua obrigatório. Observe não autoriza escrita, gasto, live ou aceite de exposição: campanha criada/operada pelo humano, motor somente lê. Scope full é o padrão e preserva saída/exit anteriores. Tetos reais são decisão/configuração externa humana, nunca presumidos por presença de variáveis.
+
+
+## ADR-045 — Coleta diária e pausa exclusivamente humana (T-85)
+Status: **Proposto — aguarda aceite humano**.
+
+smoke daily reaproveita sync GET, import_sales com mapa explícito validado pelo schema e smoke report. Mapa válido não confirma automaticamente V-01 do provedor; humano valida formato no host. Janela padrão vai da data local do registro auditado até hoje no settings.timezone. Nenhuma escrita Meta/Worker, mensagem ou pausa automática. Coleta account-level segue sync meta: anúncio desconhecido sem mapeamento recusa a coleta, nunca inventa oferta/geo.
+
+Limiar fixo de atenção 0.8 do teto local: >=80% prepara pausa, exit 0; >=100% (ou teto observado no relatório/fatura) manda PAUSE AGORA NO GERENCIADOR, exit 2. MetaReadError sanitizado: exit 3, nenhum relatório novo, anteriores intactos. Pré-condições/arquivos/mapping inválidos: exit 1. Dado mais velho que stale_after_hours recebe aviso. Sem var/env/.env/segredo nas mensagens.
+
+Arquivos JSON/Markdown em horário local AAAA-MM-DDTHHMM, criação exclusiva 0600, sem sobrescrita/config/links/alias do banco ou entre saídas. Falha de publicação remove somente arquivos criados pela execução, não os existentes. Coletas/importações são idempotentes no banco; nova coleta no mesmo minuto exige outro diretório/minuto. CAPI e C desligados; serviço render padrão permanece intacto (variante opcional não implementada; rotina manual 3x/dia). smoke_daily entra no gate combinado de 95%.
+
+
+## ADR-046 — Aprovação canônica da fatia C (T-87)
+Status: **Proposto — aguarda aceite humano**.
+
+Approval.kind inclui gate_c_confirmation; contratos regenerados. Plano fechado: kind,
+entity_id, geo, offer_id, confirmation_start_cents, extra_cap_cents, total_cap_cents,
+expires_at. SHA256 do JSON canônico (sort_keys, separators compactos, UTF-8) é
+plan_hash; Ed25519 assina a Approval com esse hash, no fluxo humano existente.
+Baseline é o primeiro G3 pass durável no mesmo geo; extra é rules.gate_C.cap_cents,
+total soma ambos; valores monetários são inteiros, validade timezone-aware futura,
+decisão não futura, exposição assinada >=extra. Sem aprovação ou artefato inválido,
+C falha fechado por entidade, audita waiting_approval e pausa sem interromper as demais.
+Arquivos financeiros recusam symlink/hardlink e colisão divergente; propostas 0600
+expiram em 24 h e são renovadas quando pausadas. Admitir é auditado com approval_id
+e conserva status/orçamento. Ativação de família/candidato no teto e journal FakeMeta
+revalidam C; aprovar C não substitui aprovação de ativação/escala, freios, daily_cap
+ou total_cap. Rules.gate_C=None retorna antes desses caminhos, preservando os padrões.
+O simulador continua contrafactual, não concede autorização de exposição.

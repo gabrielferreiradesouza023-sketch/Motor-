@@ -1,0 +1,55 @@
+{
+  "offers": [
+    {
+      "affiliate_link": "https://example.com/affiliate-excel",
+      "allows_paid_traffic": true,
+      "commission_brl_cents": 6000,
+      "currency": "BRL",
+      "hotmart_product_id": "example-excel",
+      "id": "excel",
+      "language": "es",
+      "name": "Excel práctico",
+      "niche": "excel_produtividade",
+      "price_local": 15000,
+      "sales_page_url": "https://example.com/excel",
+      "score": 54.15,
+      "status": "candidate"
+    },
+    {
+      "affiliate_link": "https://example.com/affiliate-pets",
+      "allows_paid_traffic": true,
+      "commission_brl_cents": 5000,
+      "currency": "BRL",
+      "hotmart_product_id": "example-pets",
+      "id": "pets",
+      "language": "es",
+      "name": "Adiestramiento",
+      "niche": "pets",
+      "price_local": 12000,
+      "sales_page_url": "https://example.com/pets",
+      "score": 44.97,
+      "status": "candidate"
+    },
+    {
+      "affiliate_link": "https://example.com/affiliate-croche",
+      "allows_paid_traffic": true,
+      "commission_brl_cents": 4500,
+      "currency": "BRL",
+      "hotmart_product_id": "example-croche",
+      "id": "croche",
+      "language": "es",
+      "name": "Crochet",
+      "niche": "artesanato_croche",
+      "price_local": 10000,
+      "sales_page_url": "https://example.com/croche",
+      "score": 44.09,
+      "status": "candidate"
+    }
+  ],
+  "producer": {},
+  "rejected": {
+    "blocked": [
+      "nicho fora da lista permitida"
+    ]
+  }
+}
