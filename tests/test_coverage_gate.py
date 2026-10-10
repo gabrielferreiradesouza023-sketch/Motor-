@@ -60,6 +60,9 @@ def test_missing_module_or_uncovered_branches_fail():
     report["files"]["src/arb/safety.py"]["summary"]["covered_branches"] = 89
     assert ASSESS(report)[1] == ["arb.safety"]  # 94.5%, não arredonda para 95.
     report = synthetic_report()
+    report["files"]["src/arb/metrics/__init__.py"]["summary"]["covered_branches"] = 99
+    assert ASSESS(report)[1] == ["arb.metrics"]  # 99.5% refuses the required 100%.
+    report = synthetic_report()
     del report["files"]["src/arb/smoke_daily.py"]
     assert ASSESS(report)[1] == ["arb.smoke_daily"]
     report = synthetic_report()

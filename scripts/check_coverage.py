@@ -51,7 +51,10 @@ def assess(report):
             for name, value in report["files"].items()
             if name == prefix + ".py" or name.startswith(prefix + "/")
         ]
-        result["arb." + module] = {"percent": percentage(matched), "minimum": 95}
+        result["arb." + module] = {
+            "percent": percentage(matched),
+            "minimum": 100 if module == "metrics" else 95,
+        }
     failures = [name for name, value in result.items() if value["percent"] < value["minimum"]]
     return result, failures
 

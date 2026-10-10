@@ -434,7 +434,10 @@ liga C. rules.yaml intocado.
 
 
 ## ADR-040 — Perfis observados por janela e incerteza (T-79)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 Gerador somente lê SQLite local; CLI usa mode=ro. Datas incluem dias completos no fuso configurado (o mesmo da conta Meta);
 timestamps precisam fuso e usam fim exclusivo. Métricas Meta usam period_start,
@@ -462,7 +465,10 @@ Isso não altera a calibração padrão; teste planta rótulo winner numa verdad
 
 
 ## ADR-041 — CAPI opt-in de medição com nonce compartilhado (T-80)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 bridge build --capi-enabled gera nonce único no clique, enviado ao pixel e ao Worker.
 Sem a opção, o HTML versionado permanece byte-idêntico. Worker desliga por padrão,
@@ -477,7 +483,10 @@ não confirma F5/F6, não ativa LIVE_MODE e depende de aceite/configuração hum
 Novo módulo de efeito externo capi.ts entra em gate de 95% linhas e branches no npm test.
 
 ## ADR-042 — Fumaça humana isolada do motor (T-81)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+Decisão delegada ao Claude em 2026-10-10, revisável: aceite técnico. CAPI segue
+desligada e a fumaça segue criada e operada pelo humano; aceite não liga nada.
 
 Migração 011 registra campanha/teto e todos os IDs originais numa tabela própria;
 sem alteração de arb.models. Entidades começam pausadas/gate 0, orçamento desconhecido
@@ -501,7 +510,7 @@ muda de campanha, sem dupla contagem. Se não houver root observado, preserva v�
 original. Proteção da operação humana sempre preserva IDs originais, inclusive ciclos.
 
 ## ADR-043 — Dados declarados do produtor e refund por oferta (T-82)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito** — Decisão humana 2A (2026-10-10).
 
 Offer e OfferIntake recebem cinco campos opcionais; None é omitido na serialização
 para preservar banco, planos, hashes, ranking, goldens e drill antigos. Contratos regenerados.
@@ -514,9 +523,12 @@ true. Permissão positiva sem evidence_ref gera alerta; referência é descriç�
 lido nem evidência automaticamente verificada. Advertisers declarado substitui contagem de
 prova, mantendo os mesmos pesos/normalização existente. Conversão da página é exibida como
 diagnóstico: não se inventa normalização/peso não aprovado. Comissão no ranking usa refund
-declarado quando presente; padrão .15 permanece igual quando não há dado.
+max(declarado, settings.refund_rate) quando presente; sem dado, usa o padrão
+configurado (.15 atual), preservando o ranking antigo. Relatório distingue producer_floor
+(quando o piso vence), producer (declarado >=padrão) e default (sem declarado).
 
-Refund declarado vale até 19 transações próprias únicas; a partir de 20, refund/chargeback
+Antes de settings.refund_min_sales (20 atual) transações próprias únicas, refund
+é max(declarado, settings.refund_rate). Na amostra mínima, refund/chargeback
 observado / total de transações finais. Replays não multiplicam amostra; vendas sem match,
 de outras ofertas e entidades de aceite de teste não entram nela. Todas as entidades de uma
 oferta usam sua amostra completa, não somente a do anúncio atual. Sem producer_refund_rate,
@@ -527,6 +539,15 @@ montante. Aprovações/plano carregam os dados novos no hash; dado do produtor n
 A amostra de refund depende de idade/coorte; hipótese declarada não comprova ROI futuro nem
 valida V-01–V-06. Nenhum valor real foi inventado, pesos e rules.yaml intocados.
 
+
+Antes/depois numérico com comissão 6000: declarado .10 dava 5400 e teto G3 16200;
+com piso .15 dá 5100 e teto 15300. Declarado .20 continua 4800/teto 14400.
+20 transações próprias, 2 reembolsos, dão .10 observado/5400, sem piso. Antes da
+amostra mínima, declarar .05 ou .15 tem mesma comissão/ranking. Exemplo versionado
+offers-producer.csv usa .20, permanece idêntico; nenhum golden sem produtor muda.
+Load_settings público fornece os parâmetros aos consumidores de dados do produtor
+(scout, scheduler, P&L); fórmulas primitivas preservam seus padrões existentes.
+Nenhuma configuração ou modelo muda. Metrics entra no gate de 100% combinado.
 
 ## ADR-044 — Prontidão separada para observação humana (T-84)
 Status: **Proposto — aguarda aceite humano**.

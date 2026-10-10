@@ -7,8 +7,9 @@ from pathlib import Path
 
 import yaml
 
-from arb.config import Policy
+from arb.config import Policy, Settings, load_settings
 from arb.db import Repository
+from arb.metrics import effective_refund_rate
 from arb.models import PRODUCER_FIELDS, AdObservation, Approval, Offer, OfferIntake
 from arb.rules import load_rules
 
@@ -17,7 +18,10 @@ def rank(
     intake: list[OfferIntake],
     observations: list[AdObservation],
     policy_path: Path = Path("config/policy.yaml"),
+    *,
+    settings: Settings | None = None,
 ) -> tuple[list[Offer], dict[str, list[str]]]:
+    settings = settings or load_settings()
     policy = Policy.model_validate(yaml.safe_load(policy_path.read_text()))
     r = load_rules().gate_0
     known = {i.offer.id for i in intake}
@@ -49,10 +53,8 @@ def rank(
                 offer.commission_brl_cents
                 * (
                     1
-                    - (
-                        offer.producer_refund_rate
-                        if offer.producer_refund_rate is not None
-                        else 0.15
+                    - effective_refund_rate(
+                        offer, [], settings.refund_rate, min_sales=settings.refund_min_sales
                     )
                 )
                 / 10000,
@@ -144,7 +146,8 @@ def producer_offer(item: OfferIntake) -> Offer:
     return item.offer.model_copy(update=updates)
 
 
-def producer_report(intake: list[OfferIntake]) -> dict:
+def producer_report(intake: list[OfferIntake], *, settings: Settings | None = None) -> dict:
+    settings = settings or load_settings()
     result = {}
     for item in intake:
         offer = producer_offer(item)
@@ -157,9 +160,11 @@ def producer_report(intake: list[OfferIntake]) -> dict:
                 "alerts": ["permissão declarada sem referência de evidência"]
                 if offer.producer_paid_traffic_ok is True and not offer.evidence_ref
                 else [],
-                "commission_refund_basis": "producer"
-                if offer.producer_refund_rate is not None
-                else "default",
+                "commission_refund_basis": "default"
+                if offer.producer_refund_rate is None
+                else "producer_floor"
+                if offer.producer_refund_rate < settings.refund_rate
+                else "producer",
                 "market_proof_basis": "producer"
                 if offer.advertisers_30d is not None
                 else "ad_observations",

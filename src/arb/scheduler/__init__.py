@@ -194,6 +194,7 @@ def _run(
             entities,
             sales,
             settings.refund_rate,
+            min_sales=settings.refund_min_sales,
             exclude_ids={
                 r[0] for r in connection.execute("SELECT entity_id FROM acceptance_test_entities")
             },
@@ -324,7 +325,10 @@ def _run(
             checkpoint()
         if "actions" not in result["stages"]:
             data = pnl(
-                connection, media_tax_rate=settings.media_tax_rate, refund_rate=settings.refund_rate
+                connection,
+                media_tax_rate=settings.media_tax_rate,
+                refund_rate=settings.refund_rate,
+                refund_min_sales=settings.refund_min_sales,
             )
             # Gastos do dia por period_start; receitas do dia por timestamp da venda,
             # sem reciclar receita esperada no caixa.
@@ -435,6 +439,8 @@ def _run(
                     approval_dir=root / "ops/approvals/pending",
                     now=now,
                     alert_messages=result["alerts"],
+                    refund_rate=settings.refund_rate,
+                    refund_min_sales=settings.refund_min_sales,
                 )
             )
             backup_daily(connection, database_backups(connection), day=now.astimezone(UTC).date())
