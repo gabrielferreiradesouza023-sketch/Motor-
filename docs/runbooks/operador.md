@@ -269,3 +269,5 @@ exige contrato validado, novo trabalho e revisão separada. Nenhum desses comand
 **Enviar ao Claude:** readiness redigido, provas assinadas, registros e lista de bloqueios
 com responsável/impacto. Solicitar revisão; merge é humano. Não tratar mocks, assinatura,
 serviço em simulação ou presença de variáveis como aceite de dinheiro real.
+
+Para começar a fumaça humana em observação, siga [o roteiro do dia 1](dia-1.md).

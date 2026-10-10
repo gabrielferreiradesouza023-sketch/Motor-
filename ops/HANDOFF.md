@@ -4,7 +4,7 @@
 Base origin/main 669a23d25565c4d930b4aaa49f5a19173efff267: PR #37/BATCH-06 mergeado, T-77–83 em review, LOCK inicial vazio, nenhum PR batch-07 anterior. Branch codex/batch-07; planejamento verbatim em 2a35f86.
 
 ## Feito / sequência
-T-84 review, commit 83c1051, CI gates+worker SUCCESS confirmado antes de pegar T-85. PR draft #38: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/38. T-85 review após gates locais; seu CI será conferido no commit exato antes de T-86. Seguem T-86 → T-87 → T-88. Operação e testes sintéticos; nenhuma API real, privada real, .env, deploy, serviço instalado ou merge.
+T-84 review, commit 83c1051, CI gates+worker SUCCESS confirmado antes de pegar T-85. PR draft #38: https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/38. T-85 review, commit 422eef9, CI gates+worker SUCCESS confirmado antes de pegar T-86. T-86 review após gates locais; CI do seu commit será conferido antes de T-87. Seguem T-87 → T-88. Operação e testes sintéticos; nenhuma API real, privada real, .env, deploy, serviço instalado ou merge.
 
 ## Bloqueios e decisões humanas
 A implementação não assume aceites ou limites externos. O humano opera a fumaça e configura limites no próprio host/Meta/cartão. Decisões 1A/2A autorizadas neste prompt serão registradas/implementadas em T-87/88; C e CAPI seguem desligados. Graph T-55 fora deste batch; prontidão full continua não pronto. ADR-044 proposto, novos ADR-045/046 propostos; aceites 039–043 serão registrados conforme as tarefas.
@@ -188,3 +188,298 @@ O motor continua não pronto para dinheiro real; esta correção não fecha os a
 
 ### BATCH-07 T-85 — review
 26 testes novos; subset 50 passed, limiares 79.99/80/100 e referências 9039/9040/11300 centavos, CPM/CTR/hook, zero POST/DELETE/pausas; CSV/GET idempotentes, falha exit 3 preserva arquivos, disputa por nome e rollback de publicação. smoke_daily 100%, 26 grupos de dinheiro >=95%. Corrigido destino igual ao banco antes do GET; fixture do gate ampliada sem relaxar checks. Serviço padrão intacto; variante opcional fora do escopo implementado. Gates locais: 1161 testes, 92.45% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
+
+
+## T-86 — Saídas reais de prontidão (CLI, sem mocks no processo)
+
+O teste do runbook exportou /tmp/b07-t86-evidence com dados sintéticos, SQLite consistente, configurações/contratos públicos e registros assinados apenas pela chave de teste. A CLI abaixo usa a pública versionada, portanto rejeita esses registros sintéticos; nenhuma privada foi exportada/consultada. Pendências são do humano, não foram contornadas. Full foi executado na raiz real do checkout e continua com as mesmas 17 pendências.
+
+`LIVE_MODE=false uv run arb readiness --root /tmp/b07-t86-evidence --scope observe --json` — exit 1:
+
+```json
+{
+  "authorizes": "nenhuma escrita; somente leitura da fumaça humana",
+  "not_required_for_observe": [
+    {
+      "item": "graph_executor",
+      "reason": "Nenhuma exposição automática; fumaça operada pelo humano"
+    },
+    {
+      "item": "f5",
+      "reason": "Aceite completo separado; observação só requer leitura configurada no host"
+    },
+    {
+      "item": "f6_pause",
+      "reason": "Motor nunca pausa fumaça humana"
+    },
+    {
+      "item": "tracking",
+      "reason": "Aceite assinado de rastreio pertence ao laboratório"
+    },
+    {
+      "item": "V-01",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-02",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-03",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-04",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-05",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-06",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "persistent_host",
+      "reason": "Operação manual no host humano"
+    },
+    {
+      "item": "service_package",
+      "reason": "Comandos manuais; serviço não obrigatório para observar"
+    },
+    {
+      "item": "service_installed",
+      "reason": "Comandos manuais; nenhuma instalação autorizada"
+    }
+  ],
+  "pending": [
+    {
+      "item": "card_limit",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)"
+    },
+    {
+      "item": "spend_cap",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)"
+    },
+    {
+      "item": "meta_read_env",
+      "reason": "Definir META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION somente no host"
+    }
+  ],
+  "ready": false,
+  "scope": "observe"
+}
+```
+
+`LIVE_MODE=false uv run arb readiness --json` — exit 1:
+
+```json
+{
+  "checked_at": "2026-10-10T02:17:56.631319+00:00",
+  "host": {
+    "scope": "diagnóstico de leitura; persistência exige confirmação humana assinada",
+    "systemctl_available": true,
+    "systemd_pid1": false,
+    "timezone": "Etc/UTC",
+    "units": [
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-scheduler.service",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      },
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-scheduler.timer",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      },
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-backup.service",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      },
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-backup.timer",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      },
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-drill.service",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      },
+      {
+        "active": false,
+        "active_state": "desconhecido",
+        "available": false,
+        "installed": false,
+        "name": "arb-drill.timer",
+        "next": "",
+        "unit_file_state": "desconhecido"
+      }
+    ],
+    "warnings": [],
+    "wsl": false
+  },
+  "items": [
+    {
+      "name": "preflight",
+      "next_step": "Humano: corrigir arb preflight no host; aceite F5 fornece evidência da leitura remota",
+      "ok": false,
+      "reason": "Preflight pendente: credentials, graph_version, meta_spend_cap, card_limit, backup_restore, backup_drill, scheduler_lock"
+    },
+    {
+      "name": "drill_recent",
+      "next_step": "Executar arb db backup e arb db drill no host, sem sobrescrever produção",
+      "ok": false,
+      "reason": "Drill de backup ausente/falho ou mais antigo que 48h"
+    },
+    {
+      "name": "permissions",
+      "next_step": "",
+      "ok": true,
+      "reason": "verificado"
+    },
+    {
+      "name": "approval_public_key",
+      "next_step": "",
+      "ok": true,
+      "reason": "verificado"
+    },
+    {
+      "name": "f5",
+      "next_step": "Humano: executar kit f5, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "f6_pause",
+      "next_step": "Humano: executar kit f6_pause, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "tracking",
+      "next_step": "Humano: executar kit tracking, revisar e assinar com arb evidence sign no próprio host",
+      "ok": false,
+      "reason": "evidência não assinada"
+    },
+    {
+      "name": "V-01",
+      "next_step": "Humano: resolver V-01; usar arb validate record V-01 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-02",
+      "next_step": "Humano: resolver V-02; usar arb validate record V-02 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-03",
+      "next_step": "Humano: resolver V-03; usar arb validate record V-03 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-04",
+      "next_step": "Humano: resolver V-04; usar arb validate record V-04 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-05",
+      "next_step": "Humano: resolver V-05; usar arb validate record V-05 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "V-06",
+      "next_step": "Humano: resolver V-06; usar arb validate record V-06 na máquina assinadora",
+      "ok": false,
+      "reason": "Validação do provedor ainda não registrada pelo humano"
+    },
+    {
+      "name": "graph_executor",
+      "next_step": "Humano: resolver V-06 e aprovar contrato; executor exige implementação/revisão separada",
+      "ok": false,
+      "reason": "T-55: executor de exposição Graph ausente; somente FakeMeta"
+    },
+    {
+      "name": "card_limit",
+      "next_step": "Humano: confirmar teto no emissor e declarar CARD_LIMIT_CENTS <= total_cap_cents",
+      "ok": false,
+      "reason": "Limite do cartão não confirmado ou preflight/teto pendente"
+    },
+    {
+      "name": "spend_cap",
+      "next_step": "Humano: configurar limite Meta e revisar prova F5; registrar confirmação sem credenciais",
+      "ok": false,
+      "reason": "spend_cap real não confirmado dentro do teto"
+    },
+    {
+      "name": "persistent_host",
+      "next_step": "Humano: selecionar e validar disponibilidade, disco privado, relógio e backups do host",
+      "ok": false,
+      "reason": "Host persistente ainda não confirmado"
+    },
+    {
+      "name": "service_package",
+      "next_step": "Renderizar arb service render e verificar arb service check no host correto",
+      "ok": false,
+      "reason": "Pacote de serviço ausente/inválido; nenhuma instalação executada"
+    },
+    {
+      "name": "service_installed",
+      "next_step": "Humano: revisar pacote, instalar no próprio host e registrar evidência de disponibilidade",
+      "ok": false,
+      "reason": "Instalação/disponibilidade do serviço ainda não confirmada pelo humano"
+    }
+  ],
+  "pending": [
+    "preflight",
+    "drill_recent",
+    "f5",
+    "f6_pause",
+    "tracking",
+    "V-01",
+    "V-02",
+    "V-03",
+    "V-04",
+    "V-05",
+    "V-06",
+    "graph_executor",
+    "card_limit",
+    "spend_cap",
+    "persistent_host",
+    "service_package",
+    "service_installed"
+  ],
+  "ready": false,
+  "status": "não pronto"
+}
+```
+
+### BATCH-07 T-86 — review
+2 testes novos; 18 comandos do Markdown executados (5 exports + 13 arb), SQLite temporário e 6 GET MockTransport: 6000 impressões, 6780 centavos brutos, CPM 1130, CTR .02/hook .3, 120 visitas/3 checkouts/1 venda casada. Primeiro observe pendente sem registro, segundo pronto na fixture completa; CLI real exportada não pronto com card_limit/spend_cap/meta_read_env, full preserva 17 pendências. Links e tabela humana publicados; zero escritas Meta. Gates locais: 1163 testes, 92.68% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI será verificado antes da próxima tarefa.
