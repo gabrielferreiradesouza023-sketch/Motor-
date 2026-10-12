@@ -284,6 +284,35 @@ sync_app = typer.Typer(help="Sincronização somente leitura de fontes externas"
 app.add_typer(sync_app, name="sync")
 
 
+@sales_app.command("inspect")
+def sales_inspect(
+    csv_file: str = typer.Option(..., "--csv"),
+    mapping: str | None = None,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    """Inspeciona estrutura local; não exibe células nem confirma V-01."""
+    import json
+    from pathlib import Path
+
+    import yaml
+
+    from arb.tracker.inspect import inspect_csv, summary
+
+    try:
+        value = inspect_csv(Path(csv_file), mapping=Path(mapping) if mapping else None)
+    except (OSError, ValueError, yaml.YAMLError):
+        typer.echo(
+            "Inspeção recusada: confira arquivo UTF-8, estrutura CSV e mapa no host.", err=True
+        )
+        raise typer.Exit(1) from None
+    typer.echo(
+        json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False)
+        if json_output
+        else summary(value)
+    )
+    raise typer.Exit(0 if value["mapping"] is None or value["mapping"]["compatible"] else 1)
+
+
 @sales_app.command("import")
 def sales_import(
     csv_file: str, database: str = "data/engine.db", mapping: str = "config/sales_csv.yaml"

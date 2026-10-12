@@ -105,20 +105,23 @@ def mapped_row(row, mapping):
     return values
 
 
+def validate_sales_headers(fields, mapping):
+    expected = [mapping.columns[key] for key in HEADERS]
+    if (
+        len(fields) != len(set(fields))
+        or not set(expected) <= set(fields)
+        or (mapping.strict_headers and fields != expected)
+    ):
+        raise ValueError("Cabeçalho de vendas inválido; conferir mapeamento declarado")
+
+
 def import_sales(
     connection: sqlite3.Connection, path: Path, *, mapping: SalesCSV | None = None
 ) -> int:
     mapping = mapping or SalesCSV()
     with path.open(encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file)
-        expected = [mapping.columns[key] for key in HEADERS]
-        fields = reader.fieldnames or []
-        if (
-            len(fields) != len(set(fields))
-            or not set(expected) <= set(fields)
-            or (mapping.strict_headers and fields != expected)
-        ):
-            raise ValueError("Cabeçalho de vendas inválido; conferir mapeamento declarado")
+        validate_sales_headers(reader.fieldnames or [], mapping)
         parsed = []
         for number, row in enumerate(reader, 2):
             try:
