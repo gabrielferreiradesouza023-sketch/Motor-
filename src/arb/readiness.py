@@ -104,6 +104,31 @@ OBSERVE_NOT_REQUIRED = {
 }
 
 
+OBSERVE_STEPS = {
+    "live_mode": ("export LIVE_MODE=false", "etapa-2"),
+    "database": ("uv run arb doctor; preservar backup e executar uv run arb db migrate", "etapa-2"),
+    "drill_recent": ("uv run arb db backup; uv run arb db drill", "etapa-2"),
+    "card_limit": (
+        'arb validate record card_limit --evidence "<descrição sem segredo>"',
+        "etapa-3",
+    ),
+    "spend_cap": ('arb validate record spend_cap --evidence "<descrição sem segredo>"', "etapa-3"),
+    "meta_read_env": (
+        "Exportar META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION só no terminal do host",
+        "etapa-4",
+    ),
+    "smoke_registered": (
+        "arb smoke register --campaign <ID> --adset <ID> --ad <ID> "
+        "--offer <OFERTA> --geo <GEO> --cap-cents <TETO>",
+        "etapa-6",
+    ),
+    "smoke_offer_permission": (
+        "Importar a oferta com producer_paid_traffic_ok=true e evidence_ref da permissão escrita",
+        "etapa-6",
+    ),
+}
+
+
 def inspect_observe(*, root=Path("."), now=None):
     from contextlib import closing
 
@@ -118,7 +143,15 @@ def inspect_observe(*, root=Path("."), now=None):
 
     def record(item, ok, reason):
         if not ok:
-            pending.append({"item": item, "reason": reason})
+            step, anchor = OBSERVE_STEPS[item]
+            pending.append(
+                {
+                    "item": item,
+                    "reason": reason,
+                    "next_step": step,
+                    "runbook": "docs/runbooks/dia-1.md#" + anchor,
+                }
+            )
 
     try:
         require_simulation()

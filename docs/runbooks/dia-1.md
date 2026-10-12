@@ -1,4 +1,4 @@
-# Dia 1 — fumaça humana com o motor observando
+# Dia 1 — operar a fumaça em 12/10 com o motor observando
 
 Use Linux/WSL no computador do operador, na raiz do checkout atualizado. Se precisar preparar
 Python 3.12/uv/Git/WSL, siga [operador.md](operador.md). Substitua todo `<...>` por dado
@@ -11,6 +11,8 @@ No emissor, limite do cartão **R$300**. Na Meta, spend_cap da conta **R$300**, 
 na campanha **R$220**, moeda **BRL** e fuso **America/Sao_Paulo**. Confira o efeito real de cada
 limite no próprio serviço. O teto local bruto de 25000 centavos é um alerta, não substitui
 os limites externos. Nenhuma configuração externa é aplicada por este roteiro.
+
+<a id="etapa-2"></a>
 
 ## 2. Preparar o motor em simulação
 
@@ -43,6 +45,8 @@ uv run arb scout import --offers "<CSV_OFERTAS_COM_PERMISSAO>" --adlibrary "<CSV
 
 Se a oferta já existe, não repetir a importação. Conferir seu ID e a permissão antes do passo 6.
 
+<a id="etapa-3"></a>
+
 ## 3. Assinar os registros humanos dos limites
 
 Na **máquina assinadora**, configure o caminho da chave privada existente fora do repo e
@@ -60,6 +64,8 @@ uv run arb validate record spend_cap --evidence "<REFERENCIA_SPEND_CAP_VERIFICAD
 Confirmar em TTY somente conteúdo verificado. Registros expiram em sete dias e não autorizam
 exposição do motor. A ausência de assinatura válida bloqueia o go/no-go.
 
+<a id="etapa-4"></a>
+
 ## 4. Configurar leitura Meta somente no host do operador
 
 Obtenha pessoalmente token com `ads_read`, confirme permissões/conta e a versão Graph vigente.
@@ -71,6 +77,11 @@ export META_ACCESS_TOKEN="<TOKEN_LOCAL_ADS_READ>"
 export META_AD_ACCOUNT_ID="<ID_CONTA_VERIFICADO>"
 export META_API_VERSION="<VERSAO_GRAPH_VERIFICADA>"
 ```
+
+O daily reconcilia somente os anúncios da campanha registrada. Um post de aquecimento ou
+anúncio antigo, mesmo pausado, pode coexistir na conta: essas entidades não são cadastradas
+nem reconciliadas pelo daily. Uma consulta separada lê o gasto agregado da conta na janela.
+O comando geral `arb sync meta` continua estrito para a conta inteira; use o daily nesta rotina.
 
 ## 5. Go/no-go de observação
 
@@ -86,10 +97,15 @@ export META_API_VERSION="<VERSAO_GRAPH_VERIFICADA>"
 uv run arb readiness --scope observe --root . --json
 ```
 
+Cada pendência traz `next_step` com o comando/ação e `runbook` com o link do passo que a
+resolve. A saída de texto também mostra “→ próximo passo”. Não envie valores das variáveis.
+
 Antes de registrar a fumaça, é esperado `ready=false`/exit 1 com `smoke_registered` e
 `smoke_offer_permission` pendentes. Corrija as demais pendências e siga apenas para criar a
 campanha **pausada**, não para ativá-la. Scope observe autoriza somente leitura; dispensa os
 aceites completos F5/F6/rastreio/Graph/host para esta rotina humana. Full continua não pronto.
+
+<a id="etapa-6"></a>
 
 ## 6. Criar a fumaça PAUSADA e registrar os IDs
 
@@ -114,16 +130,38 @@ pausa, mesmo sob freio/dado atrasado. A observação não é licença para aumen
 
 Rode nos horários de `settings.cycles`, acompanhe pessoalmente e preserve os relatórios.
 A janela padrão começa na data local do registro e termina hoje, no fuso configurado.
+Use o teto de conta explicitamente informado de 30000 centavos. O relatório mostra gasto
+bruto estimado da campanha, gasto da conta na janela e gasto fora da fumaça. Aquecimento
+na mesma conta entra nesse total, mas não na reconciliação da fumaça. Gasto anterior à
+janela não aparece; confira também o limite e saldo reais na Meta. “Indisponível” na conta
+não significa gasto zero: a leitura é informativa e não elimina os alertas da fumaça.
 
 ```sh
-uv run arb smoke daily --campaign <CAMPANHA> --database data/engine.db --output-dir reports/smoke --json
+uv run arb smoke daily --campaign <CAMPANHA> --database data/engine.db --output-dir reports/smoke --account-cap-cents 30000 --json
 ```
+
+### Vendas reais
+
+Prepare o mapa declarativo no próprio host usando os cabeçalhos e status do seu export,
+sem copiar dados de compradores para chats. O mapa versionado é um exemplo do esquema
+interno, não um formato Hotmart validado. Inspecione antes de importar:
+
+```sh
+uv run arb sales inspect --csv "<CSV_VENDAS_LOCAL>" --mapping "<MAPA_VENDAS_VALIDADO>" --json
+```
+
+O comando só mostra separador, codificação, contagem de linhas, nomes/tipos das colunas e
+contagens de status. Exit 1 exige corrigir o mapa/export local; não compartilhar células ou
+amostras. UTF-8/BOM são aceitos. Outros separadores são detectados, mas o importador atual
+aceita vírgula: uma exportação diferente é sinalizada como incompatível, não convertida.
+“Compatível” valida estrutura/cabeçalhos/status; não confirma V-01 nem substitui conferir
+os formatos de datas e valores. Nada é importado ou escrito por `sales inspect`.
 
 Se já validou seu formato de vendas, esta é uma alternativa para uma das coletas; forneça
 CSV local e mapa declarativo explicitamente. Não presumir formato de exportação do provedor.
 
 ```sh
-uv run arb smoke daily --campaign <CAMPANHA> --database data/engine.db --sales-csv "<CSV_VENDAS_LOCAL>" --mapping "<MAPA_VENDAS_VALIDADO>" --output-dir reports/smoke --json
+uv run arb smoke daily --campaign <CAMPANHA> --database data/engine.db --sales-csv "<CSV_VENDAS_LOCAL>" --mapping "<MAPA_VENDAS_VALIDADO>" --output-dir reports/smoke --account-cap-cents 30000 --json
 ```
 
 | Código | O que fazer |
@@ -131,8 +169,18 @@ uv run arb smoke daily --campaign <CAMPANHA> --database data/engine.db --sales-c
 | 0, abaixo de 80% | observar e conferir frescor/números |
 | 0, `ATENÇÃO: prepare-se para pausar` | preparar pausa manual e conferir limites |
 | 2, `PAUSE AGORA NO GERENCIADOR` | pausar pessoalmente agora; conferir gasto real |
+| 0, `ATENÇÃO: conta perto do spend_cap` | conferir conta inteira, aquecimento e limites; preparar pausa humana |
+| 2, `CONTA NO LIMITE: confira o spend_cap no Gerenciador` | conferir o limite real e pausar pessoalmente a fumaça e demais campanhas conforme necessário; não aumentar o limite para contornar |
 | 3 | coleta falhou, nenhum relatório novo; conferir token/versão/leitura no host e repetir |
 | 1 | corrigir registro, janela, mapa ou destino; não remover relatório/banco para contornar |
+
+Se aparecer **“anúncio novo na fumaça: registre com smoke register”**, a coleta foi recusada
+com exit 3 e nenhum relatório novo. Confira os IDs e suspenda a operação manualmente se
+não puder observá-la. O registro atual recusa IDs duplicados e **não acrescenta anúncios a
+uma campanha já cadastrada**: não repetir o comando sobre esse cadastro nem editar SQLite
+para contornar. Solicite revisão do cadastro antes de retomar; a rotina deste guia usa os
+três anúncios registrados no passo 6. Pausar o anúncio novo não o remove da resposta de
+leitura. Não apagar entidades na Meta.
 
 Gasto bruto e CPM estão em centavos; CTR/hook são frações (0,02 = 2%).
 Relatórios JSON/Markdown são datados pelo minuto local e não sobrescrevem anteriores. Uma
@@ -155,18 +203,15 @@ Conferir **≥2.000 impressões por criativo**, **≥40 visitas à ponte**, fatu
 Guardar evidências redigidas e usar [piloto.md](piloto.md) para perfil observado/calibração;
 sem evidência suficiente, o resultado fica pendente. Não autoriza laboratório com dinheiro.
 
-### O que o humano precisa fazer
+### O que o humano faz em 12/10
 
 | Item | Onde | Critério de pronto |
 |---|---|---|
-| Cartão R$300 | emissor | limite configurado e registro assinado ≤7 dias |
-| spend_cap R$300 | conta Meta | limite configurado e registro assinado ≤7 dias |
-| Campanha R$220 | Gerenciador | limite efetivo antes de ativar |
-| Conta e versão | Meta/host | BRL, America/Sao_Paulo, ads_read e versão verificados |
-| Oferta e permissão | produtor/Scout local | permissão escrita, true e evidence_ref |
-| Backup | próprio host | banco migrado, restore em quarentena, drill ≤48h |
-| Campanha e IDs | Gerenciador/registro local | pausada, três anúncios, cap local 25000 |
-| Go/no-go | próprio host | observe ready=true antes de ativar |
-| Ativação e pausas | Gerenciador | operação exclusivamente humana e limites conferidos |
-| Ponte/vendas/fatura | provedor/host | coleta e casamento verificados; mapa real validado |
-| Evidência de sucesso | próprio host | amostras e checkout casado; valores redigidos |
+| Tetos externos | emissor e Gerenciador | cartão R$300, spend_cap R$300, campanha R$220; conta BRL/America/Sao_Paulo conferida |
+| Registros assinados | máquina assinadora → host de leitura | card_limit/spend_cap válidos ≤7 dias; só documento assinado transferido |
+| Variáveis Meta | terminal do próprio host | ads_read, conta e versão verificados; valores nunca compartilhados |
+| Oferta com permissão | produtor e Scout local | producer_paid_traffic_ok=true e evidence_ref escrito; banco/backup/drill conferidos |
+| Fumaça pausada + smoke register | Gerenciador e host | campanha pausada, três IDs registrados, teto local bruto 25000 |
+| Readiness observe pronto | próprio host | ready=true/exit 0; todas as pendências e seus next_step resolvidos |
+| Ativar | Gerenciador | somente humano, depois do go/no-go e limites conferidos |
+| Daily três vezes ao dia | host e Gerenciador | --account-cap-cents 30000, relatórios/frescor conferidos, pausa humana nos alertas; CSV inspecionado antes de importar |

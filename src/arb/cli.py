@@ -284,6 +284,35 @@ sync_app = typer.Typer(help="Sincronização somente leitura de fontes externas"
 app.add_typer(sync_app, name="sync")
 
 
+@sales_app.command("inspect")
+def sales_inspect(
+    csv_file: str = typer.Option(..., "--csv"),
+    mapping: str | None = None,
+    json_output: bool = typer.Option(False, "--json"),
+):
+    """Inspeciona estrutura local; não exibe células nem confirma V-01."""
+    import json
+    from pathlib import Path
+
+    import yaml
+
+    from arb.tracker.inspect import inspect_csv, summary
+
+    try:
+        value = inspect_csv(Path(csv_file), mapping=Path(mapping) if mapping else None)
+    except (OSError, ValueError, yaml.YAMLError):
+        typer.echo(
+            "Inspeção recusada: confira arquivo UTF-8, estrutura CSV e mapa no host.", err=True
+        )
+        raise typer.Exit(1) from None
+    typer.echo(
+        json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False)
+        if json_output
+        else summary(value)
+    )
+    raise typer.Exit(0 if value["mapping"] is None or value["mapping"]["compatible"] else 1)
+
+
 @sales_app.command("import")
 def sales_import(
     csv_file: str, database: str = "data/engine.db", mapping: str = "config/sales_csv.yaml"
@@ -1156,6 +1185,7 @@ def readiness(
         typer.echo(result["authorizes"])
         for item in result["pending"]:
             typer.echo(f"✘ {item['item']}: {item['reason']}")
+            typer.echo(f"→ próximo passo: {item['next_step']}")
         for item in result["not_required_for_observe"]:
             typer.echo(f"Dispensado: {item['item']}: {item['reason']}")
     else:
@@ -1477,6 +1507,7 @@ def smoke_daily(
     sales_csv: str | None = None,
     mapping: str | None = None,
     output_dir: str = "reports/smoke",
+    account_cap_cents: int | None = typer.Option(None, "--account-cap-cents"),
     json_output: bool = typer.Option(False, "--json"),
 ):
     import json
@@ -1506,6 +1537,7 @@ def smoke_daily(
             value, code = daily(
                 connection,
                 campaign,
+                account_cap_cents=account_cap_cents,
                 settings=settings,
                 rules=load_rules(),
                 database=path,
@@ -1515,7 +1547,11 @@ def smoke_daily(
                 sales_csv=sales_csv,
                 mapping=mapping,
             )
-    except MetaReadError:
+    except MetaReadError as exc:
+        from arb.meta.sync import UnregisteredSmokeAd
+
+        if isinstance(exc, UnregisteredSmokeAd):
+            typer.echo(str(exc), err=True)
         typer.echo(
             "Coleta Meta falhou; nenhum relatório novo. Verifique leitura no host e repita.",
             err=True,

@@ -207,6 +207,13 @@ def test_observe_rejects_each_planted_violation(observe_root, monkeypatch, viola
     assert result.exit_code == 1, result.exception
     data = json.loads(result.stdout)
     assert not data["ready"] and item in {r["item"] for r in data["pending"]}
+    pending = next(r for r in data["pending"] if r["item"] == item)
+    step, anchor = NEXT_STEPS[item]
+    assert pending["next_step"] == step
+    assert pending["runbook"] == "docs/runbooks/dia-1.md#" + anchor
+    text = CliRunner().invoke(app, ["readiness", "--root", str(root), "--scope", "observe"])
+    assert text.exit_code == 1 and "→ próximo passo: " + step in text.stdout
+    assert "SYNTHETIC_PRIVATE_SENTINEL" not in text.output
     assert "SYNTHETIC_PRIVATE_SENTINEL" not in result.output
 
 
@@ -231,3 +238,51 @@ def test_default_full_output_matches_pre_batch_reference(monkeypatch, flags, ref
     )
     assert result.exit_code == 1
     assert result.stdout == (Path("tests/fixtures/readiness") / reference).read_text()
+
+
+NEXT_STEPS = {
+    "live_mode": ("export LIVE_MODE=false", "etapa-2"),
+    "database": ("uv run arb doctor; preservar backup e executar uv run arb db migrate", "etapa-2"),
+    "drill_recent": ("uv run arb db backup; uv run arb db drill", "etapa-2"),
+    "card_limit": (
+        'arb validate record card_limit --evidence "<descrição sem segredo>"',
+        "etapa-3",
+    ),
+    "spend_cap": ('arb validate record spend_cap --evidence "<descrição sem segredo>"', "etapa-3"),
+    "meta_read_env": (
+        "Exportar META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION só no terminal do host",
+        "etapa-4",
+    ),
+    "smoke_registered": (
+        "arb smoke register --campaign <ID> --adset <ID> --ad <ID> "
+        "--offer <OFERTA> --geo <GEO> --cap-cents <TETO>",
+        "etapa-6",
+    ),
+    "smoke_offer_permission": (
+        "Importar a oferta com producer_paid_traffic_ok=true e evidence_ref da permissão escrita",
+        "etapa-6",
+    ),
+}
+
+
+def test_every_observe_next_step_links_to_existing_anchor():
+    document = Path("docs/runbooks/dia-1.md").read_text()
+    for _, anchor in NEXT_STEPS.values():
+        assert f'<a id="{anchor}"></a>' in document
+
+
+def test_existing_observe_fields_byte_identical(monkeypatch):
+    monkeypatch.setenv("LIVE_MODE", "false")
+    for name in ("META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID", "META_API_VERSION"):
+        monkeypatch.delenv(name, raising=False)
+    result = CliRunner().invoke(
+        app,
+        ["readiness", "--root", "tests/fixtures/readiness/absent", "--scope", "observe", "--json"],
+    )
+    assert result.exit_code == 1
+    value = json.loads(result.stdout)
+    for row in value["pending"]:
+        row.pop("next_step")
+        row.pop("runbook")
+    reference = Path("tests/fixtures/readiness/observe-pending.json").read_text()
+    assert json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n" == reference

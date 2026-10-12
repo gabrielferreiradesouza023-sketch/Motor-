@@ -1,0 +1,89 @@
+{
+  "authorizes": "nenhuma escrita; somente leitura da fumaça humana",
+  "not_required_for_observe": [
+    {
+      "item": "graph_executor",
+      "reason": "Nenhuma exposição automática; fumaça operada pelo humano"
+    },
+    {
+      "item": "f5",
+      "reason": "Aceite completo separado; observação só requer leitura configurada no host"
+    },
+    {
+      "item": "f6_pause",
+      "reason": "Motor nunca pausa fumaça humana"
+    },
+    {
+      "item": "tracking",
+      "reason": "Aceite assinado de rastreio pertence ao laboratório"
+    },
+    {
+      "item": "V-01",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-02",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-03",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-04",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-05",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-06",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "persistent_host",
+      "reason": "Operação manual no host humano"
+    },
+    {
+      "item": "service_package",
+      "reason": "Comandos manuais; serviço não obrigatório para observar"
+    },
+    {
+      "item": "service_installed",
+      "reason": "Comandos manuais; nenhuma instalação autorizada"
+    }
+  ],
+  "pending": [
+    {
+      "item": "card_limit",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)"
+    },
+    {
+      "item": "spend_cap",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)"
+    },
+    {
+      "item": "drill_recent",
+      "reason": "Drill de backup ausente/falho ou mais antigo que 48h"
+    },
+    {
+      "item": "meta_read_env",
+      "reason": "Definir META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION somente no host"
+    },
+    {
+      "item": "database",
+      "reason": "Banco ausente/inválido ou migrações/checksums pendentes"
+    },
+    {
+      "item": "smoke_registered",
+      "reason": "Registrar fumaça com teto positivo dentro de controls.total_cap_cents"
+    },
+    {
+      "item": "smoke_offer_permission",
+      "reason": "Cada oferta da fumaça exige permissão escrita de tráfego pago e evidence_ref"
+    }
+  ],
+  "ready": false,
+  "scope": "observe"
+}

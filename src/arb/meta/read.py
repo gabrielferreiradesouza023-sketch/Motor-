@@ -121,7 +121,7 @@ class Reader:
             raise MetaReadError("Conta exige moeda BRL e fuso America/Sao_Paulo")
         return result
 
-    def insights(self, since: date, until: date) -> list[dict]:
+    def insights(self, since: date, until: date, parent: str | None = None) -> list[dict]:
         if since > until:
             raise ValueError("Intervalo de datas invertido")
         fields = (
@@ -129,7 +129,7 @@ class Reader:
             "spend,actions,date_start,date_stop"
         )
         return self.pages(
-            self.account_id + "/insights",
+            self._parent(parent) + "/insights",
             {
                 "fields": fields,
                 "level": "ad",
@@ -139,13 +139,33 @@ class Reader:
             },
         )
 
-    def ads(self) -> list[dict]:
+    def ads(self, parent: str | None = None) -> list[dict]:
         return self.pages(
-            self.account_id + "/ads",
+            self._parent(parent) + "/ads",
             {
                 "limit": "100",
                 "fields": (
                     "id,name,status,adset{id,name,status,daily_budget,campaign{id,name,status}}"
                 ),
+            },
+        )
+
+    def _parent(self, parent: str | None) -> str:
+        if parent is None:
+            return self.account_id
+        if not re.fullmatch(r"(?:act_)?[0-9]+", parent):
+            raise ValueError("Nó Graph inválido")
+        return parent
+
+    def account_spend(self, since: date, until: date) -> list[dict]:
+        if since > until:
+            raise ValueError("Intervalo de datas invertido")
+        return self.pages(
+            self.account_id + "/insights",
+            {
+                "fields": "spend",
+                "level": "account",
+                "limit": "100",
+                "time_range": json.dumps({"since": since.isoformat(), "until": until.isoformat()}),
             },
         )

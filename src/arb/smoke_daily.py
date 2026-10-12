@@ -11,8 +11,9 @@ from zoneinfo import ZoneInfo
 from arb.config import Settings, load_sales_csv
 from arb.db import Repository
 from arb.launcher.execute import require_simulation
-from arb.meta.read import Reader
-from arb.meta.sync import last_collection, sync
+from arb.meta.read import MetaReadError, Reader
+from arb.meta.sync import cents, last_collection, sync
+from arb.metrics import spend_gross
 from arb.models import Action
 from arb.permissions import private_open, report_paths
 from arb.smoke import markdown, report
@@ -33,6 +34,7 @@ def daily(
     until=None,
     sales_csv=None,
     mapping=None,
+    account_cap_cents=None,
     reader=None,
     now=None,
 ):
@@ -40,6 +42,10 @@ def daily(
     now = now or datetime.now(UTC)
     if now.utcoffset() is None or not re.fullmatch(r"[0-9]+", campaign):
         raise ValueError("campanha/data inválida")
+    if account_cap_cents is not None and (
+        type(account_cap_cents) is not int or account_cap_cents <= 0
+    ):
+        raise ValueError("teto de conta precisa ser inteiro positivo")
     zone = ZoneInfo(settings.timezone)
     local = now.astimezone(zone)
     identifier = "meta-" + campaign
@@ -81,7 +87,28 @@ def daily(
             os.environ.get("META_API_VERSION") or settings.meta_api_version or "",
         )
     try:
-        sync(connection, reader, since, until, now=now)
+        sync(connection, reader, since, until, now=now, campaign_meta_id=campaign)
+        account_gross = other_gross = None
+        try:
+            account_rows = reader.account_spend(since, until)
+            account_gross = spend_gross(
+                sum(cents(row["spend"]) for row in account_rows), settings.media_tax_rate
+            )
+            window_platform = sum(
+                json.loads(row[0])["spend_platform_cents"]
+                for row in connection.execute(
+                    "SELECT d.payload FROM meta_daily d JOIN entities e "
+                    "ON json_extract(e.payload, '$.meta_id')=d.ad_id "
+                    "JOIN smoke_entities s ON s.entity_id=e.id "
+                    "WHERE d.source=? AND s.campaign_id=? AND d.period BETWEEN ? AND ?",
+                    (reader.account_id, identifier, since.isoformat(), until.isoformat()),
+                )
+            )
+            other_gross = account_gross - spend_gross(window_platform, settings.media_tax_rate)
+            if other_gross < 0:
+                raise ValueError("conta inconsistente com fumaça")
+        except (MetaReadError, ValueError, KeyError, TypeError, ArithmeticError):
+            account_gross = other_gross = None
     finally:
         if owned:
             reader.close()
@@ -99,7 +126,15 @@ def daily(
         else ("ATENÇÃO: prepare-se para pausar" if gross >= cap * PREPARE_FRACTION else "")
     )
     messages = [m for m in (alert, "AVISO: dado atrasado" if stale else "") if m]
+    if account_cap_cents is not None and account_gross is not None:
+        if account_gross >= account_cap_cents:
+            messages.append("CONTA NO LIMITE: confira o spend_cap no Gerenciador")
+            code = 2
+        elif account_gross >= account_cap_cents * PREPARE_FRACTION:
+            messages.append("ATENÇÃO: conta perto do spend_cap")
     value["daily"] = {
+        "account_spend_gross": account_gross,
+        "other_spend_gross": other_gross,
         "collected_at": stamp.isoformat() if stamp else None,
         "local_time": local.isoformat(),
         "since": since.isoformat(),
@@ -110,7 +145,7 @@ def daily(
         "messages": messages,
     }
     text = json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
-    md = markdown(value) + "\n" + "\n".join(messages) + "\n"
+    md = markdown(value) + "\n" + "\n".join(account_lines(value) + messages) + "\n"
     created = []
     try:
         for target, content in zip(targets, (text, md), strict=True):
@@ -139,6 +174,19 @@ def summary(value):
             f"não casadas (banco inteiro): {value['unmatched_sales_bank']}",
             f"Última coleta: {state['collected_at']}; "
             f"dado {'atrasado' if state['stale'] else 'recente'}",
+            *account_lines(value),
             *state["messages"],
         ]
     )
+
+
+def account_lines(value):
+    state = value["daily"]
+
+    def amount(key):
+        return "indisponível" if state[key] is None else f"{state[key]} centavos brutos estimados"
+
+    return [
+        "Gasto da conta na janela: " + amount("account_spend_gross"),
+        "Gasto fora da fumaça: " + amount("other_spend_gross"),
+    ]

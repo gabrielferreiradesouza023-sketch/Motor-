@@ -12,6 +12,11 @@ from arb.meta.read import MetaReadError, Reader
 from arb.models import Action, Entity, MetricAdjustment, MetricSnapshot, Offer
 from arb.tracker import match
 
+
+class UnregisteredSmokeAd(MetaReadError):
+    """Fixed diagnostic; no provider payload or identifiers in the message."""
+
+
 COUNTERS = ("impressions", "video_3s_views", "link_clicks", "spend_platform_cents")
 
 
@@ -34,6 +39,7 @@ def sync(
     since: date,
     until: date,
     *,
+    campaign_meta_id: str | None = None,
     mapping: dict[str, dict[str, str]] | None = None,
     now: datetime | None = None,
 ) -> dict:
@@ -46,8 +52,31 @@ def sync(
     source = reader.account_id
     try:
         reader.account()
-        ads = reader.ads()
-        insights = reader.insights(since, until)
+        if campaign_meta_id is None:
+            ads = reader.ads()
+            insights = reader.insights(since, until)
+        else:
+            ads = reader.ads(campaign_meta_id)
+            insights = reader.insights(since, until, campaign_meta_id)
+            registered = {
+                row[0]
+                for row in connection.execute(
+                    "SELECT json_extract(e.payload, '$.meta_id') FROM entities e "
+                    "JOIN smoke_entities s ON s.entity_id=e.id "
+                    "WHERE s.campaign_id=? AND json_extract(e.payload, '$.kind')='ad'",
+                    ("meta-" + campaign_meta_id,),
+                )
+            }
+            for ad in ads:
+                if str(ad["adset"]["campaign"]["id"]) != campaign_meta_id:
+                    raise ValueError("Campanha divergente")
+                if str(ad["id"]) not in registered:
+                    raise UnregisteredSmokeAd("anúncio novo na fumaça: registre com smoke register")
+            for row in insights:
+                if str(row["campaign_id"]) != campaign_meta_id:
+                    raise ValueError("Campanha divergente")
+                if str(row["ad_id"]) not in registered:
+                    raise UnregisteredSmokeAd("anúncio novo na fumaça: registre com smoke register")
         entities = {e.meta_id: e for e in Repository(connection, Entity).list() if e.meta_id}
         seen_ads = set()
         with connection:
@@ -194,6 +223,10 @@ def sync(
                 "INSERT INTO meta_sync_runs VALUES (?,?,?,?)",
                 (run_id, now.isoformat(timespec="microseconds"), "failed", type(exc).__name__),
             )
+        if isinstance(exc, UnregisteredSmokeAd):
+            raise UnregisteredSmokeAd(
+                "anúncio novo na fumaça: registre com smoke register"
+            ) from None
         raise MetaReadError("Coleta incompleta: nenhuma decisão de pass permitida") from None
     match(connection)
     return result

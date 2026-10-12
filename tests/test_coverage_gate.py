@@ -28,6 +28,7 @@ def synthetic_report():
                 "src/arb/scheduler/__init__.py",
                 "src/arb/safety.py",
                 "src/arb/meta/pause.py",
+                "src/arb/meta/read.py",
                 "src/arb/ledger.py",
                 "src/arb/reconcile.py",
                 "src/arb/quarantine.py",
