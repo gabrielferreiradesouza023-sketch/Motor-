@@ -14,7 +14,7 @@ from typer.testing import CliRunner
 from arb.cli import app
 from arb.db import Repository, connect
 from arb.launcher import approval
-from arb.models import Action, MetricSnapshot
+from arb.models import Action, Entity, MetricSnapshot
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -91,24 +91,36 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
         requests.append(request)
         assert request.method == "GET"
         if request.url.path.endswith("/ads"):
-            return httpx.Response(
-                200,
-                json={
-                    "data": [
-                        {
-                            "id": eid,
-                            "status": "ACTIVE",
-                            "adset": {
-                                "id": "2",
-                                "status": "ACTIVE",
-                                "daily_budget": "1000",
-                                "campaign": {"id": "1", "status": "ACTIVE"},
-                            },
-                        }
-                        for eid in ("3", "4", "5")
-                    ]
-                },
-            )
+            ads = [
+                {
+                    "id": eid,
+                    "status": "ACTIVE",
+                    "adset": {
+                        "id": "2",
+                        "status": "ACTIVE",
+                        "daily_budget": "1000",
+                        "campaign": {"id": "1", "status": "ACTIVE"},
+                    },
+                }
+                for eid in ("3", "4", "5")
+            ]
+            if request.url.path.endswith("/act_123/ads"):
+                ads.append(
+                    {
+                        "id": "99",
+                        "status": "PAUSED",
+                        "adset": {
+                            "id": "98",
+                            "status": "PAUSED",
+                            "campaign": {"id": "97", "status": "PAUSED"},
+                        },
+                    }
+                )
+            return httpx.Response(200, json={"data": ads})
+        if request.url.params.get("level") == "account":
+            assert request.url.path == "/v99.0/act_123/insights"
+            assert request.url.params["fields"] == "spend"
+            return httpx.Response(200, json={"data": [{"spend": "150.00"}]})
         if request.url.path.endswith("/insights"):
             period = json.loads(request.url.params["time_range"])["since"]
             return httpx.Response(
@@ -142,7 +154,7 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
     monkeypatch.chdir(root)
     doc = (ROOT / "docs/runbooks/dia-1.md").read_text()
     lines = commands(doc)
-    assert len(lines) == 18
+    assert len(lines) == 19
     assert "LIVE_MODE=true" not in doc
     output = []
     readiness_results = []
@@ -158,6 +170,10 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
         assert args[:3] == ["uv", "run", "arb"], line
         args = args[3:]
         if args[:2] == ["smoke", "daily"]:
+            assert (
+                "--account-cap-cents" in args
+                and args[args.index("--account-cap-cents") + 1] == "30000"
+            )
             clock[0] += timedelta(minutes=1)
         result = CliRunner().invoke(app, args, input="y\n")
         if args[0] == "readiness":
@@ -167,6 +183,11 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
             assert result.exit_code == expected, (line, result.output, result.exception)
         else:
             assert result.exit_code == 0, (line, result.output, result.exception)
+        if args[:2] == ["sales", "inspect"]:
+            inspected = json.loads(result.stdout)
+            assert inspected["rows"] == 1 and inspected["mapping"]["compatible"]
+            assert inspected["mapping"]["statuses"] == {"mapped": 1, "unmapped": 0}
+            assert "SYNTHETIC_TX" not in result.stdout
         output.append(result.stdout)
         if args[:2] == ["smoke", "register"]:
             # Already collected synthetic bridge counters; never query a published Worker.
@@ -191,17 +212,29 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
         "smoke_registered",
         "smoke_offer_permission",
     }
+    assert all(item["next_step"] and item["runbook"] for item in readiness_results[0]["pending"])
     assert readiness_results[1]["ready"]
     assert len(requests) == 8 and {r.method for r in requests} == {"GET"}
+    assert not any(r.url.path.endswith("/act_123/ads") for r in requests)
+    assert sum(r.url.params.get("level") == "account" for r in requests) == 2
     reports = sorted((root / "reports/smoke").glob("*.json"))
     assert len(reports) == 2
     data = json.loads(reports[-1].read_text())
+    assert data["daily"]["account_spend_gross"] == 16950
+    assert data["daily"]["other_spend_gross"] == 10170  # 16950 - (6000 * 1.13)
     row = data["campaigns"][0]
     assert row["spend_platform_cents"] == 6000 and row["spend_gross"] == 6780
     assert row["impressions"] == 6000 and row["cpm_gross"] == 1130
     assert row["ctr_link"] == 0.02 and row["hook_rate"] == 0.3
     assert row["bridge_views"] == 120 and row["checkout_clicks"] == 3 and row["matched_sales"] == 1
     conn = connect(root / "data/engine.db")
+    assert {entity.meta_id for entity in Repository(conn, Entity).list()} == {
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+    }
     assert not {a.kind for a in Repository(conn, Action).list()} & {
         "activate",
         "pause",
@@ -250,4 +283,4 @@ def test_every_placeholder_has_a_named_human_input():
         "CSV_VENDAS_LOCAL",
         "MAPA_VENDAS_VALIDADO",
     }
-    assert "### O que o humano precisa fazer" in doc
+    assert "### O que o humano faz em 12/10" in doc
