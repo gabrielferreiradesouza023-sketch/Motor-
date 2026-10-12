@@ -1,3 +1,232 @@
+# HANDOFF — BATCH-08 entregue para revisão
+
+## Estado verificado e ordem de revisão
+
+Base `origin/main` **0df45a9289bad0c6a02e66729ef4f365fcaaac60**, merge do #38/BATCH-07,
+T-84–T-88 em review e LOCK inicial vazio. Branch **codex/batch-08**; planejamento verbatim
+em `e06e643`. PR [#39](https://github.com/gabrielferreiradesouza023-sketch/Motor-/pull/39).
+As alterações estão propostas neste PR; não foi feito merge nem push direto na main.
+Claude revisa T-89 → T-93 e decide o merge delegado pelo humano. Só marcar ready após CI
+**gates + worker** verde no SHA final, registrado no corpo do PR. Não há PR de planejamento
+anterior pendente para esta base. LOCK liberado a cada card em review e vazio na entrega.
+
+## Feito e evidência por tarefa
+
+| Tarefa | Status | Commit de implementação | Testes | Evidência principal |
+|---|---|---|---|---|
+| T-89 | review | e11b9ef | 30 novos; suíte 1251, zero skips | Reprodução ACTIVE/PAUSED falhou antes; campanha isolada, conta 16950−fumaça9040=7910, limites 24000/30000, rollback das violações e zero escritas Meta |
+| T-90 | review | 12f8888 | 2 novos +18 cenários ampliados; suíte 1253, zero skips | Próximo passo e âncora exatos para cada pendência; full e campos antigos de observe byte-idênticos |
+| T-91 | review | 71c6214 | 21 novos; suíte 1274, zero skips | CSV só metadados, UTF-8/BOM, tipos/contagens, mapa/cabeçalhos compartilhados, nomes/e-mail/CPF/status livre sintéticos não aparecem |
+| T-92 | review | 383e459 | 2 testes existentes ampliados; suíte 1274, zero skips | 19 comandos extraídos (5 exports +14 arb), oito GET e anúncio alheio; 6780 bruto fumaça, 16950 conta, 10170 fora, CPM 1130 / CTR .02 / hook .3 |
+| T-93 | review | commit deste card | auditoria documental + gates completos | ADR-044/045/046 Aceitos só por status/nota; técnico byte-idêntico; ADR-047 Proposto; prontidão real capturada abaixo |
+
+### Qualidade e compatibilidade
+
+Gates locais consolidados: **1274 passed, 0 skips**, cobertura combinada
+**94.120553%**, 29 grupos de dinheiro verdes
+(metrics mínimo 100%; demais 95%). Ruff check/format, cobertura de linhas+branches,
+check_coverage, doctor, 15 contratos sem drift e detect-secrets verdes. Todos esses gates foram
+repetidos na T-93; evidência do CI do commit final consta no corpo do PR.
+Comandos reais: `uv run ruff check`; `uv run ruff format --check`;
+`uv run pytest --cov=arb --cov-branch --cov-report=json:data/coverage.json`;
+`uv run python scripts/check_coverage.py data/coverage.json`; `uv run arb doctor`;
+`uv run arb contracts export`; `uv run pre-commit run --all-files`;
+`uv run arb drill run --seed 42 --json` seguido de comparação byte a byte com
+`docs/validation/drill-seed-42.json`. Worker intocado; job worker verde em cada SHA anterior.
+
+Seed 42, nove summaries (seeds 0/7/42 × três perfis) e oito células de calibração byte-idênticos
+a 0df45a9. Requisições padrão de Reader/sync comparadas a URLs/params literais da main;
+sync de conta inteira continua estrito. Full texto/JSON e projeção dos campos antigos de
+observe têm referência versionada. Config rules/settings, arb.models, contracts, serviço
+padrão, Worker, goldens e relatórios de calibração não foram alterados.
+
+CI por tarefa, antes de começar a seguinte:
+
+- T-89: `e11b9ef220db4a1fa5d800e2c2b498de9fb49d4a` — gates + worker SUCCESS (SHA conferido na API do run).
+- T-90: `12f8888605ea217e3f88e747d9f9c5b626d6e520` — gates + worker SUCCESS (SHA conferido na API do run).
+- T-91: `71c6214a022d67406c22e9058d0773c6ec945c76` — gates + worker SUCCESS (SHA conferido na API do run).
+- T-92: `383e45998510fe9d318374ca982801a0d6522d77` — gates + worker SUCCESS (SHA conferido na API do run).
+- T-93: conferir checks do SHA final no corpo do PR; conversão para ready somente após ambos SUCCESS.
+
+| Módulo/grupo | Cobertura combinada | Mínimo |
+|---|---:|---:|
+| arb | 94.120553% | 80% |
+| arb.rules | 100.000000% | 95% |
+| arb.metrics | 100.000000% | 100% |
+| arb.launcher | 98.313253% | 95% |
+| arb.launcher.confirmation | 100.000000% | 95% |
+| arb.scheduler | 95.278246% | 95% |
+| arb.safety | 100.000000% | 95% |
+| arb.meta.pause | 100.000000% | 95% |
+| arb.meta | 98.522167% | 95% |
+| arb.ledger | 100.000000% | 95% |
+| arb.reconcile | 100.000000% | 95% |
+| arb.quarantine | 100.000000% | 95% |
+| arb.db.checkpoint | 97.701149% | 95% |
+| arb.scout.approve | 100.000000% | 95% |
+| arb.creative.approve | 100.000000% | 95% |
+| arb.launcher.scale | 97.101449% | 95% |
+| arb.remote | 99.445983% | 95% |
+| arb.remote.journal | 100.000000% | 95% |
+| arb.remote.launch | 95.833333% | 95% |
+| arb.drill | 100.000000% | 95% |
+| arb.tracker.ids | 100.000000% | 95% |
+| arb.permissions | 100.000000% | 95% |
+| arb.accept | 96.992481% | 95% |
+| arb.accept_pause | 100.000000% | 95% |
+| arb.accept_tracking | 100.000000% | 95% |
+| arb.readiness | 100.000000% | 95% |
+| arb.validation | 97.468354% | 95% |
+| arb.sim.observed | 100.000000% | 95% |
+| arb.smoke | 100.000000% | 95% |
+| arb.smoke_daily | 100.000000% | 95% |
+
+## Bugs e lacunas tratados
+
+- Daily lia a conta inteira; qualquer anúncio desconhecido, inclusive pausado, abortava a
+  coleta. Agora lê o nó da campanha registrada; recusa campanha divergente e anúncio novo
+  dentro dela antes de persistir, sem relatório parcial. Sync geral mantém o comportamento.
+- O gasto de outras campanhas não aparecia. Consulta informativa de conta calcula bruto e
+  diferença na mesma janela; não subtrai o acumulado histórico da fumaça. Falha/inconsistência
+  da conta vira null/indisponível e não mascara o alerta nem a falha da fumaça.
+- O gate financeiro não incluía o conjunto arb.meta. Incluído com testes de violações reais:
+  primeira rodada 89.655172%, agora 98.522167%, sem reduzir o mínimo nem desativar testes.
+- Readiness agora orienta cada pendência; inspeção CSV informa estrutura sem expor compradores;
+  runbook valida cada comando e explicita as limitações operacionais existentes.
+
+## Decisões
+
+ADR-044, ADR-045 e ADR-046: **Aceito**, com a nota exata “decisão delegada ao Claude em 2026-10-11, revisável pelo humano”.
+Texto técnico preservado byte a byte além do status/nota. ADR-047: **Proposto — aguarda
+aceite humano**, documenta o novo escopo da coleta e a leitura informativa da conta.
+C e CAPI continuam desligados; aceitar ADR não altera configuração nem autoriza exposição.
+
+## Bloqueios e pendências humanas
+
+Nenhum card de implementação bloqueado. Operação real continua dependendo do humano:
+
+- Claude: revisar/decidir merge do PR #39; ADR-047 proposto segue sujeito a aceite/revisão.
+- Humano: conferir limites reais (cartão R$300, spend_cap R$300, campanha R$220), registrar card_limit
+  e spend_cap assinados e atuais no próprio host; manter privada fora do cloud.
+- Humano: configurar somente no host ads_read, conta e versão verificadas; oferta com
+  permissão escrita; campanha pausada com os três IDs cadastrados; observe pronto antes
+  de ativar no Gerenciador. Tabela operacional em docs/runbooks/dia-1.md.
+- Humano/provedor: validar exportação e mapa CSV real (V-01), dados/rastreio/fatura e demais
+  V-01–V-06, aceites reais F5/F6 e host persistente no fluxo completo. Nenhum formato do
+  provedor, conta, versão ou credencial foi inventado. Executor Graph T-55 continua ausente.
+- Se surgir anúncio novo numa fumaça já registrada: cadastro atual não acrescenta IDs e
+  recusa duplicados. Solicitar revisão específica do cadastro antes de retomar a observação;
+  não repetir registro, editar SQLite ou excluir entidade Meta para contornar. Esta extensão
+  não faz parte do batch. O guia usa os três anúncios registrados desde o início.
+
+## Riscos remanescentes
+
+Motor **nunca pausa a fumaça**, mesmo sob freio/dado atrasado. Alertas e exit 2 exigem ação
+humana; spend_cap e limite da campanha/cartão são as barreiras reais. Consulta de conta é
+informativa e limitada à janela; não comprova saldo vitalício do spend_cap. Indisponível não
+é zero; gasto fora da janela exige conferência na Meta. --account-cap-cents ausente mantém
+os códigos anteriores, sem alerta de conta. Bruto inclui imposto configurado estimado.
+
+Sales inspect não confirma V-01, não converte arquivos nem valida cada data/valor como uma
+importação. Detecta separadores, mas o importador atual aceita vírgula; mapa em outro
+separador é marcado incompatível. Dados de comprador ficam no host. Registros/evidências
+de teste não comprovam limites nem aceites reais. **Motor não pronto para dinheiro real.**
+
+## Readiness real da CLI, banco sintético do runbook
+
+Comando: `LIVE_MODE=false uv run arb readiness --root /tmp/b08-t92-evidence --scope observe --json`.
+**Exit 1**, ready=false, card_limit/spend_cap/meta_read_env pendentes, com next_step/runbook.
+Exportação contém configurações públicas, SQLite consistente e registros assinados apenas
+pela chave sintética do conftest; nenhuma privada foi exportada. A CLI real verifica com a
+pública versionada e corretamente recusa assinaturas sintéticas. Dentro do teste, a pública
+sintética é injetada e observe pronto é verificado; isso não é aceite de operação real.
+
+```json
+{
+  "authorizes": "nenhuma escrita; somente leitura da fumaça humana",
+  "not_required_for_observe": [
+    {
+      "item": "graph_executor",
+      "reason": "Nenhuma exposição automática; fumaça operada pelo humano"
+    },
+    {
+      "item": "f5",
+      "reason": "Aceite completo separado; observação só requer leitura configurada no host"
+    },
+    {
+      "item": "f6_pause",
+      "reason": "Motor nunca pausa fumaça humana"
+    },
+    {
+      "item": "tracking",
+      "reason": "Aceite assinado de rastreio pertence ao laboratório"
+    },
+    {
+      "item": "V-01",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-02",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-03",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-04",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-05",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "V-06",
+      "reason": "Validação completa separada; V-03 por oferta é checada aqui"
+    },
+    {
+      "item": "persistent_host",
+      "reason": "Operação manual no host humano"
+    },
+    {
+      "item": "service_package",
+      "reason": "Comandos manuais; serviço não obrigatório para observar"
+    },
+    {
+      "item": "service_installed",
+      "reason": "Comandos manuais; nenhuma instalação autorizada"
+    }
+  ],
+  "pending": [
+    {
+      "item": "card_limit",
+      "next_step": "arb validate record card_limit --evidence \"<descrição sem segredo>\"",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)",
+      "runbook": "docs/runbooks/dia-1.md#etapa-3"
+    },
+    {
+      "item": "spend_cap",
+      "next_step": "arb validate record spend_cap --evidence \"<descrição sem segredo>\"",
+      "reason": "Registro humano assinado ausente, inválido ou antigo (>7 dias)",
+      "runbook": "docs/runbooks/dia-1.md#etapa-3"
+    },
+    {
+      "item": "meta_read_env",
+      "next_step": "Exportar META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION só no terminal do host",
+      "reason": "Definir META_ACCESS_TOKEN, META_AD_ACCOUNT_ID e META_API_VERSION somente no host",
+      "runbook": "docs/runbooks/dia-1.md#etapa-4"
+    }
+  ],
+  "ready": false,
+  "scope": "observe"
+}
+```
+
+---
+
+## Histórico BATCH-07 e anteriores (estado atual e pendências substituídos acima)
+
 # HANDOFF — BATCH-07 concluído para revisão
 
 ## Estado verificado
@@ -805,3 +1034,6 @@ O teste do runbook exportou /tmp/b07-t86-evidence com dados sintéticos, SQLite 
 
 ### BATCH-08 T-92 — review
 2 testes do runbook ampliados; 2 falhas antes da atualização. 19 comandos (5 exports +14 arb) executados contra SQLite sintético e 8 GET; anúncio alheio pausado não reconciliado. Referências: 6000 impressões, 6780 bruto fumaça, 16950 conta, 10170 fora, CPM1130/CTR.02/hook.3; inspeção CSV sem conteúdo das células. 26 testes focados verdes. Readiness CLI real sobre banco exportado: não pronto, card_limit/spend_cap/meta_read_env com next_step/runbook; assinatura sintética recusada pela pública versionada. 9 summaries/8 células byte-idênticos à main. Guia explica limite do registro atual (não acrescenta IDs), leitura informativa da conta e compatibilidade restrita do CSV. Revisão adversarial concluída; somente docs/testes. Gates locais: 1274 testes, 94.12% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI no SHA desta implementação: consultar PR do BATCH-08; ready exige gates+worker SUCCESS.
+
+### BATCH-08 T-93 — review
+Auditoria inicial falhou com ADR-044 ainda Proposto; após mudança, ADR-044/045/046 Aceitos com nota delegada exata, texto técnico byte-idêntico ao remover somente status/nota. ADR-047 continua Proposto. HANDOFF no topo inclui base/commits, testes/cobertura por grupo, CI anterior por SHA, bloqueios/riscos/limitações e saída CLI real de observe: exit 1, card_limit/spend_cap/meta_read_env pendentes com next_step/runbook. Todos os gates repetidos verdes; revisão adversarial documental e configurações/modelos/contratos/Worker/serviço/goldens intocados. PR só ready após CI final verde; nenhum merge. Gates locais: 1274 testes, 94.12% total; dinheiro >=95%, doctor OK, drill 42 idêntico. CI no SHA desta implementação: consultar PR do BATCH-08; ready exige gates+worker SUCCESS.

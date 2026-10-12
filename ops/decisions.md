@@ -550,7 +550,9 @@ Load_settings público fornece os parâmetros aos consumidores de dados do produ
 Nenhuma configuração ou modelo muda. Metrics entra no gate de 100% combinado.
 
 ## ADR-044 — Prontidão separada para observação humana (T-84)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+decisão delegada ao Claude em 2026-10-11, revisável pelo humano.
 
 readiness --scope observe só verifica localmente live_mode falso/ausente, database com catálogo/checksums de migrações atual (mesma função do doctor), drill_recent aprovado <=48h, card_limit e spend_cap assinados <=7 dias, presença de META_ACCESS_TOKEN/META_AD_ACCOUNT_ID/META_API_VERSION no processo, smoke_registered com todos os tetos positivos dentro do total_cap e smoke_offer_permission com true e evidence_ref não vazia por oferta. Valores das variáveis nunca são exibidos, hasheados ou registrados; nenhum .env ou privada é lido. Banco é aberto somente em mode=ro.
 
@@ -558,7 +560,9 @@ Graph executor, F5/F6/tracking, V-01–06 completos e host/serviço persistente 
 
 
 ## ADR-045 — Coleta diária e pausa exclusivamente humana (T-85)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+decisão delegada ao Claude em 2026-10-11, revisável pelo humano.
 
 smoke daily reaproveita sync GET, import_sales com mapa explícito validado pelo schema e smoke report. Mapa válido não confirma automaticamente V-01 do provedor; humano valida formato no host. Janela padrão vai da data local do registro auditado até hoje no settings.timezone. Nenhuma escrita Meta/Worker, mensagem ou pausa automática. Coleta account-level segue sync meta: anúncio desconhecido sem mapeamento recusa a coleta, nunca inventa oferta/geo.
 
@@ -568,7 +572,9 @@ Arquivos JSON/Markdown em horário local AAAA-MM-DDTHHMM, criação exclusiva 06
 
 
 ## ADR-046 — Aprovação canônica da fatia C (T-87)
-Status: **Proposto — aguarda aceite humano**.
+Status: **Aceito**.
+
+decisão delegada ao Claude em 2026-10-11, revisável pelo humano.
 
 Approval.kind inclui gate_c_confirmation; contratos regenerados. Plano fechado: kind,
 entity_id, geo, offer_id, confirmation_start_cents, extra_cap_cents, total_cap_cents,
