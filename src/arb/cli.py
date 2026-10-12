@@ -1477,6 +1477,7 @@ def smoke_daily(
     sales_csv: str | None = None,
     mapping: str | None = None,
     output_dir: str = "reports/smoke",
+    account_cap_cents: int | None = typer.Option(None, "--account-cap-cents"),
     json_output: bool = typer.Option(False, "--json"),
 ):
     import json
@@ -1506,6 +1507,7 @@ def smoke_daily(
             value, code = daily(
                 connection,
                 campaign,
+                account_cap_cents=account_cap_cents,
                 settings=settings,
                 rules=load_rules(),
                 database=path,
@@ -1515,7 +1517,11 @@ def smoke_daily(
                 sales_csv=sales_csv,
                 mapping=mapping,
             )
-    except MetaReadError:
+    except MetaReadError as exc:
+        from arb.meta.sync import UnregisteredSmokeAd
+
+        if isinstance(exc, UnregisteredSmokeAd):
+            typer.echo(str(exc), err=True)
         typer.echo(
             "Coleta Meta falhou; nenhum relatório novo. Verifique leitura no host e repita.",
             err=True,

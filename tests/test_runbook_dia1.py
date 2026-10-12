@@ -117,6 +117,7 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
                     "data": [
                         {
                             "ad_id": eid,
+                            "campaign_id": "1",
                             "date_start": period,
                             "date_stop": period,
                             "impressions": "2000",
@@ -191,7 +192,7 @@ def test_all_day_one_commands_execute_with_numeric_reference(tmp_path, monkeypat
         "smoke_offer_permission",
     }
     assert readiness_results[1]["ready"]
-    assert len(requests) == 6 and {r.method for r in requests} == {"GET"}
+    assert len(requests) == 8 and {r.method for r in requests} == {"GET"}
     reports = sorted((root / "reports/smoke").glob("*.json"))
     assert len(reports) == 2
     data = json.loads(reports[-1].read_text())

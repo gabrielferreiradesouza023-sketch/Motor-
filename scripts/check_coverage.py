@@ -12,6 +12,7 @@ MONEY_MODULES = (
     "scheduler",
     "safety",
     "meta.pause",
+    "meta",
     "ledger",
     "reconcile",
     "quarantine",

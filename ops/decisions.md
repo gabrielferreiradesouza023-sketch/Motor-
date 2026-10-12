@@ -584,3 +584,21 @@ e conserva status/orçamento. Ativação de família/candidato no teto e journal
 revalidam C; aprovar C não substitui aprovação de ativação/escala, freios, daily_cap
 ou total_cap. Rules.gate_C=None retorna antes desses caminhos, preservando os padrões.
 O simulador continua contrafactual, não concede autorização de exposição.
+
+## ADR-047 — Coleta da fumaça por campanha e gasto informativo da conta (T-89)
+Status: **Proposto — aguarda aceite humano**.
+
+Daily usa os mesmos campos e arestas GET ads/insights, com nó da campanha registrada.
+Valida a campanha de cada anúncio/insight e exige vínculo explícito na tabela de registro
+smoke_entities; respostas alheias e anúncios novos não registrados falham fechados com exit 3,
+sem relatório. Sync meta sem escopo conserva requisições e reconciliação estrita de conta
+inteira; não ignora entidades desconhecidas. Identificadores de nó são validados antes do GET.
+
+A leitura adicional de insights level=account pede apenas spend, na mesma janela. Aplica o
+imposto configurado e subtrai o gasto da fumaça dessa janela, não seu acumulado histórico.
+Conta inconsistente (menor que a fumaça) ou indisponível produz null/indisponível, sem mascarar
+falha da coleta da fumaça nem seus alertas. É informação, não prova do saldo vitalício do
+spend_cap: gasto fora da janela não aparece. --account-cap-cents é opcional, positivo e
+explícito; >=80% alerta, >=100% exige ação humana com exit 2. Sem flag, os códigos anteriores
+permanecem. Nenhuma pausa, escrita remota, limite real presumido ou nova configuração.
+Os módulos meta e smoke_daily ficam no gate combinado de 95%.

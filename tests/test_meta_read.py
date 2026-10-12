@@ -94,3 +94,42 @@ def test_missing_configuration_and_transport_failure():
     reader = make(failed)
     with pytest.raises(MetaReadError, match="transporte"):
         reader.account()
+
+
+def test_default_requests_match_main_and_parent_changes_only_node():
+    """Literal reference captured from main 0df45a9; no new fields or endpoints."""
+    import json
+
+    calls = []
+    reader = make(lambda r: calls.append(r) or httpx.Response(200, json={"data": []}))
+    since, until = date(2026, 10, 1), date(2026, 10, 2)
+    reader.ads()
+    reader.insights(since, until)
+    reader.ads("456")
+    reader.insights(since, until, "456")
+    assert [r.url.path for r in calls] == [
+        "/v99.0/act_123/ads",
+        "/v99.0/act_123/insights",
+        "/v99.0/456/ads",
+        "/v99.0/456/insights",
+    ]
+    assert dict(calls[0].url.params) == {
+        "limit": "100",
+        "fields": "id,name,status,adset{id,name,status,daily_budget,campaign{id,name,status}}",
+    }
+    assert dict(calls[1].url.params) == {
+        "fields": "ad_id,ad_name,adset_id,campaign_id,impressions,inline_link_clicks,"
+        "spend,actions,date_start,date_stop",
+        "level": "ad",
+        "time_increment": "1",
+        "limit": "100",
+        "time_range": json.dumps({"since": "2026-10-01", "until": "2026-10-02"}),
+    }
+    assert calls[0].url.params == calls[2].url.params
+    assert calls[1].url.params == calls[3].url.params
+    for parent in ("../456", "456/ads", "https://evil.example", ""):
+        with pytest.raises(ValueError, match="Nó Graph"):
+            reader.ads(parent)
+    with pytest.raises(ValueError, match="invertido"):
+        reader.account_spend(until, since)
+    assert len(calls) == 4

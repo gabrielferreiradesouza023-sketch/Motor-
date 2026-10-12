@@ -57,22 +57,36 @@ def daily_case(tmp_path, records, monkeypatch):
         if state["fail"]:
             raise httpx.ConnectError("SYNTHETIC_TOKEN_SENTINEL", request=request)
         if request.url.path.endswith("/ads"):
+            ads = [
+                {
+                    "id": state.get("ad_id", "3"),
+                    "status": "ACTIVE",
+                    "adset": {
+                        "id": "2",
+                        "status": "ACTIVE",
+                        "daily_budget": "1000",
+                        "campaign": {"id": state.get("ad_campaign", "1"), "status": "ACTIVE"},
+                    },
+                }
+            ]
+            if request.url.path.endswith("/act_123/ads") and state.get("foreign"):
+                ads.append(
+                    {
+                        "id": "99",
+                        "status": state["foreign"],
+                        "adset": {
+                            "id": "98",
+                            "status": "PAUSED",
+                            "campaign": {"id": "97", "status": "PAUSED"},
+                        },
+                    }
+                )
+            return httpx.Response(200, json={"data": ads})
+        if request.url.params.get("level") == "account":
+            if state.get("account_fail"):
+                return httpx.Response(500, json={"error": {"code": 1}})
             return httpx.Response(
-                200,
-                json={
-                    "data": [
-                        {
-                            "id": "3",
-                            "status": "ACTIVE",
-                            "adset": {
-                                "id": "2",
-                                "status": "ACTIVE",
-                                "daily_budget": "1000",
-                                "campaign": {"id": "1", "status": "ACTIVE"},
-                            },
-                        }
-                    ]
-                },
+                200, json={"data": [{"spend": state.get("account_spend", state["spend"])}]}
             )
         if request.url.path.endswith("/insights"):
             period = json.loads(request.url.params["time_range"])["since"]
@@ -81,7 +95,8 @@ def daily_case(tmp_path, records, monkeypatch):
                 json={
                     "data": [
                         {
-                            "ad_id": "3",
+                            "ad_id": state.get("insight_ad", "3"),
+                            "campaign_id": state.get("insight_campaign", "1"),
                             "date_start": period,
                             "date_stop": period,
                             "impressions": "2000",
@@ -166,7 +181,7 @@ def test_replay_csv_explicit_mapping_and_same_window(daily_case, tmp_path):
     assert two["campaigns"][0]["matched_sales"] == 1 and two["unmatched_sales_bank"] == 1
     assert len(Repository(conn, SaleEvent).list()) == 2
     assert len(Repository(conn, MetricSnapshot).list()) == 2
-    assert len(state["requests"]) == 6
+    assert len(state["requests"]) == 8
     assert len(list(args["output_dir"].iterdir())) == 4
 
 
@@ -374,3 +389,123 @@ def test_graph_version_comes_from_config_when_environment_absent(daily_case, mon
     value, _ = daily_module.daily(conn, "1", **args)
     assert value["campaigns"][0]["spend_gross"] == 9040
     assert all("/v99.0/" in r.url.path for r in state["requests"])
+
+
+@pytest.mark.parametrize("foreign", ["ACTIVE", "PAUSED"])
+def test_other_campaign_does_not_break_daily(daily_case, foreign):
+    from arb.models import Entity
+
+    conn, state, args = daily_case
+    state["foreign"] = foreign
+    value, code = daily_module.daily(conn, "1", **args)
+    assert code == 0 and value["campaigns"][0]["spend_gross"] == 9040
+    assert {e.meta_id for e in Repository(conn, Entity).list()} == {"1", "2", "3"}
+
+
+@pytest.mark.parametrize("violation", ["ad_campaign", "insight_campaign", "ad_id", "insight_ad"])
+def test_campaign_scope_rejects_foreign_or_unregistered_without_report(daily_case, violation):
+    conn, state, args = daily_case
+    state[violation] = "99"
+    before = [s.model_dump() for s in Repository(conn, MetricSnapshot).list()]
+    result = CliRunner().invoke(
+        app,
+        [
+            "smoke",
+            "daily",
+            "--campaign",
+            "1",
+            "--database",
+            str(args["database"]),
+            "--output-dir",
+            str(args["output_dir"]),
+        ],
+    )
+    assert result.exit_code == 3
+    if violation in {"ad_id", "insight_ad"}:
+        assert "anúncio novo na fumaça: registre com smoke register" in result.output
+    assert not args["output_dir"].exists()
+    assert [s.model_dump() for s in Repository(conn, MetricSnapshot).list()] == before
+
+
+@pytest.mark.parametrize(
+    "account,cap,gross,other,code,message",
+    [
+        ("150.00", None, 16950, 7910, 0, ""),
+        ("212.39", 30000, 24000, 14960, 0, "ATENÇÃO: conta perto do spend_cap"),
+        ("265.49", 30000, 30000, 20960, 2, "CONTA NO LIMITE: confira o spend_cap no Gerenciador"),
+        ("150.00", 30000, 16950, 7910, 0, ""),
+    ],
+)
+def test_account_gross_and_optional_cap_reference(
+    daily_case, account, cap, gross, other, code, message
+):
+    conn, state, args = daily_case
+    state["account_spend"] = account
+    value, actual = daily_module.daily(conn, "1", **args, account_cap_cents=cap)
+    assert (value["daily"]["account_spend_gross"], value["daily"]["other_spend_gross"], actual) == (
+        gross,
+        other,
+        code,
+    )
+    if message:
+        assert message in value["daily"]["messages"]
+    text = daily_module.summary(value)
+    md = next(args["output_dir"].glob("*.md")).read_text()
+    for rendered in (text, md):
+        assert f"Gasto da conta na janela: {gross}" in rendered
+        assert f"Gasto fora da fumaça: {other}" in rendered
+
+
+@pytest.mark.parametrize("failure", ["http", "invalid", "inconsistent"])
+def test_account_failure_is_informational_without_masking_smoke_limit(daily_case, failure):
+    conn, state, args = daily_case
+    state["spend"] = "100.00"
+    if failure == "http":
+        state["account_fail"] = True
+    else:
+        state["account_spend"] = "bad" if failure == "invalid" else "1.00"
+    value, code = daily_module.daily(conn, "1", **args, account_cap_cents=30000)
+    assert code == 2
+    assert value["daily"]["account_spend_gross"] is None
+    assert value["daily"]["other_spend_gross"] is None
+    assert "Gasto da conta na janela: indisponível" in daily_module.summary(value)
+    assert "PAUSE AGORA NO GERENCIADOR" in value["daily"]["messages"]
+
+
+def test_account_cap_cli_and_invalid_input_before_get(daily_case):
+    conn, state, args = daily_case
+    with pytest.raises(ValueError, match="teto de conta"):
+        daily_module.daily(conn, "1", **args, account_cap_cents=0)
+    assert not state["requests"]
+    state["account_spend"] = "265.49"
+    result = CliRunner().invoke(
+        app,
+        [
+            "smoke",
+            "daily",
+            "--campaign",
+            "1",
+            "--database",
+            str(args["database"]),
+            "--output-dir",
+            str(args["output_dir"]),
+            "--account-cap-cents",
+            "30000",
+            "--json",
+        ],
+    )
+    assert (
+        result.exit_code == 2 and json.loads(result.stdout)["daily"]["account_spend_gross"] == 30000
+    )
+
+
+def test_account_subtracts_same_window_not_accumulated_smoke(daily_case):
+    conn, state, args = daily_case
+    daily_module.daily(conn, "1", **args)
+    state["account_spend"] = "150.00"
+    value, _ = daily_module.daily(
+        conn, "1", **args, since="2026-10-11", until="2026-10-11", now=NOW + timedelta(days=1)
+    )
+    assert value["campaigns"][0]["spend_gross"] == 18080
+    assert value["daily"]["account_spend_gross"] == 16950
+    assert value["daily"]["other_spend_gross"] == 7910
