@@ -1156,6 +1156,7 @@ def readiness(
         typer.echo(result["authorizes"])
         for item in result["pending"]:
             typer.echo(f"✘ {item['item']}: {item['reason']}")
+            typer.echo(f"→ próximo passo: {item['next_step']}")
         for item in result["not_required_for_observe"]:
             typer.echo(f"Dispensado: {item['item']}: {item['reason']}")
     else:

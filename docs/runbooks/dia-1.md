@@ -12,6 +12,8 @@ na campanha **R$220**, moeda **BRL** e fuso **America/Sao_Paulo**. Confira o efe
 limite no próprio serviço. O teto local bruto de 25000 centavos é um alerta, não substitui
 os limites externos. Nenhuma configuração externa é aplicada por este roteiro.
 
+<a id="etapa-2"></a>
+
 ## 2. Preparar o motor em simulação
 
 Se houver banco operacional, quarentena ou intenção pendente, consulte
@@ -43,6 +45,8 @@ uv run arb scout import --offers "<CSV_OFERTAS_COM_PERMISSAO>" --adlibrary "<CSV
 
 Se a oferta já existe, não repetir a importação. Conferir seu ID e a permissão antes do passo 6.
 
+<a id="etapa-3"></a>
+
 ## 3. Assinar os registros humanos dos limites
 
 Na **máquina assinadora**, configure o caminho da chave privada existente fora do repo e
@@ -59,6 +63,8 @@ uv run arb validate record spend_cap --evidence "<REFERENCIA_SPEND_CAP_VERIFICAD
 
 Confirmar em TTY somente conteúdo verificado. Registros expiram em sete dias e não autorizam
 exposição do motor. A ausência de assinatura válida bloqueia o go/no-go.
+
+<a id="etapa-4"></a>
 
 ## 4. Configurar leitura Meta somente no host do operador
 
@@ -90,6 +96,8 @@ Antes de registrar a fumaça, é esperado `ready=false`/exit 1 com `smoke_regist
 `smoke_offer_permission` pendentes. Corrija as demais pendências e siga apenas para criar a
 campanha **pausada**, não para ativá-la. Scope observe autoriza somente leitura; dispensa os
 aceites completos F5/F6/rastreio/Graph/host para esta rotina humana. Full continua não pronto.
+
+<a id="etapa-6"></a>
 
 ## 6. Criar a fumaça PAUSADA e registrar os IDs
 
